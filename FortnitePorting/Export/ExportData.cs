@@ -21,17 +21,36 @@ public class ExportData
     public static async Task<ExportData> Create(UObject asset, EAssetType assetType)
     {
         var data = new ExportData();
-        data.Name = asset.GetOrDefault("DisplayName", new FText("Unnamed")).Text;
+        data.Name = asset.GetOrDefault("DeveloperName", new FText("Unnamed")).Text;
         data.Type = assetType.ToString();
         await Task.Run(() =>
         {
             switch (assetType)
             {
-                case EAssetType.Outfit:
+                case EAssetType.Character:
                 {
-                    var parts = asset.GetOrDefault("BaseCharacterParts", Array.Empty<UObject>());
-                    ExportHelpers.CharacterParts(parts, data.Parts);
+                    
+                    var meshes = new UObject[2];
+                    // add to meshes array
+                    meshes[0] = asset.GetOrDefault("MeshOverlay1P", new UObject());
+                    meshes[1] = asset.GetOrDefault("MeshCosmetic3P", new UObject());
+                    ExportHelpers.CharacterParts(meshes, data.Parts);
                     break;
+                }
+                case EAssetType.Weapon:
+                {
+                    var weapmeshes = new UObject[1];
+                    weapmeshes[0] = asset.GetOrDefault("Mesh1P", new UObject());
+                    ExportHelpers.CharacterParts(weapmeshes, data.Parts);
+                    break;
+                }
+                case EAssetType.GunBuddy:
+                {
+                    var buddymesh = new  UObject[1];
+                    buddymesh[0] = asset.GetOrDefault("Charm", new UObject());
+                    ExportHelpers.CharacterParts(buddymesh, data.Parts);
+                    break;
+                    
                 }
                 default:
                     throw new ArgumentOutOfRangeException();

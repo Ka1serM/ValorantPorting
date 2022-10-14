@@ -47,7 +47,7 @@ public class StartupViewModel : ObservableObject
         var fortniteInfo = launcherInstalled.InstallationList.FirstOrDefault(x => x.AppName.Equals("Fortnite"));
         if (fortniteInfo is null) return;
 
-        ArchivePath = fortniteInfo.InstallLocation + "\\FortniteGame\\Content\\Paks\\";
+        ArchivePath = fortniteInfo.InstallLocation + "\\ShooterGame\\Content\\Paks\\";
         Log.Information("Detected EGL Installation at {0}", ArchivePath);
     }
 

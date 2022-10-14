@@ -28,7 +28,7 @@ public class CUE4ParseViewModel : ObservableObject
 
     public CUE4ParseViewModel(string directory)
     {
-        Provider = new DefaultFileProvider(directory, SearchOption.TopDirectoryOnly, isCaseInsensitive: true, new VersionContainer(EGame.GAME_UE5_1));
+        Provider = new DefaultFileProvider(directory, SearchOption.TopDirectoryOnly, isCaseInsensitive: true, new VersionContainer(EGame.GAME_Valorant));
     }
     
     public async Task Initialize()
@@ -36,26 +36,15 @@ public class CUE4ParseViewModel : ObservableObject
         Provider.Initialize();
 
         await InitializeKeys();
-        await InitializeMappings();
-        if (Provider.MappingsContainer is null)
-        {
-            AppLog.Warning("Failed to load mappings, issues may occur");
-        }
         
-        Provider.LoadLocalization(AppSettings.Current.Language);
         Provider.LoadVirtualPaths();
-        
-        var assetArchive = await Provider.TryCreateReaderAsync("FortniteGame/AssetRegistry.bin");
+
+        var assetArchive = await Provider.TryCreateReaderAsync("ShooterGame/AssetRegistry.bin");
         if (assetArchive is not null)
         {
             AssetRegistry = new FAssetRegistryState(assetArchive);
         }
         
-        var rarityData = await Provider.LoadObjectAsync("FortniteGame/Content/Balance/RarityData.RarityData");
-        for (var i = 0; i < 8; i++)
-        {
-            RarityData[i] = rarityData.GetByIndex<RarityCollection>(i);
-        }
         
     }
 
@@ -64,12 +53,8 @@ public class CUE4ParseViewModel : ObservableObject
         var keyResponse = await EndpointService.FortniteCentral.GetKeysAsync();
         if (keyResponse is not null) AppSettings.Current.AesResponse = keyResponse;
         keyResponse ??= AppSettings.Current.AesResponse;
-        
-        await Provider.SubmitKeyAsync(Globals.ZERO_GUID, new FAesKey(keyResponse.MainKey));
-        foreach (var dynamicKey in keyResponse.DynamicKeys)
-        {
-            await Provider.SubmitKeyAsync(new FGuid(dynamicKey.GUID), new FAesKey(dynamicKey.Key));
-        }
+        var keyString = "0x4BE71AF2459CF83899EC9DC2CB60E22AC4B3047E0211034BBABE9D174C069DD6";
+        await Provider.SubmitKeyAsync(Globals.ZERO_GUID, new FAesKey(keyString));
     }
 
     private async Task InitializeMappings()

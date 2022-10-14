@@ -18,8 +18,8 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <TextBlock Margin="{adonisUi:Space 1}" FontSize="24" HorizontalAlignment="Center" Text="Welcome to Fortnite Porting!"/>
-            <TextBlock Margin="{adonisUi:Space 1}" HorizontalAlignment="Center" TextAlignment="Center" Text="Please choose your specified game language and locate your Fortnite installation folder to get started! If you skip this step the program may not work as intended." TextWrapping="WrapWithOverflow"/>
+            <TextBlock Margin="{adonisUi:Space 1}" FontSize="24" HorizontalAlignment="Center" Text="Welcome to Valorant Porting!"/>
+            <TextBlock Margin="{adonisUi:Space 1}" HorizontalAlignment="Center" TextAlignment="Center" Text="Please choose your specified game language and locate your Valorant installation folder to get started! If you skip this step the program may not work as intended." TextWrapping="WrapWithOverflow"/>
         </StackPanel>
         <Grid Grid.Row="2" Margin="{adonisUi:Space 1}">
             <Grid.RowDefinitions>

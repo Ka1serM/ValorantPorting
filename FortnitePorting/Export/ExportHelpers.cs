@@ -9,6 +9,7 @@ using CUE4Parse_Conversion.Textures;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
+using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -28,15 +29,16 @@ public static class ExportHelpers
             
             var skeletalMesh = part.Get<USkeletalMesh?>("SkeletalMesh");
             if (skeletalMesh is null) continue;
-            
             if (!skeletalMesh.TryConvert(out var convertedMesh)) continue;
             if (convertedMesh.LODs.Count <= 0) continue;
             
             exportPart.MeshPath = skeletalMesh.GetPathName();
             Save(skeletalMesh);
-            
-            exportPart.Part = part.GetOrDefault<EFortCustomPartType>("CharacterPartType").ToString();
-
+            exportPart.Part = "FP";
+            if (skeletalMesh.Name.Contains("TP"))
+            {
+                exportPart.Part = "TP";
+            }
             var sections = convertedMesh.LODs[0].Sections.Value;
             for (var idx = 0; idx < sections.Length; idx++)
             {

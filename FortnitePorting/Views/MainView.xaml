@@ -5,7 +5,7 @@
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
              xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
-             Title="Fortnite Porting" Width="1280" Height="720" WindowStartupLocation="CenterScreen"  Loaded="OnLoaded">
+             Title="Valorant Porting" Width="1280" Height="720" WindowStartupLocation="CenterScreen"  Loaded="OnLoaded">
     <Window.InputBindings>
         <KeyBinding Key="R" Modifiers="Control" Command="{Binding MenuCommand}" CommandParameter="File_Restart"/>
     </Window.InputBindings>
@@ -59,7 +59,7 @@
                 <TabControl SelectionChanged="OnAssetTabSelectionChanged" IsEnabled="{Binding IsReady}">
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Outfits" ImageSource="/FortnitePorting;component/Resources/Outfit.png"/>
+                            <controls:TextWithIcon Label="Characters" ImageSource="/FortnitePorting;component/Resources/Outfit.png"/>
                         </TabItem.Header>
                         <ListBox ItemsSource="{Binding Outfits}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
@@ -71,19 +71,7 @@
                     </TabItem>
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Back Blings" ImageSource="/FortnitePorting;component/Resources/Backpack.png"/>
-                        </TabItem.Header>
-                        <ListBox ItemsSource="{Binding BackBlings}" SelectionChanged="OnAssetSelectionChanged">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                        </ListBox>
-                    </TabItem>
-                    <TabItem Style="{StaticResource TabItemEqualSize}">
-                        <TabItem.Header>
-                            <controls:TextWithIcon Label="Pickaxes" ImageSource="/FortnitePorting;component/Resources/Pickaxe.png"/>
+                            <controls:TextWithIcon Label="Weapons" ImageSource="/FortnitePorting;component/Resources/Weapon.png"/>
                         </TabItem.Header>
                         <ListBox ItemsSource="{Binding HarvestingTools}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
@@ -95,33 +83,21 @@
                     </TabItem>
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Gliders" ImageSource="/FortnitePorting;component/Resources/Glider.png"/>
-                        </TabItem.Header>
-                        <ListBox ItemsSource="{Binding Gliders}" SelectionChanged="OnAssetSelectionChanged">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                        </ListBox>
-                    </TabItem>
-                    <TabItem Style="{StaticResource TabItemEqualSize}">
-                        <TabItem.Header>
-                            <controls:TextWithIcon Label="Weapons" ImageSource="/FortnitePorting;component/Resources/Weapon.png"/>
-                        </TabItem.Header>
-                        <ListBox ItemsSource="{Binding Weapons}" SelectionChanged="OnAssetSelectionChanged">
-                            <ListBox.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
-                                </ItemsPanelTemplate>
-                            </ListBox.ItemsPanel>
-                        </ListBox>
-                    </TabItem>
-                    <TabItem Style="{StaticResource TabItemEqualSize}">
-                        <TabItem.Header>
-                            <controls:TextWithIcon Label="Emotes" ImageSource="/FortnitePorting;component/Resources/Dance.png"/>
+                            <controls:TextWithIcon Label="Gunbuddies" ImageSource="/FortnitePorting;component/Resources/Mesh.png"/>
                         </TabItem.Header>
                         <ListBox ItemsSource="{Binding Dances}" SelectionChanged="OnAssetSelectionChanged">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                        </ListBox>
+                    </TabItem>
+                    <TabItem Style="{StaticResource TabItemEqualSize}">
+                        <TabItem.Header>
+                            <controls:TextWithIcon Label="Maps" ImageSource="pack://application:,,,/Resources/Props.png"/>
+                        </TabItem.Header>
+                        <ListBox ItemsSource="{Binding Maps}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
@@ -167,8 +143,8 @@
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
                         <Image Source="{Binding StyleImage}" Width="88" Height="88"/>
                         <StackPanel Margin="{adonisUi:Space 1}" Width="256" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CurrentAsset.DisplayName}" FontSize="24" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CurrentAsset.Description}" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentAsset.DisplayName}" FontSize="21" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentAsset.Description}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </StackPanel>
                     

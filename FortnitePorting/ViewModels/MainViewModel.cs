@@ -46,7 +46,7 @@ public partial class MainViewModel : ObservableObject
     public Visibility StyleVisibility => currentAsset is null ? Visibility.Collapsed : Visibility.Visible;
 
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> backBlings = new();
+    [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> harvestingTools = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> gliders = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
@@ -66,7 +66,8 @@ public partial class MainViewModel : ObservableObject
         {
             var loadTime = new Stopwatch();
             loadTime.Start();
-            AppVM.CUE4ParseVM = new CUE4ParseViewModel(AppSettings.Current.ArchivePath);
+            var ArchiveP = "C:\\ValContentEvent\\ShooterGame\\Content\\Paks";
+            AppVM.CUE4ParseVM = new CUE4ParseViewModel(ArchiveP);
             await AppVM.CUE4ParseVM.Initialize();
             loadTime.Stop();
 

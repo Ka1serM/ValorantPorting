@@ -4,7 +4,7 @@ namespace FortnitePorting;
 
 public enum EInstallType
 {
-    [Description("Locsal")]
+    [Description("Local")]
     Local,
     
     [Description("Fortnite Live")]
@@ -22,24 +22,17 @@ public enum ERichPresenceAccess
 
 public enum EAssetType
 {
-    [Description("Outfits")]
-    Outfit,
-    
-    [Description("Back Blings")]
-    Backpack,
-    
-    [Description("Harvesting Tools")]
-    Pickaxe,
-    
-    [Description("Gliders")]
-    Glider,
+    [Description("Characters")]
+    Character,
     
     [Description("Weapons")]
     Weapon,
-
-    [Description("Emotes")]
-    Dance,
     
+    [Description("GunBuddies")]
+    GunBuddy,
+    [Description("Maps")]
+    Maps,
+
     /*[Description("Props")]
     Prop,
     
@@ -47,14 +40,8 @@ public enum EAssetType
     Mesh,*/
 }
 
-public enum EFortCustomPartType : byte
+public enum EValBodyType : byte
 {
-    Head = 0,
-    Body = 1,
-    Hat = 2,
-    Backpack = 3,
-    MiscOrTail = 4,
-    Face = 5,
-    Gameplay = 6,
-    NumTypes = 7
+    FP = 0,
+    TP = 1,
 }

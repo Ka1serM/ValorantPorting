@@ -3,7 +3,6 @@ using System.Linq;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CUE4Parse_Conversion.Textures;
-using CUE4Parse.FN.Enums;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
