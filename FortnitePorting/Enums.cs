@@ -4,7 +4,7 @@ namespace FortnitePorting;
 
 public enum EInstallType
 {
-    [Description("Local")]
+    [Description("Locsal")]
     Local,
     
     [Description("Fortnite Live")]
