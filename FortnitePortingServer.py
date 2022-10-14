@@ -1,5 +1,6 @@
 import bpy
 import json
+from pathlib import Path
 import os
 import socket
 import threading
@@ -73,19 +74,13 @@ class Receiver(threading.Thread):
 class Utils:
     # Name, Slot, Location, *Linear
     texture_mappings = {
-        ("Diffuse", 0, (-300, -75)),
-        ("PetalDetailMap", 0, (-300, -75)),
+        ("Albedo", 1, (-250, -75)),
+        ("MRAE", 10, (-200, -75)),
+        ("MRS", 6, (-100, -75)),
+        ("AEM", 2, (-150, -75)),
 
-        ("SpecularMasks", 1, (-300, -125), True),
-        ("SpecMap", 1, (-300, -125), True),
+        ("Normal", 19, (-300, -125), True),
 
-        ("Normals", 5, (-300, -175), True),
-        ("Normal", 5, (-300, -175), True),
-        ("NormalMap", 5, (-300, -175), True),
-
-        ("M", 7, (-300, -225), True),
-
-        ("Emissive", 12, (-300, -325)),
     }
 
     # Name, Slot
@@ -110,17 +105,21 @@ class Utils:
 
     # Name, Slot, *Alpha
     vector_mappings = {
-        ("Skin Boost Color And Exponent", 10, 11),
-
-        ("EmissiveColor", 18, 17),
-        ("Emissive Color", 18, 17)
+        ("Skin Undercolor", 7, 11),
     }
+    shaders_v = [
+            "VALORANT_Agent",
+            "VALORANT_Weapon",
+            "FP Mapping"
+        ]
+
+
+
 
     @staticmethod
     def import_mesh(path: str) -> bpy.types.Object:
         path = path[1:] if path.startswith("/") else path
         mesh_path = os.path.join(import_assets_root, path.split(".")[0] + "_LOD0")
-
         if os.path.exists(mesh_path + ".psk"):
             mesh_path += ".psk"
         if os.path.exists(mesh_path + ".pskx"):
@@ -146,7 +145,7 @@ class Utils:
         return bpy.data.images.load(texture_path, check_existing=True)
 
     @staticmethod
-    def import_material(target_slot: bpy.types.MaterialSlot, material_data):
+    def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type):
         material_name = material_data.get("MaterialName")
         if (existing := bpy.data.materials.get(material_name)) and existing.use_nodes is True:  # assume default psk mat
             target_slot.material = existing
@@ -157,19 +156,20 @@ class Utils:
             target_material.name = material_name
             target_slot.material = target_material
         target_material.use_nodes = True
-
         nodes = target_material.node_tree.nodes
         nodes.clear()
         links = target_material.node_tree.links
         links.clear()
-
+        import_shaders("VALORANT_Weapon.blend")
+        import_shaders("VALORANT_Agent.blend")
         output_node = nodes.new(type="ShaderNodeOutputMaterial")
         output_node.location = (200, 0)
-
         shader_node = nodes.new(type="ShaderNodeGroup")
-        shader_node.name = "Fortnite Porting"
+        shader_node.name = "VALORANT_Weapon"
+        print(mat_type)
+        if mat_type == "Character":
+            shader_node.name = "VALORANT_Agent"
         shader_node.node_tree = bpy.data.node_groups.get(shader_node.name)
-
         links.new(shader_node.outputs[0], output_node.inputs[0])
 
         def texture_parameter(data):
@@ -217,7 +217,6 @@ class Utils:
                 return
 
             _, slot, *extra = info
-
             shader_node.inputs[slot].default_value = (value["R"], value["G"], value["B"], 1)
 
             if extra[0]:
@@ -229,8 +228,8 @@ class Utils:
         for texture in material_data.get("Textures"):
             texture_parameter(texture)
 
-        for scalar in material_data.get("Scalars"):
-            scalar_parameter(scalar)
+        #for scalar in material_data.get("Scalars"):
+            #scalar_parameter(scalar)
 
         for vector in material_data.get("Vectors"):
             vector_parameter(vector)
@@ -249,7 +248,13 @@ class Utils:
 
         return next(Filtered, default)
 
-
+def import_shaders(shaderName):
+    script_root = Path(os.path.dirname(os.path.abspath(__file__)))
+    shaders_blend_file = Path(script_root.joinpath(shaderName))
+    nodegroups_folder = shaders_blend_file.joinpath("NodeTree")
+    for shader in Utils.shaders_v:
+        if shader not in bpy.data.node_groups.keys():
+            bpy.ops.wm.append(filename=shader, directory=nodegroups_folder.__str__())
 def import_response(response):
     global import_assets_root
     import_assets_root = response.get("AssetsRoot")
@@ -262,9 +267,7 @@ def import_response(response):
 
     name = import_data.get("Name")
     type = import_data.get("Type")
-
     Log.information(f"Received Import for {type}: {name}")
-    print(import_data)
 
     imported_parts = {}
     for part in import_data.get("Parts"):
@@ -280,13 +283,13 @@ def import_response(response):
 
         for material in part.get("Materials"):
             index = material.get("SlotIndex")
-            Utils.import_material(mesh.material_slots.values()[index], material)
+            Utils.import_material(mesh.material_slots.values()[index], material,type)
 
         for override_material in part.get("OverrideMaterials"):
             index = override_material.get("SlotIndex")
-            Utils.import_material(mesh.material_slots.values()[index], override_material)
+            Utils.import_material(mesh.material_slots.values()[index], override_material,type)
 
-
+            
 def register():
     import_event = threading.Event()
 
