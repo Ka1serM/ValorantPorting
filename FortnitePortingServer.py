@@ -75,9 +75,9 @@ class Utils:
     # Name, Slot, Location, *Linear
     texture_mappings = {
         ("Albedo", 1, (-250, -75)),
-        ("MRAE", 10, (-200, -75)),
-        ("MRS", 6, (-100, -75)),
-        ("AEM", 2, (-150, -75)),
+        ("MRAE", 10, (-200, -75), True),
+        ("MRS", 6, (-100, -75), True),
+        ("AEM", 2, (-150, -75), True),
 
         ("Normal", 19, (-300, -125), True),
 
