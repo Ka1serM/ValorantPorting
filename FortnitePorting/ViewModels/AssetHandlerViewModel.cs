@@ -61,7 +61,8 @@ public class AssetHandlerViewModel
             return pImage;
         }
     };
-    
+
+
     private readonly AssetHandlerData BuddyHandler = new()
     {
         AssetType = EAssetType.GunBuddy,
@@ -117,7 +118,7 @@ public class AssetHandlerData
         {
             foreach (var tValue in VARIABLE.TagsAndValues)
             {
-                if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == ClassNames[0])  
+                if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == ClassNames[0] && !VARIABLE.AssetName.ToString().Contains("NPE"))  
                 {
                     items.Add(VARIABLE);
                 }
@@ -125,7 +126,6 @@ public class AssetHandlerData
         }
         // prioritize random first cuz of parallel list positions
         // console write line items length
-        Console.WriteLine(items.Count + " " +  AssetType.ToString());
         var random = items.FirstOrDefault(x => x.AssetName.PlainText.Contains("Random", StringComparison.OrdinalIgnoreCase));
         if (random is not null)
         {
@@ -184,22 +184,16 @@ public class AssetHandlerData
                 Loadable = "CharmAttachment";
                 break;
         }
+        
         if (actual_asset.TryGetValue(out UBlueprintGeneratedClass EquippableObject, Loadable))
         {
             actual_asset = EquippableObject.ClassDefaultObject.Load();
         }
         if (UI_Asset is null)
         {
-            if (AssetType != EAssetType.Bundles)
-            {
-                Log.Warning("UI_Asset is null for {AssetName}", data.AssetName);
-                return;
-            }
-            else
-            {
-                UI_Asset = actual_asset;
-            }
+            UI_Asset = actual_asset;
         }
+        
         var previewImage = IconGetter(UI_Asset);
         if (previewImage is null) return;
         await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actual_asset,UI_Asset, previewImage, random)), DispatcherPriority.Background);

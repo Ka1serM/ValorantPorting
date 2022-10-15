@@ -8,6 +8,7 @@ using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.i18N;
+using CUE4Parse.UE4.Objects.Engine;
 using FortnitePorting.Views.Extensions;
 
 namespace FortnitePorting.Export;
@@ -17,7 +18,15 @@ public class ExportData
     public string Name;
     public string Type;
     public List<ExportPart> Parts = new();
-
+    public static async Task<UObject> CreateUIData(UBlueprintGeneratedClass asset )
+    {
+        UObject Sla = null;
+        await Task.Run(() =>
+        {
+            Sla = asset.ClassDefaultObject.Load();
+        });
+        return Task.FromResult(Sla).Result;
+    }
     public static async Task<ExportData> Create(UObject asset, EAssetType assetType)
     {
         var data = new ExportData();

@@ -12,15 +12,13 @@ namespace FortnitePorting.Views.Controls;
 
 public partial class StyleSelectorItem
 {
-    public FStructFallback OptionData;
     public string DisplayName { get; set; }
     public BitmapSource IconSource { get; set; }
     
-    public StyleSelectorItem(FStructFallback option, SKBitmap previewBitmap)
+    public StyleSelectorItem(string Name, SKBitmap previewBitmap)
     {
         InitializeComponent();
-        OptionData = option;
-        DisplayName = option.GetOrDefault("VariantName", new FText("Unknown Style")).Text.ToLower().TitleCase();
+        DisplayName = Name;
         IconSource = previewBitmap.ToBitmapSource();
 
     }
