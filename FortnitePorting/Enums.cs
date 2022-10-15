@@ -24,14 +24,14 @@ public enum EAssetType
 {
     [Description("Characters")]
     Character,
-    
     [Description("Weapons")]
     Weapon,
-    
     [Description("GunBuddies")]
     GunBuddy,
     [Description("Maps")]
     Maps,
+    [Description("Bundles")]
+    Bundles,
 
     /*[Description("Props")]
     Prop,

@@ -5,7 +5,7 @@
         <TargetFramework>net6.0-windows</TargetFramework>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
-        <ApplicationIcon>FortnitePorting.ico</ApplicationIcon>
+        <ApplicationIcon>ValorantPorting.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>

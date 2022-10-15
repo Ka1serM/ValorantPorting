@@ -7,6 +7,7 @@ using System.Windows.Input;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
+using CUE4Parse.UE4.Objects.Engine;
 using FortnitePorting.AppUtils;
 using FortnitePorting.Services;
 using FortnitePorting.ViewModels;
@@ -81,11 +82,14 @@ public partial class MainView
         AppVM.MainVM.CurrentAsset = selected;
         StyleList.Children.Clear();
         
-        var styles = selected.Asset.GetOrDefault("ItemVariants", Array.Empty<UObject>());
-        foreach (var style in styles)
+        var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
+        foreach (UBlueprintGeneratedClass style in styles)
         {
-            var channel = style.GetOrDefault("VariantChannelName", new FText("Unknown")).Text.ToLower().TitleCase();
-            var optionsName = style.ExportType switch
+            var CDO = style.ClassDefaultObject.Load();
+            var channel = CDO.GetOrDefault("UIData", new UObject());
+            var  bpChannel = (UBlueprintGeneratedClass)channel;
+            var channelCDO = bpChannel.ClassDefaultObject.Load();
+            var optionsName = CDO.ExportType switch
             {
                 "FortCosmeticCharacterPartVariant" => "PartOptions",
                 "FortCosmeticMaterialVariant" => "MaterialOptions",
@@ -95,10 +99,10 @@ public partial class MainView
             
             if (optionsName is null) continue;
 
-            var options = style.Get<FStructFallback[]>(optionsName);
+            var options = CDO.Get<FStructFallback[]>(optionsName);
             if (options.Length == 0) continue;
             
-            var styleSelector = new StyleSelector(channel, options);
+            var styleSelector = new StyleSelector(channel.Name, options);
             StyleList.Children.Add(styleSelector);
         }
     }

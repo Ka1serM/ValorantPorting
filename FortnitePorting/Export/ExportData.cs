@@ -40,7 +40,7 @@ public class ExportData
                 case EAssetType.Weapon:
                 {
                     var weapmeshes = new UObject[1];
-                    weapmeshes[0] = asset.GetOrDefault("Mesh1P", new UObject());
+                    weapmeshes[0] = asset.GetOrDefault("NewMesh", new UObject());
                     ExportHelpers.CharacterParts(weapmeshes, data.Parts);
                     break;
                 }

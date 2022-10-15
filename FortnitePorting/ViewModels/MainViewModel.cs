@@ -47,8 +47,8 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
+    [ObservableProperty] private ObservableCollection<AssetSelectorItem> bundles = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> harvestingTools = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> gliders = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> dances = new();
 
@@ -67,7 +67,7 @@ public partial class MainViewModel : ObservableObject
             var loadTime = new Stopwatch();
             loadTime.Start();
             var ArchiveP = "C:\\ValContentEvent\\ShooterGame\\Content\\Paks";
-            AppVM.CUE4ParseVM = new CUE4ParseViewModel(ArchiveP);
+            AppVM.CUE4ParseVM = new CUE4ParseViewModel(AppSettings.Current.ArchivePath);
             await AppVM.CUE4ParseVM.Initialize();
             loadTime.Stop();
 

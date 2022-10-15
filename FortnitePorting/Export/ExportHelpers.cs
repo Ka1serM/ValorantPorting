@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -27,7 +28,14 @@ public static class ExportHelpers
         {
             var exportPart = new ExportPart();
             
-            var skeletalMesh = part.Get<USkeletalMesh?>("SkeletalMesh");
+            Console.WriteLine($"Exporting {part.Name}...");
+            if (part is USkeletalMesh skeletalMesh)
+            {
+            }
+            else
+            {
+                skeletalMesh = part.Get<USkeletalMesh?>("SkeletalMesh");
+            }
             if (skeletalMesh is null) continue;
             if (!skeletalMesh.TryConvert(out var convertedMesh)) continue;
             if (convertedMesh.LODs.Count <= 0) continue;

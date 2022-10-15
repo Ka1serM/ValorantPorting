@@ -31,6 +31,7 @@ public class AssetHandlerViewModel
             { EAssetType.GunBuddy, BuddyHandler },
             { EAssetType.Weapon, WeaponHandler },
             { EAssetType.Maps, MapsHandler },
+            { EAssetType.Bundles, BundlesHandler },
         };
 
     }
@@ -47,12 +48,12 @@ public class AssetHandlerViewModel
             return previewImage;
         }
     };
-    
+
     private readonly AssetHandlerData WeaponHandler = new()
     {
         AssetType = EAssetType.Weapon,
         TargetCollection = AppVM.MainVM.HarvestingTools,
-        ClassNames = new List<string> { "EquippableDataAsset"},
+        ClassNames = new List<string> { "EquippableSkinDataAsset"},
         RemoveList = {},
         IconGetter = UI_Asset =>
         {
@@ -76,6 +77,17 @@ public class AssetHandlerViewModel
         ClassNames = new List<string> { "MapDataAsset" },
         RemoveList = {},
         IconGetter = UI_Asset => UI_Asset.GetOrDefault<UTexture2D?>("DisplayIcon")
+    };
+    private readonly AssetHandlerData BundlesHandler = new()
+    {
+        AssetType = EAssetType.Bundles,
+        TargetCollection = AppVM.MainVM.Bundles,
+        ClassNames = new List<string> { "PrimaryAssetLabel" },
+        RemoveList = new List<string> { "_NPC", "_TBD", "_VIP", "_Creative", "_SG"},
+        IconGetter = actual_asset =>
+        {
+            return null;
+        }
     };
     public async Task Initialize()
     {
@@ -112,6 +124,8 @@ public class AssetHandlerData
             }
         }
         // prioritize random first cuz of parallel list positions
+        // console write line items length
+        Console.WriteLine(items.Count + " " +  AssetType.ToString());
         var random = items.FirstOrDefault(x => x.AssetName.PlainText.Contains("Random", StringComparison.OrdinalIgnoreCase));
         if (random is not null)
         {
@@ -144,7 +158,14 @@ public class AssetHandlerData
         // remove everything after the last . in data.ObjectPath
         UObject actual_asset;
         UObject UI_Asset = null;
-        actual_asset = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(data.ObjectPath);
+        var FirstTag = data.TagsAndValues.First().Value.Replace("BlueprintGeneratedClass", "").Replace("'", "");;
+        actual_asset = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(FirstTag);
+        var uBlueprintGeneratedClass = actual_asset as UBlueprintGeneratedClass;
+        actual_asset = uBlueprintGeneratedClass.ClassDefaultObject.Load();
+        if (data.AssetName.Text.Contains("Random"))
+        {
+            return;
+        }
         if (actual_asset.TryGetValue(out UBlueprintGeneratedClass UIObject, "UIData"))
         {
             UI_Asset = UIObject.ClassDefaultObject.Load();
@@ -157,7 +178,7 @@ public class AssetHandlerData
                 Loadable = "Character";
                 break;
             case EAssetType.Weapon:
-                Loadable = "Equippable";
+                Loadable = "SkinAttachment";
                 break;
             default:
                 Loadable = "CharmAttachment";
@@ -169,8 +190,15 @@ public class AssetHandlerData
         }
         if (UI_Asset is null)
         {
-            Log.Warning("UI_Asset is null for {AssetName}", data.AssetName);
-            return;
+            if (AssetType != EAssetType.Bundles)
+            {
+                Log.Warning("UI_Asset is null for {AssetName}", data.AssetName);
+                return;
+            }
+            else
+            {
+                UI_Asset = actual_asset;
+            }
         }
         var previewImage = IconGetter(UI_Asset);
         if (previewImage is null) return;
