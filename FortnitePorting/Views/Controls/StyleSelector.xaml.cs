@@ -3,7 +3,6 @@ using System.Linq;
 using System.Windows.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CUE4Parse_Conversion.Textures;
-using System.Collections.Generic;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
@@ -12,50 +11,35 @@ using CUE4Parse.UE4.Objects.Core.Math;
 using FortnitePorting.ViewModels;
 using SharpGLTF.Schema2;
 using SkiaSharp;
-using System.Collections.ObjectModel;
-using System.Threading.Tasks;
-using System.Windows.Media.Animation;
-using CUE4Parse.UE4.Objects.Engine;
-using FortnitePorting.Export;
 
 namespace FortnitePorting.Views.Controls;
 
 public partial class StyleSelector
 {
     public string ChannelName;
-    public ObservableCollection<StyleSelectorItem> TCollection;
-
-
-    public StyleSelector(UObject[] Chromas)
+    
+    
+    public StyleSelector(FText channelName, UTexture2D  Texture)
     {
         InitializeComponent();
         DataContext = this;
-        //foreach (UBlueprintGeneratedClass style in Chromas)
-        //{
-            //Options.Items.Add(MakeSelectedItem(style).Result);
-            // add StyleToUse to list
-        //}
+        
+        ChannelName = channelName.ToString();
+        var previewBitmap = Texture.Decode();
+        var fullBitmap = new SKBitmap(previewBitmap.Width, previewBitmap.Height, previewBitmap.ColorType, previewBitmap.AlphaType);
+        using (var fullCanvas = new SKCanvas(fullBitmap))
+        {
+            //DrawBackground(fullCanvas, Math.Max(previewBitmap.Width, previewBitmap.Height));
+            fullCanvas.DrawBitmap(previewBitmap, 0, 0);
+        }
+        Options.Items.Add(new StyleSelectorItem(channelName.ToString(), fullBitmap));
+        Options.SelectedIndex = 0;
+    }
 
-        var variantVm = new VariantHandlerViewModel();
-        base.DataContext = variantVm;
-    }
-    public async Task<StyleSelectorItem> MakeSelectedItem(UBlueprintGeneratedClass Chroma)
-    
+    private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var style_asset = Chroma.ClassDefaultObject.Load();
-        var uiDataObject = style_asset.GetOrDefault("UIData", new UObject());
-        var bpChannel = (UBlueprintGeneratedClass)uiDataObject;
-        var uiData = await ExportData.CreateUIData(bpChannel);
-        uiData.TryGetValue(out FText DName, "DisplayName");
-        uiData.TryGetValue(out UTexture2D image, "Swatch");
-        return new StyleSelectorItem(style_asset, uiDataObject, image);
-    }
-    private void StyleSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is not ListBox listBox) return;
-        if (listBox.SelectedItem is null) return;
-        var selected = (StyleSelectorItem)listBox.SelectedItem;
-        //AppVM.MainVM.CurrentAsset = selected;
+        if (Options.SelectedItem is not StyleSelectorItem selectedItem) return;
+        Title.Tag = $"{ChannelName} ({selectedItem.DisplayName})";
     }
     
     private void DrawBackground(SKCanvas canvas, int size)
@@ -71,6 +55,4 @@ public partial class StyleSelector
             Shader = BackgroundShader(SKColor.Parse("#50C8FF"), SKColor.Parse("#1B7BCF"))
         });
     }
-
-
 }

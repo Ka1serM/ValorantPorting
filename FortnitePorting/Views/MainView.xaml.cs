@@ -18,7 +18,6 @@ using FortnitePorting.Export.Blender;
 using FortnitePorting.Views.Extensions;
 using Serilog;
 using StyleSelector = FortnitePorting.Views.Controls.StyleSelector;
-using SharpGLTF.Schema2;
 
 namespace FortnitePorting.Views;
 
@@ -80,14 +79,6 @@ public partial class MainView
         Console.WriteLine(selected);
         
     }
-    private async void OnVariantSelectionChanged(object sender, SelectionChangedEventArgs e)
-    {
-        if (sender is not ListBox listBox) return;
-        if (listBox.SelectedItem is null) return;
-        var selected = (AssetSelectorItem)listBox.SelectedItem;
-        Console.WriteLine(selected);
-        
-    }
     private async void OnAssetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is not ListBox listBox) return;
@@ -100,11 +91,19 @@ public partial class MainView
         }
 
         AppVM.MainVM.CurrentAsset = selected;
-        StyleList.Children.Clear();
 
         var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
-        var styleSelector = new StyleSelector(styles);
-        StyleList.Children.Add(styleSelector);
+        foreach (UBlueprintGeneratedClass style in styles)
+        {
+            var CDO = style.ClassDefaultObject.Load();
+            var channel = CDO.GetOrDefault("UIData", new UObject());
+            var bpChannel = (UBlueprintGeneratedClass)channel;
+            // create return from await
+            
+            var UIData = await ExportData.CreateUIData(bpChannel);
+            UIData.TryGetValue(out FText DName, "DisplayName");
+            UIData.TryGetValue(out UTexture2D image, "DisplayIcon");
+        }
     }
 
     private void StupidIdiotBadScroll(object sender, MouseWheelEventArgs e)

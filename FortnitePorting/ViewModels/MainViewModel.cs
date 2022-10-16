@@ -51,7 +51,6 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> harvestingTools = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> dances = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> variants = new();
 
     [ObservableProperty] 
     [NotifyPropertyChangedFor(nameof(LoadingVisibility))]

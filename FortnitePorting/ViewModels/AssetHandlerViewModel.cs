@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Threading;
 using CUE4Parse.UE4.AssetRegistry.Objects;
 using CUE4Parse.UE4.Assets.Exports;
+using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Engine;
@@ -22,7 +23,8 @@ namespace FortnitePorting.ViewModels;
 public class AssetHandlerViewModel
 {
     public readonly Dictionary<EAssetType, AssetHandlerData> Handlers ;
-    
+    public Dictionary<FName, UObject> BaseMeshMap;
+
     public AssetHandlerViewModel()
     {
         Handlers = new Dictionary<EAssetType, AssetHandlerData>
@@ -33,6 +35,7 @@ public class AssetHandlerViewModel
             { EAssetType.Maps, MapsHandler },
             { EAssetType.Bundles, BundlesHandler },
         };
+        BaseMeshMap = new Dictionary<FName, UObject>();
 
     }
 
@@ -53,7 +56,7 @@ public class AssetHandlerViewModel
     {
         AssetType = EAssetType.Weapon,
         TargetCollection = AppVM.MainVM.HarvestingTools,
-        ClassNames = new List<string> { "EquippableSkinDataAsset"},
+        ClassNames = new List<string> { "EquippableSkinLevelDataAsset","EquippableDataAsset" },
         RemoveList = {},
         IconGetter = UI_Asset =>
         {
@@ -118,9 +121,17 @@ public class AssetHandlerData
         {
             foreach (var tValue in VARIABLE.TagsAndValues)
             {
-                if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == ClassNames[0] && !VARIABLE.AssetName.ToString().Contains("NPE"))  
+                // for ClassNames
+                foreach (var cName in ClassNames)
                 {
-                    items.Add(VARIABLE);
+                    if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == cName && !VARIABLE.AssetName.ToString().Contains("NPE"))  
+                    {
+                        if (VARIABLE.AssetName.Text.Contains("Lv4") | VARIABLE.AssetName.Text.Contains("Lv3") | VARIABLE.AssetName.Text.Contains("Lv2"))
+                        {
+                            continue;
+                        }
+                        items.Add(VARIABLE);
+                    }
                 }
             }
         }

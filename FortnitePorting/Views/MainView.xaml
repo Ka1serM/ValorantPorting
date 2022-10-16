@@ -140,28 +140,19 @@
                         <RowDefinition Height="{adonisUi:Space 1}"/>
                         <RowDefinition Height="0.5*"/>
                     </Grid.RowDefinitions>
+                    
                     <StackPanel Grid.Row="0" Orientation="Horizontal">
                         <Image Source="{Binding StyleImage}" Width="88" Height="88"/>
                         <StackPanel Margin="{adonisUi:Space 1}" Width="256" HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <TextBlock Text="{Binding CurrentAsset.DisplayName}" FontSize="24" TextTrimming="CharacterEllipsis"/>
-                            <TextBlock Text="{Binding CurrentAsset.Description}" TextWrapping="WrapWithOverflow" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentAsset.DisplayName}" FontSize="21" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Text="{Binding CurrentAsset.Description}" TextWrapping="Wrap" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </StackPanel>
                     
-                    <Separator Grid.Row="1" Style="{StaticResource NamedSeparator}" Tag="VARIANTS"/>
-                    <StackPanel Grid.Row="2" Orientation="Vertical">
-                        <StackPanel Name = "StyleList" Orientation="Horizontal"> 
-                            <Label Content="Variant" Margin="0 0 5 0"/>
-                            <ComboBox ItemsSource="{Binding Variants}" SelectedItem="{Binding SelectedVariant}" SelectionChanged="OnVariantSelectionChanged"/>
-                        </StackPanel>
-                        <Separator Grid.Row="1" Style="{StaticResource NamedSeparator}" Tag="LEVELS"/>
-                          <StackPanel Orientation="Horizontal">
-                              <Label Content="Level Upgrades" Margin="0 0 5 0"/>
-                              <ComboBox ItemsSource="{Binding StyleImage}" SelectedItem="{Binding SelectedStyle}" SelectionChanged="OnStyleSelectionChanged"/>
-                          </StackPanel>
-                    </StackPanel>   
-
-
+                    <Separator Grid.Row="1" Style="{StaticResource NamedSeparator}" Tag="STYLES"/>
+                    
+                    
+                
                     <Separator Grid.Row="3" Style="{StaticResource NamedSeparator}" Tag="EXPORT"/>
                     
                     <Button Grid.Row="4" Command="{Binding ExportBlenderCommand}">
@@ -181,16 +172,6 @@
                            </StackPanel>
                         </Button.Content>
                     </Button>
-                    <controls:TextWithIcon HorizontalAlignment="Left" Margin="214,90,0,0" Grid.Row="2" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.5">
-                        <controls:TextWithIcon.RenderTransform>
-                            <TransformGroup>
-                                <ScaleTransform/>
-                                <SkewTransform/>
-                                <RotateTransform Angle="1.608"/>
-                                <TranslateTransform/>
-                            </TransformGroup>
-                        </controls:TextWithIcon.RenderTransform>
-                    </controls:TextWithIcon>
                 </Grid>
             </GroupBox>
             

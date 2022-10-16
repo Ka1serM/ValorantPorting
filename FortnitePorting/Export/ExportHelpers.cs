@@ -27,8 +27,6 @@ public static class ExportHelpers
         foreach (var part in inputParts)
         {
             var exportPart = new ExportPart();
-            
-            Console.WriteLine($"Exporting {part.Name}...");
             if (part is USkeletalMesh skeletalMesh)
             {
             }
