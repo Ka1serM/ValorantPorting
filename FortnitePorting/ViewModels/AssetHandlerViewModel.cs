@@ -93,8 +93,6 @@ public class AssetHandlerViewModel
     public async Task Initialize()
     {
         await OutfitHandler.Execute(); // default tab
-        AppVM.VariantHandlerVM = new VariantHandlerViewModel();
-        await AppVM.VariantHandlerVM.Initialize();
     }
 }
 

@@ -8,10 +8,10 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <ListBox Grid.Row="0" Name="Options" HorizontalAlignment="Center" VerticalAlignment="Center" ScrollViewer.CanContentScroll="False" adonisExt:ScrollViewerExtension.HorizontalScrollBarExpansionMode="NeverExpand" SelectionChanged="OnSelectionChanged">
+        <ListBox Grid.Row="0" Name="Options" HorizontalAlignment="Center" VerticalAlignment="Center" ScrollViewer.CanContentScroll="False" adonisExt:ScrollViewerExtension.HorizontalScrollBarExpansionMode="NeverExpand" SelectionChanged="StyleSelectionChanged">
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <StackPanel IsItemsHost="True" Margin="10" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <StackPanel IsItemsHost="True" Orientation="Horizontal"/>
                 </ItemsPanelTemplate>
             </ListBox.ItemsPanel>
         </ListBox>
