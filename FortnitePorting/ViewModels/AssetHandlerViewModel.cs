@@ -56,7 +56,7 @@ public class AssetHandlerViewModel
     {
         AssetType = EAssetType.Weapon,
         TargetCollection = AppVM.MainVM.HarvestingTools,
-        ClassNames = new List<string> { "EquippableSkinLevelDataAsset","EquippableDataAsset" },
+        ClassNames = new List<string> { "EquippableSkinLevelDataAsset" },
         RemoveList = {},
         IconGetter = UI_Asset =>
         {

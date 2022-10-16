@@ -42,7 +42,7 @@ public class ExportData
                     var meshes = new UObject[2];
                     // add to meshes array
                     //meshes[0] = asset.GetOrDefault("MeshOverlay1P", new UObject());
-                    asset.TryGetValue(out meshes[0], "MeshCosmetic1P");
+                    asset.TryGetValue(out meshes[0], "MeshOverlay1P");
                     asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
                     //meshes[1] = asset.GetOrDefault("MeshCosmetic3P", new UObject());
                     ExportHelpers.CharacterParts(meshes, data.Parts);
@@ -50,17 +50,17 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
-                    var weapmeshes = new UObject[2];
+                    var weapmeshes = new UObject[1];
                     var WeapMesh = new UObject();
-                    var MagMesh = new UObject();
+                    //var MagMesh = new UObject();
                     var hasWeaponMesh = asset.TryGetValue(out WeapMesh, "Weapon 1P","NewMesh");
                     if (!hasWeaponMesh)
                     {
                         return;
                     }
                     weapmeshes[0] = WeapMesh;
-                    var hasMagMesh = asset.TryGetValue(out MagMesh, "Magazine 1P","Mag 1P");
-                    weapmeshes[1] = MagMesh;
+                    //var hasMagMesh = asset.TryGetValue(out MagMesh, "Magazine 1P","Mag 1P");
+                    //weapmeshes[1] = MagMesh;
                     ExportHelpers.CharacterParts(weapmeshes, data.Parts);
                     break;
                 }

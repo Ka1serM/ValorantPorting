@@ -151,7 +151,6 @@
                     
                     <Separator Grid.Row="1" Style="{StaticResource NamedSeparator}" Tag="STYLES"/>
                     
-                    
                 
                     <Separator Grid.Row="3" Style="{StaticResource NamedSeparator}" Tag="EXPORT"/>
                     
