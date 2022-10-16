@@ -19,12 +19,11 @@ public partial class StyleSelector
     public string ChannelName;
     
     
-    public StyleSelector(FText channelName, UTexture2D  Texture)
+    public StyleSelector(UObject asset, UObject UIasset, UTexture2D Texture)
     {
         InitializeComponent();
         DataContext = this;
         
-        ChannelName = channelName.ToString();
         var previewBitmap = Texture.Decode();
         var fullBitmap = new SKBitmap(previewBitmap.Width, previewBitmap.Height, previewBitmap.ColorType, previewBitmap.AlphaType);
         using (var fullCanvas = new SKCanvas(fullBitmap))
@@ -32,14 +31,17 @@ public partial class StyleSelector
             //DrawBackground(fullCanvas, Math.Max(previewBitmap.Width, previewBitmap.Height));
             fullCanvas.DrawBitmap(previewBitmap, 0, 0);
         }
-        Options.Items.Add(new StyleSelectorItem(channelName.ToString(), fullBitmap));
+        Options.Items.Add(new StyleSelectorItem(fullBitmap));
         Options.SelectedIndex = 0;
     }
 
     private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (Options.SelectedItem is not StyleSelectorItem selectedItem) return;
-        Title.Tag = $"{ChannelName} ({selectedItem.DisplayName})";
+        if (sender is not ListBox listBox) return;
+        if (listBox.SelectedItem is null) return;
+        var selected = (StyleSelectorItem)listBox.SelectedItem;
+        Console.WriteLine(selected);
+        //AppVM.MainVM.CurrentAsset = selected;
     }
     
     private void DrawBackground(SKCanvas canvas, int size)
@@ -55,4 +57,6 @@ public partial class StyleSelector
             Shader = BackgroundShader(SKColor.Parse("#50C8FF"), SKColor.Parse("#1B7BCF"))
         });
     }
+
+
 }

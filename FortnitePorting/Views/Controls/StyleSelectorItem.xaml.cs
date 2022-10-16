@@ -12,14 +12,17 @@ namespace FortnitePorting.Views.Controls;
 
 public partial class StyleSelectorItem
 {
-    public string DisplayName { get; set; }
+    
     public BitmapSource IconSource { get; set; }
     
-    public StyleSelectorItem(string Name, SKBitmap previewBitmap)
+    public StyleSelectorItem(SKBitmap previewBitmap)
     {
         InitializeComponent();
-        DisplayName = Name;
         IconSource = previewBitmap.ToBitmapSource();
 
+    }
+    private void TestButton(object sender, RoutedEventArgs e)
+    {
+        Console.WriteLine("TestButton");
     }
 }

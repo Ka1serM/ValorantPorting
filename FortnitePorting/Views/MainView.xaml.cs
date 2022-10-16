@@ -18,6 +18,7 @@ using FortnitePorting.Export.Blender;
 using FortnitePorting.Views.Extensions;
 using Serilog;
 using StyleSelector = FortnitePorting.Views.Controls.StyleSelector;
+using SharpGLTF.Schema2;
 
 namespace FortnitePorting.Views;
 
@@ -79,6 +80,14 @@ public partial class MainView
         Console.WriteLine(selected);
         
     }
+    private async void OnVariantSelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ListBox listBox) return;
+        if (listBox.SelectedItem is null) return;
+        var selected = (AssetSelectorItem)listBox.SelectedItem;
+        Console.WriteLine(selected);
+        
+    }
     private async void OnAssetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is not ListBox listBox) return;
@@ -91,18 +100,21 @@ public partial class MainView
         }
 
         AppVM.MainVM.CurrentAsset = selected;
+        StyleList.Children.Clear();
 
         var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
         foreach (UBlueprintGeneratedClass style in styles)
         {
-            var CDO = style.ClassDefaultObject.Load();
-            var channel = CDO.GetOrDefault("UIData", new UObject());
+            var style_asset = style.ClassDefaultObject.Load();
+            var channel = style_asset.GetOrDefault("UIData", new UObject());
             var bpChannel = (UBlueprintGeneratedClass)channel;
             // create return from await
             
             var UIData = await ExportData.CreateUIData(bpChannel);
             UIData.TryGetValue(out FText DName, "DisplayName");
-            UIData.TryGetValue(out UTexture2D image, "DisplayIcon");
+            UIData.TryGetValue(out UTexture2D image, "Swatch");
+            var styleSelector = new StyleSelector(style_asset, UIData, image);
+            StyleList.Children.Add(styleSelector);
         }
     }
 

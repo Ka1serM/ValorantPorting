@@ -19,6 +19,14 @@ public enum ERichPresenceAccess
     [Description("Never")]
     Never
 }
+public enum ESkinType
+{
+    [Description("Variant")]
+    Variant,
+    [Description("Level")]
+    Level,
+}
+
 
 public enum EAssetType
 {
