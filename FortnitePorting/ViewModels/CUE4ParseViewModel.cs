@@ -50,14 +50,48 @@ public class CUE4ParseViewModel : ObservableObject
 
     private async Task InitializeKeys()
     {
+        var keyResponse = await EndpointService.FortniteCentral.GetKeysAsync();
+        if (keyResponse is not null) AppSettings.Current.AesResponse = keyResponse;
+        keyResponse ??= AppSettings.Current.AesResponse;
         var keyString = "0x4BE71AF2459CF83899EC9DC2CB60E22AC4B3047E0211034BBABE9D174C069DD6";
         await Provider.SubmitKeyAsync(Globals.ZERO_GUID, new FAesKey(keyString));
     }
 
+    private async Task InitializeMappings()
+    {
+        if (await TryDownloadMappings()) return;
+        
+        LoadLocalMappings();
+    }
 
+    private async Task<bool> TryDownloadMappings()
+    {
+        var mappingsResponse = await EndpointService.FortniteCentral.GetMappingsAsync();
+        if (mappingsResponse is null) return false;
+        if (mappingsResponse.Length <= 0) return false;
+        
+        var mappings = mappingsResponse.FirstOrDefault(x => x.Meta.CompressionMethod.Equals("Oodle", StringComparison.OrdinalIgnoreCase));
+        if (mappings is null) return false;
+            
+        var mappingsFilePath = Path.Combine(App.DataFolder.FullName, mappings.Filename);
+        if (File.Exists(mappingsFilePath)) return false;
+            
+        await EndpointService.DownloadFileAsync(mappings.URL, mappingsFilePath);
+        Provider.MappingsContainer = new FileUsmapTypeMappingsProvider(mappingsFilePath);
 
+        return true;
+    }
 
+    private void LoadLocalMappings()
+    {
+        var usmapFiles = App.DataFolder.GetFiles("*.usmap");
+        if (usmapFiles.Length <= 0) return;
+            
+        var latestUsmap = usmapFiles.MaxBy(x => x.LastWriteTime);
+        if (latestUsmap is null) return;
 
+        Provider.MappingsContainer = new FileUsmapTypeMappingsProvider(latestUsmap.FullName);
+    }
 }
 
 [StructFallback]

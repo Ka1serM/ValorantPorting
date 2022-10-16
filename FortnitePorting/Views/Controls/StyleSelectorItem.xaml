@@ -4,6 +4,8 @@
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:local="clr-namespace:FortnitePorting.Views.Controls">
     <StackPanel>
-        <Image Source="{Binding IconSource, RelativeSource={RelativeSource AncestorType=local:StyleSelectorItem}}" Width="32" Height="32" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Button x:Name="Button" Background="Transparent" BorderBrush="Transparent"  Click="TestButton">
+            <Image Source="{Binding IconSource, RelativeSource={RelativeSource AncestorType=local:StyleSelectorItem}}" Width="32" Height="32" RenderOptions.BitmapScalingMode="HighQuality"/>
+        </Button>
     </StackPanel>
 </UserControl>

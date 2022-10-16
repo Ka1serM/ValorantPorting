@@ -22,7 +22,7 @@ namespace FortnitePorting.ViewModels;
 public class VariantHandlerViewModel
 {
     public readonly Dictionary<ESkinType, VariantHandlerData> Handlers ;
-    public ObservableCollection<StyleSelectorItem> Styles { get; set; }
+    
     public VariantHandlerViewModel()
     {
         Handlers = new Dictionary<ESkinType, VariantHandlerData>

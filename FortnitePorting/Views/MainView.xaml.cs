@@ -103,8 +103,19 @@ public partial class MainView
         StyleList.Children.Clear();
 
         var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
-        var styleSelector = new StyleSelector(styles);
-        StyleList.Children.Add(styleSelector);
+        foreach (UBlueprintGeneratedClass style in styles)
+        {
+            var style_asset = style.ClassDefaultObject.Load();
+            var channel = style_asset.GetOrDefault("UIData", new UObject());
+            var bpChannel = (UBlueprintGeneratedClass)channel;
+            // create return from await
+            
+            var UIData = await ExportData.CreateUIData(bpChannel);
+            UIData.TryGetValue(out FText DName, "DisplayName");
+            UIData.TryGetValue(out UTexture2D image, "Swatch");
+            var styleSelector = new StyleSelector(style_asset, UIData, image);
+            StyleList.Children.Add(styleSelector);
+        }
     }
 
     private void StupidIdiotBadScroll(object sender, MouseWheelEventArgs e)
