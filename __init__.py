@@ -72,11 +72,11 @@ class Receiver(threading.Thread):
 
 # Name, Slot, Location, *Linear
 texture_mappings = {
-    ("Albedo", 1, (-300, -75)),
-    ("MRAE", 10, (-300, -75)),
-    ("MRS", 6, (-300, -125)),
-    ("AEM", 2, (-300, -125)),
-    ("Normal", 19, (-300, -175)),
+    ("Diffuse (SRGB) texture", 1, (-300, -75)),
+    ("MRAE (SRGB) texture", 10, (-300, -75)),
+    ("MRS (SRGB) texture", 6, (-300, -125)),
+    ("AEM (SRGB) texture", 2, (-300, -125)),
+    ("Normal (SRGB) texture", 19, (-300, -175)),
 }
 
 # Name, Slot
@@ -107,7 +107,7 @@ vector_mappings = {
 }
 shaders_v = [
             "VALORANT_Agent",
-            "VALORANT_Weapon",
+            "1P_Weapon_Mat_Base_V5",
             "FP Mapping"
         ]
 
@@ -174,9 +174,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     def texture_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-        if (info := first(texture_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
-            return
-        NodName, slot, location, *linear = info
         tex_image_node: bpy.types.Node
         tex_image_node = nodes.new(type="ShaderNodeTexImage")
         if (image := import_texture(value)) is None:
@@ -184,46 +181,29 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         tex_image_node.image = image
         tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
         tex_image_node.hide = True
-        tex_image_node.location = location
-        if linear:
-            tex_image_node.image.colorspace_settings.name = "Linear"
-        if NodName in N_SHADER.inputs:
-            links.new(tex_image_node.outputs[0], shader_node.inputs[NodName])
+        #tex_image_node.location = location
+        if name in N_SHADER.inputs:
+            links.new(tex_image_node.outputs[0], shader_node.inputs[name])
         else:
-            print(f"No Texture node with this name {NodName}")
+            print(f"No Texture node with this name {name}")
 
     def scalar_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
 
-        if (info := first(scalar_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
-            return
-
-        NodName, slot = info
-        if NodName in N_SHADER.inputs:
-            shader_node.inputs[NodName].default_value = value
+        if name in N_SHADER.inputs:
+            shader_node.inputs[name].default_value = value
         else:
-            print(f"No Scalar node with this name: {NodName}")
+            print(f"No Scalar node with this name: {name}")
 
     def vector_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-
-        if (info := first(vector_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
-            return
-
-        NodName, slot, *extra = info
-        if NodName in N_SHADER.inputs:
-            shader_node.inputs[NodName].default_value = (value["R"], value["G"], value["B"], 1)
+        if name in N_SHADER.inputs:
+            shader_node.inputs[name].default_value = (value["R"], value["G"], value["B"], 1)
         else:
-            print(f"No Vector node with this name: {NodName}")
+            print(f"No Vector node with this name: {name}")
 
-        ## didn't mess with this because idek what it is half srry
-        if extra[0]:
-            try:
-                shader_node.inputs[extra[0]].default_value = value["A"]
-            except TypeError:
-                shader_node.inputs[extra[0]].default_value = int(value["A"])
 
     for texture in material_data.get("Textures"):
         texture_parameter(texture)
