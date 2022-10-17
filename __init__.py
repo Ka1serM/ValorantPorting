@@ -7,11 +7,11 @@ import threading
 from .io_import_scene_unreal_psa_psk_280 import pskimport
 
 bl_info = {
-    "name": "Fortnite Porting",
-    "author": "Half",
+    "name": "Valorant Porting",
+    "author": "Half, BK",
     "version": (1, 0, 0),
     "blender": (3, 0, 0),
-    "description": "Blender Server for Fortnite Porting",
+    "description": "Blender Server for Valorant Porting",
     "category": "Import",
 }
 
@@ -20,7 +20,7 @@ global import_settings
 global import_data
 
 global server
-
+global N_SHADER
 class Log:
     INFO = u"\u001b[36m"
     WARNING = u"\u001b[31m"
@@ -48,7 +48,7 @@ class Receiver(threading.Thread):
         host, port = 'localhost', 24280
         self.socket_server.bind((host, port))
         self.socket_server.settimeout(1.0)
-        Log.information(f"FortnitePorting Server Listening at {host}:{port}")
+        Log.information(f"ValorantPorting Server Listening at {host}:{port}")
 
         while self.keep_alive:
             try:
@@ -67,7 +67,7 @@ class Receiver(threading.Thread):
     def stop(self):
         self.keep_alive = False
         self.socket_server.close()
-        Log.information("FortnitePorting Server Closed")
+        Log.information("ValorantPorting Server Closed")
 
 
 # Name, Slot, Location, *Linear
@@ -163,6 +163,7 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     output_node.location = (200, 0)
 
     shader_node = nodes.new(type="ShaderNodeGroup")
+    N_SHADER = shader_node
     shader_node.name = "VALORANT_Weapon"
     if mat_type == "Character":
         shader_node.name = "VALORANT_Agent"
@@ -173,28 +174,23 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     def texture_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-
         if (info := first(texture_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
             return
-
-        _, slot, location, *linear = info
-
-        if slot is 12 and value.endswith("_FX"):
-            return
-
+        NodName, slot, location, *linear = info
+        tex_image_node: bpy.types.Node
+        tex_image_node = nodes.new(type="ShaderNodeTexImage")
         if (image := import_texture(value)) is None:
             return
-
-        node = nodes.new(type="ShaderNodeTexImage")
-        node.image = image
-        node.image.alpha_mode = 'CHANNEL_PACKED'
-        node.hide = True
-        node.location = location
-
+        tex_image_node.image = image
+        tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
+        tex_image_node.hide = True
+        tex_image_node.location = location
         if linear:
-            node.image.colorspace_settings.name = "Linear"
-
-        links.new(node.outputs[0], shader_node.inputs[slot])
+            tex_image_node.image.colorspace_settings.name = "Linear"
+        if NodName in N_SHADER.inputs:
+            links.new(tex_image_node.outputs[0], shader_node.inputs[NodName])
+        else:
+            print(f"No Texture node with this name {NodName}")
 
     def scalar_parameter(data):
         name = data.get("Name")
@@ -203,9 +199,11 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         if (info := first(scalar_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
             return
 
-        _, slot = info
-
-        shader_node.inputs[slot].default_value = value
+        NodName, slot = info
+        if NodName in N_SHADER.inputs:
+            shader_node.inputs[NodName].default_value = value
+        else:
+            print(f"No Scalar node with this name: {NodName}")
 
     def vector_parameter(data):
         name = data.get("Name")
@@ -214,10 +212,13 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         if (info := first(vector_mappings, lambda x: x[0].casefold() == name.casefold())) is None:
             return
 
-        _, slot, *extra = info
+        NodName, slot, *extra = info
+        if NodName in N_SHADER.inputs:
+            shader_node.inputs[NodName].default_value = (value["R"], value["G"], value["B"], 1)
+        else:
+            print(f"No Vector node with this name: {NodName}")
 
-        shader_node.inputs[slot].default_value = (value["R"], value["G"], value["B"], 1)
-
+        ## didn't mess with this because idek what it is half srry
         if extra[0]:
             try:
                 shader_node.inputs[extra[0]].default_value = value["A"]
@@ -227,8 +228,8 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     for texture in material_data.get("Textures"):
         texture_parameter(texture)
 
-    #for scalar in material_data.get("Scalars"):
-        #scalar_parameter(scalar)
+    for scalar in material_data.get("Scalars"):
+        scalar_parameter(scalar)
 
     for vector in material_data.get("Vectors"):
         vector_parameter(vector)
@@ -288,6 +289,7 @@ def import_response(response):
     def import_part(parts):
         for part in parts:
             part_type = part.get("Part")
+            print(part_type)
             if any(imported_parts, lambda x: False if x is None else x.get("Part") == part_type):
                 continue
 
@@ -309,11 +311,11 @@ def import_response(response):
 
             for material in part.get("Materials"):
                 index = material.get("SlotIndex")
-                import_material(mesh.material_slots.values()[index], material,type)
+                import_material(mesh.material_slots.values()[index], material,import_type)
 
             for override_material in part.get("OverrideMaterials"):
                 index = override_material.get("SlotIndex")
-                import_material(mesh.material_slots.values()[index], override_material,type)
+                import_material(mesh.material_slots.values()[index], override_material,import_type)
 
     import_part(import_data.get("StyleParts"))
     import_part(import_data.get("Parts"))
@@ -323,7 +325,7 @@ def import_response(response):
         for style_material in import_data.get("StyleMaterials"):
             slot = mesh.material_slots[style_material.get("SlotIndex")]
             #if slot := mesh.material_slots.get(style_material.get("MaterialNameToSwap")):
-            import_material(slot, style_material,type)
+            import_material(slot, style_material,import_type)
 
 
 

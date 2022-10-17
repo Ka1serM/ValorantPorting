@@ -67,7 +67,12 @@ public partial class MainViewModel : ObservableObject
     {
         var ObjectStyle = Styles.Select(style =>
             ((StyleSelectorItem)style.Options.Items[style.Options.SelectedIndex]).ObjectData).ToList();
-        return ObjectStyle[0];
+        if (ObjectStyle.Count > 0)
+        {
+            return ObjectStyle[0];
+        }
+
+        return null;
     }
 
     [RelayCommand]
