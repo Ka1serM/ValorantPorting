@@ -4,7 +4,5 @@
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:local="clr-namespace:FortnitePorting.Views.Controls">
     <StackPanel>
-        <Image Source="{Binding IconSource, RelativeSource={RelativeSource AncestorType=local:StyleSelectorItem}}" Width="96" Height="96" RenderOptions.BitmapScalingMode="HighQuality"/>
-        <TextBlock Text="{Binding DisplayName, RelativeSource={RelativeSource AncestorType=local:StyleSelectorItem}}" TextTrimming="CharacterEllipsis" HorizontalAlignment="Center" Foreground="{StaticResource MainTextBrush}"/>
-    </StackPanel>
+        <Image Source="{Binding IconSource, RelativeSource={RelativeSource AncestorType=local:StyleSelectorItem}}" Width="45" Height="45" RenderOptions.BitmapScalingMode="HighQuality"/></StackPanel>
 </UserControl>

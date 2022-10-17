@@ -6,8 +6,6 @@ using System.Windows.Threading;
 using AdonisUI.Controls;
 using FortnitePorting.AppUtils;
 using FortnitePorting.Services;
-using Serilog;
-using Serilog.Configuration;
 using MessageBox = AdonisUI.Controls.MessageBox;
 using MessageBoxImage = AdonisUI.Controls.MessageBoxImage;
 

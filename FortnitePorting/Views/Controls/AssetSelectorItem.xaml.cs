@@ -18,6 +18,7 @@ namespace FortnitePorting.Views.Controls;
 public partial class AssetSelectorItem
 {
     public UObject UIAsset;
+    public UObject MainAsset;
     public SKBitmap IconBitmap;
     public SKBitmap FullBitmap;
     public BitmapImage FullSource;
@@ -30,12 +31,13 @@ public partial class AssetSelectorItem
     public string TooltipName { get; set; }
     public string ID { get; set; }
 
-    public AssetSelectorItem(UObject asset,UObject UIasset, UTexture2D previewTexture, bool isRandomSelector = false)
+    public AssetSelectorItem(UObject asset,UObject UIasset,UObject MainDataAsset, UTexture2D previewTexture, bool isRandomSelector = false)
     {
         InitializeComponent();
         DataContext = this;
         UIAsset = UIasset;
         Asset = asset;
+        MainAsset = MainDataAsset;
         DisplayName = UIAsset.GetOrDefault("DisplayName", new FText("Unnamed")).Text;
         Description = UIAsset.GetOrDefault("Description", new FText("No description.")).Text;
         ID = UIAsset.Name;

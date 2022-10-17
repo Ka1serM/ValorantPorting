@@ -40,7 +40,6 @@ public class AssetHandlerViewModel
         };
         BaseMeshMap = new Dictionary<FName, UObject>();
         CurrentBaseMesh = new Dictionary<string, USkeletalMesh>();
-        Console.WriteLine("INITIATED");
 
     }
 
@@ -199,20 +198,17 @@ public class AssetHandlerData
             }
             var assetFixString = "Default__" + assetName.Split('.').Last();
             var newAssetName = assetName.Split('.')[0] + "." + assetFixString;
-            Console.WriteLine(newAssetName);
             var LoadObject = AppVM.CUE4ParseVM.Provider.LoadObjectAsync(newAssetName).Result;
             if (LoadObject.TryGetValue(out UBlueprintGeneratedClass SkinAttach, "SkinAttachment"))
             {
                 var SkinObject = SkinAttach.ClassDefaultObject.Load();
                 if (SkinObject.TryGetValue(out FSoftObjectPath BaseMesh, "Weapon 1P"))
                 {
-                    Console.WriteLine(LoadObject);
                     return false;
                 }
             }
 
         }
-        Console.WriteLine("LabelObject: " + LabelObject);
         return bLocal;
     }
 
@@ -226,6 +222,7 @@ public class AssetHandlerData
         actual_asset = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(FirstTag);
         var uBlueprintGeneratedClass = actual_asset as UBlueprintGeneratedClass;
         actual_asset = uBlueprintGeneratedClass.ClassDefaultObject.Load();
+        var mainA = actual_asset;
         if (data.AssetName.Text.Contains("Random"))
         {
             return;
@@ -248,7 +245,6 @@ public class AssetHandlerData
                 {
                     AppVM.AssetHandlerVM.CurrentBaseMesh.Add(baseTuple.Item1, baseTuple.Item2);
                 }
-                Console.WriteLine("BaseMesh: " + AppVM.AssetHandlerVM.CurrentBaseMesh);
             }
         }
         string Loadable = "";
@@ -261,7 +257,7 @@ public class AssetHandlerData
                 actual_asset.TryGetValue<UBlueprintGeneratedClass[]>(out var bGp, "Levels");
                 actual_asset = bGp[0].ClassDefaultObject.Load();
                 //actual_asset = bp.ClassDefaultObject.Load();
-                Loadable = "SkinAttachment";
+                Loadable = "None";
                 break;
             default:
                 Loadable = "CharmAttachment";
@@ -279,6 +275,6 @@ public class AssetHandlerData
 
         var previewImage = IconGetter(UI_Asset);
         if (previewImage is null) return;
-        await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actual_asset, UI_Asset, previewImage, random)), DispatcherPriority.Background);
+        await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actual_asset, UI_Asset,mainA ,previewImage, random)), DispatcherPriority.Background);
     }
 }

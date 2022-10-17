@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -76,8 +77,7 @@ public partial class MainView
         if (sender is not ListBox listBox) return;
         if (listBox.SelectedItem is null) return;
         var selected = (AssetSelectorItem)listBox.SelectedItem;
-        Console.WriteLine(selected);
-        
+
     }
     private async void OnAssetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
@@ -89,18 +89,31 @@ public partial class MainView
         }
 
         AppVM.MainVM.CurrentAsset = selected;
-        var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
-        foreach (UBlueprintGeneratedClass style in styles)
+        AppVM.MainVM.Styles.Clear();
+        var styles = selected.MainAsset.GetOrDefault("Chromas", Array.Empty<UObject>());
+        var NStyles = new List<UObject>();
+        foreach (UBlueprintGeneratedClass VARIABLE in styles)
         {
-            var CDO = style.ClassDefaultObject.Load();
+            var CDO = VARIABLE.ClassDefaultObject.Load();
             var channel = CDO.GetOrDefault("UIData", new UObject());
             var bpChannel = (UBlueprintGeneratedClass)channel;
-            // create return from await
-            
             var UIData = await ExportData.CreateUIData(bpChannel);
-            UIData.TryGetValue(out FText DName, "DisplayName");
-            UIData.TryGetValue(out UTexture2D image, "DisplayIcon");
+            NStyles.Add(UIData);
         }
+        var styleSelector = new StyleSelector(NStyles.ToArray(),styles);
+        if (styleSelector.Options.Items.Count == 0) return;
+        AppVM.MainVM.Styles.Add(styleSelector);
+        //foreach (UBlueprintGeneratedClass  style in styles)
+        //{
+            //var cdo = style.ClassDefaultObject.Load();
+            //var ui_data_get = cdo.GetOrDefault("UIData", new UObject());
+            //var ui_data_bp = (UBlueprintGeneratedClass)ui_data_get;
+            //var UIData = await ExportData.CreateUIData(ui_data_bp);
+            //UIData.TryGetValue(out FText channel, "DisplayName");
+            //var styleSelector = new StyleSelector(UIData);
+            //if (styleSelector.Options.Items.Count == 0) continue;
+            //AppVM.MainVM.Styles.Add(styleSelector);
+        //}
     }
 
     private void StupidIdiotBadScroll(object sender, MouseWheelEventArgs e)

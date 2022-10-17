@@ -7,6 +7,7 @@ using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
+using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Engine;
 using FortnitePorting.Views.Extensions;
@@ -18,6 +19,8 @@ public class ExportData
     public string Name;
     public string Type;
     public List<ExportPart> Parts = new();
+    public List<ExportPart> StyleParts = new();
+    public List<ExportMaterial> StyleMaterials = new();
     public static async Task<UObject> CreateUIData(UBlueprintGeneratedClass asset )
     {
         UObject Sla = null;
@@ -27,7 +30,20 @@ public class ExportData
         });
         return Task.FromResult(Sla).Result;
     }
-    public static async Task<ExportData> Create(UObject asset, EAssetType assetType)
+
+    public static UObject HandleStyle(UObject Sty)
+    {
+        var useStyle = Sty as UBlueprintGeneratedClass;
+        var styleCdo = useStyle?.ClassDefaultObject.Load();
+        var loka = new UBlueprintGeneratedClass();
+        styleCdo?.TryGetValue(out loka, "EquippableSkinChroma");
+        var ReturnStyle = loka.ClassDefaultObject.Load();
+        
+        return ReturnStyle;
+
+    }
+    public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style)
+
     {
         var data = new ExportData();
         data.Name = asset.GetOrDefault("DeveloperName", new FText("Unnamed")).Text;
@@ -38,31 +54,17 @@ public class ExportData
             {
                 case EAssetType.Character:
                 {
-                    
                     var meshes = new UObject[2];
-                    // add to meshes array
-                    //meshes[0] = asset.GetOrDefault("MeshOverlay1P", new UObject());
                     asset.TryGetValue(out meshes[0], "MeshOverlay1P");
                     asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
-                    //meshes[1] = asset.GetOrDefault("MeshCosmetic3P", new UObject());
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
                     break;
                 }
                 case EAssetType.Weapon:
                 {
-                    var weapmeshes = new UObject[1];
-                    var WeapMesh = new UObject();
-                    var BaseMeshes = AppVM.AssetHandlerVM.CurrentBaseMesh;
-                    Console.WriteLine(BaseMeshes.Count);
-                    var hasWeaponMesh = asset.TryGetValue(out WeapMesh, "Weapon 1P","NewMesh");
-                    if (!hasWeaponMesh)
-                    {
-                        WeapMesh = BaseMeshes[asset.Outer.Name.Split("/")[5]];
-                    }
-                    weapmeshes[0] = WeapMesh;
-                    //var hasMagMesh = asset.TryGetValue(out MagMesh, "Magazine 1P","Mag 1P");
-                    //weapmeshes[1] = MagMesh;
-                    ExportHelpers.CharacterParts(weapmeshes, data.Parts, asset);
+                    ExportHelpers.Weapon(asset, data.Parts);
+                    ExportHelpers.OverrideMaterials( HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
+
                     break;
                 }
                 case EAssetType.GunBuddy:
@@ -79,7 +81,7 @@ public class ExportData
         });
 
 
-        await Task.WhenAll(ExportHelpers.RunningExporters);
+        await Task.WhenAll(ExportHelpers.Tasks);
         return data;
     }
 }
