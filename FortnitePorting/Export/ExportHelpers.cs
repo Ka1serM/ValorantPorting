@@ -22,7 +22,7 @@ namespace FortnitePorting.Export;
 
 public static class ExportHelpers
 {
-    public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts)
+    public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject OGObjects)
     {
         foreach (var part in inputParts)
         {
@@ -37,7 +37,24 @@ public static class ExportHelpers
             if (skeletalMesh is null) continue;
             if (!skeletalMesh.TryConvert(out var convertedMesh)) continue;
             if (convertedMesh.LODs.Count <= 0) continue;
-            
+
+            if (OGObjects.TryGetValue(out UMaterialInstanceConstant[] IDEK, "1p MaterialOverrides"))
+            {
+                Console.WriteLine(IDEK[0]);
+                for (var idx = 0; idx < IDEK.Length; idx++)
+                {
+                    var ovrMat = new ExportMaterial
+                    {
+                        MaterialName = IDEK[idx].Name,
+                        SlotIndex = idx
+                    };
+                    var (tx, sca, vec) = MaterialParameters(IDEK[idx]);
+                    ovrMat.Textures = tx;
+                    ovrMat.Scalars = sca;
+                    ovrMat.Vectors = vec;
+                    exportPart.OverrideMaterials.Add(ovrMat with { SlotIndex = idx });
+                }
+            }
             exportPart.MeshPath = skeletalMesh.GetPathName();
             Save(skeletalMesh);
             exportPart.Part = "FP";
@@ -67,11 +84,10 @@ public static class ExportHelpers
                     exportMaterial.Scalars = scalars;
                     exportMaterial.Vectors = vectors;
                 }
-                
                 exportPart.Materials.Add(exportMaterial);
-                
+
             }
-            
+            exportParts.Add(exportPart);
             if (part.TryGetValue(out FStructFallback[] materialOverrides, "MaterialOverrides"))
             {
                 foreach (var materialOverride in materialOverrides)

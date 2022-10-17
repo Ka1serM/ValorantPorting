@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Navigation;
 using System.Windows.Threading;
 using CUE4Parse.UE4.AssetRegistry.Objects;
 using CUE4Parse.UE4.Assets.Exports;
@@ -24,6 +26,7 @@ public class AssetHandlerViewModel
 {
     public readonly Dictionary<EAssetType, AssetHandlerData> Handlers ;
     public Dictionary<FName, UObject> BaseMeshMap;
+    public Dictionary<string,USkeletalMesh> CurrentBaseMesh;
 
     public AssetHandlerViewModel()
     {
@@ -36,6 +39,8 @@ public class AssetHandlerViewModel
             { EAssetType.Bundles, BundlesHandler },
         };
         BaseMeshMap = new Dictionary<FName, UObject>();
+        CurrentBaseMesh = new Dictionary<string, USkeletalMesh>();
+        Console.WriteLine("INITIATED");
 
     }
 
@@ -56,10 +61,12 @@ public class AssetHandlerViewModel
     {
         AssetType = EAssetType.Weapon,
         TargetCollection = AppVM.MainVM.HarvestingTools,
-        ClassNames = new List<string> { "EquippableSkinLevelDataAsset" },
+        ClassNames = new List<string> { "EquippableSkinDataAsset" },
         RemoveList = {},
         IconGetter = UI_Asset =>
         {
+            //var ui_data = UI_Asset.Get<UBlueprintGeneratedClass>("UIData");
+            //var real_ui_data =  ui_data.ClassDefaultObject.Load();
             UI_Asset.TryGetValue(out UTexture2D? pImage, "DisplayIcon");
             return pImage;
         }
@@ -126,10 +133,6 @@ public class AssetHandlerData
                 {
                     if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == cName && !VARIABLE.AssetName.ToString().Contains("NPE"))  
                     {
-                        if (VARIABLE.AssetName.Text.Contains("Lv4") | VARIABLE.AssetName.Text.Contains("Lv3") | VARIABLE.AssetName.Text.Contains("Lv2"))
-                        {
-                            continue;
-                        }
                         items.Add(VARIABLE);
                     }
                 }
@@ -162,6 +165,56 @@ public class AssetHandlerData
             await DoLoad(data);
         });
     }
+    // make new function to handle labels
+    public Tuple<string,USkeletalMesh> GetBaseMesh(UObject ObjectUsed)
+    {
+        ObjectUsed.TryGetValue<UBlueprintGeneratedClass>(out var bp, "Equippable");
+        var cdo_load = bp.ClassDefaultObject.Load();
+        cdo_load.TryGetValue<UBlueprintGeneratedClass>(out var weap_equippable, "Equippable");
+        var real_cdo_load = weap_equippable.ClassDefaultObject.Load();
+        real_cdo_load.TryGetValue<UObject>(out var zbp, "Mesh1P");
+        zbp.TryGetValue<USkeletalMesh>(out var jkjk, "SkeletalMesh");
+        string mesh_name = jkjk.Name.ToString();
+        //string weapo_name = mesh_name.Split("_")[1];
+        int move = 5;
+        if (mesh_name.Contains("Melee"))
+        {
+            move = 4;
+        }
+        string weapo_name = ObjectUsed.Outer.Name.Split("/")[move];
+        return Tuple.Create(weapo_name, jkjk);
+    }
+    public bool bWeaponNeedsBaseMesh(UObject LabelObject)
+    {
+        bool bLocal = true;
+        LabelObject.TryGetValue<FSoftObjectPath[]>(out var lv, "Levels");
+        // for loop lv
+        if (lv.Length < 2) return false;
+        foreach (var skin_level in lv)
+        {
+            var assetName = skin_level.AssetPathName.PlainText;
+            if (assetName == "None")
+            {
+                continue;
+            }
+            var assetFixString = "Default__" + assetName.Split('.').Last();
+            var newAssetName = assetName.Split('.')[0] + "." + assetFixString;
+            Console.WriteLine(newAssetName);
+            var LoadObject = AppVM.CUE4ParseVM.Provider.LoadObjectAsync(newAssetName).Result;
+            if (LoadObject.TryGetValue(out UBlueprintGeneratedClass SkinAttach, "SkinAttachment"))
+            {
+                var SkinObject = SkinAttach.ClassDefaultObject.Load();
+                if (SkinObject.TryGetValue(out FSoftObjectPath BaseMesh, "Weapon 1P"))
+                {
+                    Console.WriteLine(LoadObject);
+                    return false;
+                }
+            }
+
+        }
+        Console.WriteLine("LabelObject: " + LabelObject);
+        return bLocal;
+    }
 
     private async Task DoLoad(FAssetData data, bool random = false)
     {
@@ -169,7 +222,7 @@ public class AssetHandlerData
         // remove everything after the last . in data.ObjectPath
         UObject actual_asset;
         UObject UI_Asset = null;
-        var FirstTag = data.TagsAndValues.First().Value.Replace("BlueprintGeneratedClass", "").Replace("'", "");;
+        var FirstTag = data.TagsAndValues.First().Value.Replace("BlueprintGeneratedClass", "").Replace("'", ""); ;
         actual_asset = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(FirstTag);
         var uBlueprintGeneratedClass = actual_asset as UBlueprintGeneratedClass;
         actual_asset = uBlueprintGeneratedClass.ClassDefaultObject.Load();
@@ -182,6 +235,22 @@ public class AssetHandlerData
             UI_Asset = UIObject.ClassDefaultObject.Load();
         }
         // switch on asset type
+        if (AssetType == EAssetType.Weapon)
+        {
+            if (bWeaponNeedsBaseMesh(actual_asset))
+            {
+                if (actual_asset.Name.Contains("LeverSniper"))
+                {
+                    return;
+                }
+                var baseTuple = GetBaseMesh(actual_asset);
+                if (!AppVM.AssetHandlerVM.CurrentBaseMesh.ContainsKey(baseTuple.Item1))
+                {
+                    AppVM.AssetHandlerVM.CurrentBaseMesh.Add(baseTuple.Item1, baseTuple.Item2);
+                }
+                Console.WriteLine("BaseMesh: " + AppVM.AssetHandlerVM.CurrentBaseMesh);
+            }
+        }
         string Loadable = "";
         switch (AssetType)
         {
@@ -189,13 +258,16 @@ public class AssetHandlerData
                 Loadable = "Character";
                 break;
             case EAssetType.Weapon:
+                actual_asset.TryGetValue<UBlueprintGeneratedClass[]>(out var bGp, "Levels");
+                actual_asset = bGp[0].ClassDefaultObject.Load();
+                //actual_asset = bp.ClassDefaultObject.Load();
                 Loadable = "SkinAttachment";
                 break;
             default:
                 Loadable = "CharmAttachment";
                 break;
         }
-        
+
         if (actual_asset.TryGetValue(out UBlueprintGeneratedClass EquippableObject, Loadable))
         {
             actual_asset = EquippableObject.ClassDefaultObject.Load();
@@ -204,9 +276,9 @@ public class AssetHandlerData
         {
             UI_Asset = actual_asset;
         }
-        
+
         var previewImage = IconGetter(UI_Asset);
         if (previewImage is null) return;
-        await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actual_asset,UI_Asset, previewImage, random)), DispatcherPriority.Background);
+        await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actual_asset, UI_Asset, previewImage, random)), DispatcherPriority.Background);
     }
 }

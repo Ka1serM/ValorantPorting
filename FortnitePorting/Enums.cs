@@ -19,7 +19,15 @@ public enum ERichPresenceAccess
     [Description("Never")]
     Never
 }
+public enum EMeshType
+{
+    [Description("Base")]
+    Base,
 
+    [Description("Overriden")]
+    Overriden
+}
+    
 
 public enum EAssetType
 {

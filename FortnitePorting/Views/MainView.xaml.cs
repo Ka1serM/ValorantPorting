@@ -84,14 +84,11 @@ public partial class MainView
         if (sender is not ListBox listBox) return;
         if (listBox.SelectedItem is null) return;
         var selected = (AssetSelectorItem)listBox.SelectedItem;
-        if (selected.IsRandom)
+        if (selected.aType == EAssetType.Weapon)
         {
-            listBox.SelectedIndex = App.RandomGenerator.Next(0, listBox.Items.Count);
-            return;
         }
 
         AppVM.MainVM.CurrentAsset = selected;
-
         var styles = selected.Asset.GetOrDefault("Chromas", Array.Empty<UObject>());
         foreach (UBlueprintGeneratedClass style in styles)
         {

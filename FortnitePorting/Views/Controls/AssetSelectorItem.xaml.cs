@@ -25,6 +25,7 @@ public partial class AssetSelectorItem
     
     public bool IsRandom { get; set; }
     public string DisplayName { get; set; }
+    public EAssetType aType { get; set; }
     public string Description { get; set; }
     public string TooltipName { get; set; }
     public string ID { get; set; }
@@ -33,7 +34,6 @@ public partial class AssetSelectorItem
     {
         InitializeComponent();
         DataContext = this;
-
         UIAsset = UIasset;
         Asset = asset;
         DisplayName = UIAsset.GetOrDefault("DisplayName", new FText("Unnamed")).Text;
