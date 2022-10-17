@@ -164,7 +164,7 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
 
     shader_node = nodes.new(type="ShaderNodeGroup")
     N_SHADER = shader_node
-    shader_node.name = "VALORANT_Weapon"
+    shader_node.name = "1P_Weapon_Mat_Base_V5"
     if mat_type == "Character":
         shader_node.name = "VALORANT_Agent"
     shader_node.node_tree = bpy.data.node_groups.get(shader_node.name)
@@ -289,7 +289,6 @@ def import_response(response):
     def import_part(parts):
         for part in parts:
             part_type = part.get("Part")
-            print(part_type)
             if any(imported_parts, lambda x: False if x is None else x.get("Part") == part_type):
                 continue
 
