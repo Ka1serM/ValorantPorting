@@ -63,7 +63,7 @@ public class ExportData
         var nanrtw = AppVM.CUE4ParseVM.Provider.LoadObjectExports(muob.GetPathName().Substring(0, muob.GetPathName().LastIndexOf(".")));
         foreach (var VARIABLE in nanrtw)
         {
-            if (VARIABLE.ExportType == "SkeletalMeshComponent" && !VARIABLE.Name.Contains("Camera") )
+            if (VARIABLE.ExportType == "SkeletalMeshComponent" && VARIABLE.Name == "SkeletalMesh_GEN_VARIABLE" )
             {
                 return VARIABLE;
             }
@@ -85,6 +85,10 @@ public class ExportData
                 {
                     var meshes = new UObject[2];
                     asset.TryGetValue(out meshes[0], "MeshOverlay1P");
+                    if (meshes[0].Properties.Count < 2)
+                    {
+                        asset.TryGetValue(out meshes[0], "Mesh1P");
+                    }
                     // one day make option to use character select or not
                     meshes[1] = GetCSMesh();
                     //asset.TryGetValue(out meshes[1], "MeshCosmetic3P");

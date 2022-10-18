@@ -94,6 +94,10 @@ public partial class MainView
         var NStyles = new List<UObject>();
         foreach (UBlueprintGeneratedClass VARIABLE in styles)
         {
+            if (VARIABLE == null)
+            {
+                continue;
+            }
             var CDO = VARIABLE.ClassDefaultObject.Load();
             var channel = CDO.GetOrDefault("UIData", new UObject());
             var bpChannel = (UBlueprintGeneratedClass)channel;

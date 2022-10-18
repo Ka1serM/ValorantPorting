@@ -74,7 +74,7 @@ public static class ExportHelpers
             }
             if (part.TryGetValue(out UMaterialInstanceConstant[] materialOverrides, "MaterialOverrides"))
             {
-                OverrideMaterials(materialOverrides, ref exportPart);
+                OverrideMaterials(materialOverrides, exportPart.OverrideMaterials);
             }
 
             exportParts.Add(exportPart);
@@ -102,8 +102,18 @@ public static class ExportHelpers
         if (weaponDefinition.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
         {
             var defaultObject = blueprint.ClassDefaultObject.Load();
-            if (defaultObject.TryGetValue(out USkeletalMesh weaponMeshData, "Weapon 1P"))
+            USkeletalMesh weaponMeshData;
+            USkeletalMesh weap_cosmetic;
+            if (defaultObject.TryGetValue(out  weaponMeshData, "Weapon 1P") || defaultObject.TryGetValue(out  weaponMeshData, "NewMesh") )
             {
+                if (weaponMeshData.Name.ToLower().Contains("basemesh"))
+                {
+                    if (defaultObject.TryGetValue(out weap_cosmetic, "Weapon 1P Cosmetic"))
+                    {
+                        weaponMeshData = weap_cosmetic;
+                    }
+                }
+
                 Mesh(weaponMeshData, exportParts);
             }
             else
@@ -113,7 +123,7 @@ public static class ExportHelpers
 
             if (defaultObject.TryGetValue(out UMaterialInstanceConstant[] WeapOverrides, "1p MaterialOverrides"))
             {
-                OverrideMaterials(WeapOverrides,exportParts);
+                OverrideMaterials(WeapOverrides,exportParts[0].OverrideMaterials);
             }
             
         }
@@ -195,38 +205,6 @@ public static class ExportHelpers
 
         exportParts.Add(exportPart);
         return exportParts.Count - 1;
-    }
-    public static void OverrideMaterials(UMaterialInstanceConstant[] overrides, ref ExportPart exportPart)
-    {
-        foreach (var materialOverride in overrides)
-        {
-            var overrideMaterial = materialOverride.Get<FSoftObjectPath>("OverrideMaterial");
-            if (!overrideMaterial.TryLoad(out var material)) continue;
-
-            var exportMaterial = new ExportMaterial
-            {
-                MaterialName = material.Name,
-                SlotIndex = materialOverride.Get<int>("MaterialOverrideIndex"),
-                MaterialNameToSwap = materialOverride.GetOrDefault<FSoftObjectPath>("MaterialToSwap").AssetPathName.PlainText.SubstringAfterLast(".")
-            };
-
-            if (material is UMaterialInstanceConstant materialInstance)
-            {
-                var (textures, scalars, vectors) = MaterialParameters(materialInstance);
-                exportMaterial.Textures = textures;
-                exportMaterial.Scalars = scalars;
-                exportMaterial.Vectors = vectors;
-            }
-
-            for (var idx = 0; idx < exportPart.Materials.Count; idx++)
-            {
-                if (exportPart.Materials[exportMaterial.SlotIndex].MaterialName ==
-                    exportPart.Materials[idx].MaterialName)
-                {
-                    exportPart.OverrideMaterials.Add(exportMaterial with { SlotIndex = idx });
-                }
-            }
-        }
     }
 
     public static void OverrideMaterials(UMaterialInstanceConstant[] overrides, List<ExportMaterial> exportMaterials)
