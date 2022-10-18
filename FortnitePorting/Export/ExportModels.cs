@@ -7,9 +7,11 @@ namespace FortnitePorting.Export;
 public class ExportPart
 {
     public string MeshPath;
+    public string MeshName;
     public string? Part;
     public List<ExportMaterial> Materials = new();
     public List<ExportMaterial> OverrideMaterials = new();
+    public List<ExportAttatchment> Attatchments = new();
 }
 
 public record ExportMaterial
@@ -22,6 +24,11 @@ public record ExportMaterial
     public List<VectorParameter> Vectors = new();
 }
 
+public record ExportAttatchment
+{
+    public string AttatchmentName;
+    public string BoneName;
+}
 public record TextureParameter(string Name, string Value);
 
 public record ScalarParameter(string Name, float Value);

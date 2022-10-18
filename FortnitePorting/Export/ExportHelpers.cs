@@ -96,7 +96,7 @@ public static class ExportHelpers
         }
         return null;
     }
-    public static void Weapon(UObject weaponDefinition, List<ExportPart> exportParts)
+    public static void Weapon(UObject weaponDefinition, List<ExportPart> exportParts, ExportData ActualData)
     {
         
         if (weaponDefinition.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
@@ -104,6 +104,7 @@ public static class ExportHelpers
             var defaultObject = blueprint.ClassDefaultObject.Load();
             USkeletalMesh weaponMeshData;
             USkeletalMesh weap_cosmetic;
+            UStaticMesh MagazineWeap;
             if (defaultObject.TryGetValue(out  weaponMeshData, "Weapon 1P") || defaultObject.TryGetValue(out  weaponMeshData, "NewMesh") )
             {
                 if (weaponMeshData.Name.ToLower().Contains("basemesh"))
@@ -121,6 +122,15 @@ public static class ExportHelpers
                 Mesh(GetWeapBase(), exportParts);
             }
 
+            if (defaultObject.TryGetValue(out MagazineWeap, "Magazine 1P"))
+            {
+                SMesh(MagazineWeap, exportParts);
+                var attach = new ExportAttatchment();
+                attach.BoneName = "Magazine_Main";
+                attach.AttatchmentName = exportParts.Last().MeshName;
+                exportParts.First().Attatchments.Add(attach);
+                //ActualData.Attatchments.Add(attach);
+            }
             if (defaultObject.TryGetValue(out UMaterialInstanceConstant[] WeapOverrides, "1p MaterialOverrides"))
             {
                 OverrideMaterials(WeapOverrides,exportParts[0].OverrideMaterials);
@@ -137,6 +147,7 @@ public static class ExportHelpers
 
         var exportPart = new ExportPart();
         exportPart.MeshPath = skeletalMesh.GetPathName();
+        exportPart.MeshName = skeletalMesh.Name + ".ao";
         Save(skeletalMesh);
 
         var sections = convertedMesh.LODs[0].Sections.Value;
@@ -167,14 +178,14 @@ public static class ExportHelpers
         exportParts.Add(exportPart);
         return exportParts.Count - 1;
     }
-    public static int Mesh(UStaticMesh? staticMesh, List<ExportPart> exportParts)
+    public static int SMesh(UStaticMesh? staticMesh, List<ExportPart> exportParts)
     {
         if (staticMesh is null) return -1;
         if (!staticMesh.TryConvert(out var convertedMesh)) return -1;
         if (convertedMesh.LODs.Count <= 0) return -1;
-
         var exportPart = new ExportPart();
         exportPart.MeshPath = staticMesh.GetPathName();
+        exportPart.MeshName = staticMesh.Name + ".mo";
         Save(staticMesh);
 
         var sections = convertedMesh.LODs[0].Sections.Value;
@@ -297,7 +308,7 @@ public static class ExportHelpers
                 {
                     case USkeletalMesh skeletalMesh:
                     {
-                        var path = GetExportPath(obj, "psk", "_LOD0");
+                        var path = GetExportPath(obj, "psk");
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(skeletalMesh, ExportOptions, false);
@@ -307,7 +318,7 @@ public static class ExportHelpers
 
                     case UStaticMesh staticMesh:
                     {
-                        var path = GetExportPath(obj, "pskx", "_LOD0");
+                        var path = GetExportPath(obj, "pskx");
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(staticMesh, ExportOptions, false);

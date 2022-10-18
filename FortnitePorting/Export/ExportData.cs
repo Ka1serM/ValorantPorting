@@ -22,6 +22,8 @@ public class ExportData
     public List<ExportPart> Parts = new();
     public List<ExportPart> StyleParts = new();
     public List<ExportMaterial> StyleMaterials = new();
+    //public List<ExportAttatchment> Attatchments = new();
+    
     public static async Task<UObject> CreateUIData(UBlueprintGeneratedClass asset )
     {
         UObject Sla = null;
@@ -97,7 +99,7 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
-                    ExportHelpers.Weapon(asset, data.Parts);
+                    ExportHelpers.Weapon(asset, data.Parts,data);
                     if (style != null)
                     {
                         ExportHelpers.OverrideMaterials( HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);

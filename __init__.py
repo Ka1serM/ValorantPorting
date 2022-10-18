@@ -114,7 +114,7 @@ shaders_v = [
 
 def import_mesh(path: str) -> bpy.types.Object:
     path = path[1:] if path.startswith("/") else path
-    mesh_path = os.path.join(import_assets_root, path.split(".")[0] + "_LOD0")
+    mesh_path = os.path.join(import_assets_root, path.split(".")[0])
 
     if os.path.exists(mesh_path + ".psk"):
         mesh_path += ".psk"
@@ -214,6 +214,18 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     for vector in material_data.get("Vectors"):
         vector_parameter(vector)
 
+def AttachToObject(entire_loop):
+    for entire_object in entire_loop:
+        if type(entire_object) != dict:
+            return
+        all_attachs = entire_object.get("Attatchments")
+        for attachs in all_attachs:
+            target_obj = bpy.data.objects[entire_object.get("MeshName")]
+            child_obj = bpy.data.objects[attachs.get("AttatchmentName")]
+            constraint = child_obj.constraints.new(type='CHILD_OF')
+            constraint.target = target_obj
+            constraint.subtarget = attachs.get("BoneName")
+            bpy.ops.constraint.childof_clear_inverse(constraint="Child Of", owner='OBJECT')
 
 
 def import_shaders(shaderName):
@@ -269,8 +281,8 @@ def import_response(response):
     def import_part(parts):
         for part in parts:
             part_type = part.get("Part")
-            if any(imported_parts, lambda x: False if x is None else x.get("Part") == part_type):
-                continue
+            #if any(imported_parts, lambda x: False if x is None else x.get("Part") == part_type):
+                #continue
 
             if (imported_part := import_mesh(part.get("MeshPath"))) is None:
                 continue
@@ -279,7 +291,9 @@ def import_response(response):
             if has_armature:
                 mesh = mesh_from_armature(imported_part)
             else:
+                #prob here for attach
                 mesh = imported_part
+                AttachToObject(part)
             bpy.context.view_layer.objects.active = mesh
 
             imported_parts.append({
@@ -295,9 +309,11 @@ def import_response(response):
             for override_material in part.get("OverrideMaterials"):
                 index = override_material.get("SlotIndex")
                 import_material(mesh.material_slots.values()[index], override_material,import_type)
-
     import_part(import_data.get("StyleParts"))
     import_part(import_data.get("Parts"))
+    AttachToObject(import_data.get("Parts"))
+
+
 
     for imported_part in imported_parts:
         mesh = imported_part.get("Mesh")

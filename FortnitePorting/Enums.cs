@@ -27,8 +27,14 @@ public enum EMeshType
     [Description("Overriden")]
     Overriden
 }
-    
 
+public enum EWeaponType
+{
+    [Description("Attatchment")]
+    Attatchment,
+    [Description("RealWeapon")]
+    RealWeapon,
+}
 public enum EAssetType
 {
     [Description("Characters")]
