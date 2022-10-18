@@ -42,9 +42,10 @@ public static class ExportHelpers
             exportPart.MeshPath = skeletalMesh.GetPathName();
             Save(skeletalMesh);
             exportPart.Part = "FP";
-            if (skeletalMesh.Name.Contains("TP"))
+            // OPTION CharacterSelect or not later plz
+            if (skeletalMesh.Name.Contains("CS"))
             {
-                exportPart.Part = "TP";
+                exportPart.Part = "CS";
             }
             var sections = convertedMesh.LODs[0].Sections.Value;
             for (var idx = 0; idx < sections.Length; idx++)
@@ -79,8 +80,25 @@ public static class ExportHelpers
             exportParts.Add(exportPart);
         }
     }
+    public static USkeletalMesh GetWeapBase()
+    {
+        UBlueprintGeneratedClass muob;
+        UBlueprintGeneratedClass Agane;
+        UObject rturn;
+        var idks = AppVM.MainVM.CurrentAsset.MainAsset;
+        var e = idks.TryGetValue(out muob, "Equippable");
+        var n =muob.ClassDefaultObject.Load();
+        var eb = n.TryGetValue(out Agane, "Equippable");
+        var g = Agane.ClassDefaultObject.Load();
+        if (g.TryGetValue(out rturn, "Mesh1P"))
+        {
+            return rturn.Get<USkeletalMesh>("SkeletalMesh");
+        }
+        return null;
+    }
     public static void Weapon(UObject weaponDefinition, List<ExportPart> exportParts)
     {
+        
         if (weaponDefinition.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
         {
             var defaultObject = blueprint.ClassDefaultObject.Load();
@@ -88,9 +106,18 @@ public static class ExportHelpers
             {
                 Mesh(weaponMeshData, exportParts);
             }
-            if (exportParts.Count > 0) // successfully exported mesh
-                return;
+            else
+            {
+                Mesh(GetWeapBase(), exportParts);
+            }
+
+            if (defaultObject.TryGetValue(out UMaterialInstanceConstant[] WeapOverrides, "1p MaterialOverrides"))
+            {
+                OverrideMaterials(WeapOverrides,exportParts);
+            }
+            
         }
+        
     }
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
     {

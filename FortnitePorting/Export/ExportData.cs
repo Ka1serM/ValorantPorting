@@ -10,6 +10,7 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Engine;
+using CUE4Parse.UE4.Objects.UObject;
 using FortnitePorting.Views.Extensions;
 
 namespace FortnitePorting.Export;
@@ -42,6 +43,34 @@ public class ExportData
         return ReturnStyle;
 
     }
+
+    public static UObject HandleBaseChroma(UObject usedObj)
+    {
+        if (usedObj.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
+        {
+            var defaultObject = blueprint.ClassDefaultObject.Load();
+            return defaultObject;
+
+        }
+        return null;
+    }
+
+    public static UObject GetCSMesh()
+    {
+        UObject muob;
+        var idks = AppVM.MainVM.CurrentAsset.MainAsset;
+        idks.TryGetValue(out  muob, "CharacterSelectFXC");
+        var nanrtw = AppVM.CUE4ParseVM.Provider.LoadObjectExports(muob.GetPathName().Substring(0, muob.GetPathName().LastIndexOf(".")));
+        foreach (var VARIABLE in nanrtw)
+        {
+            if (VARIABLE.ExportType == "SkeletalMeshComponent" && !VARIABLE.Name.Contains("Camera") )
+            {
+                return VARIABLE;
+            }
+        }
+
+        return null;
+    }
     public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style)
 
     {
@@ -56,15 +85,23 @@ public class ExportData
                 {
                     var meshes = new UObject[2];
                     asset.TryGetValue(out meshes[0], "MeshOverlay1P");
-                    asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
+                    // one day make option to use character select or not
+                    meshes[1] = GetCSMesh();
+                    //asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
                     break;
                 }
                 case EAssetType.Weapon:
                 {
                     ExportHelpers.Weapon(asset, data.Parts);
-                    ExportHelpers.OverrideMaterials( HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
-
+                    if (style != null)
+                    {
+                        ExportHelpers.OverrideMaterials( HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
+                    }
+                    else
+                    {
+                        ExportHelpers.OverrideMaterials(HandleBaseChroma(asset).GetOrDefault("1p MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
+                    }
                     break;
                 }
                 case EAssetType.GunBuddy:
