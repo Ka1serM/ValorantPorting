@@ -24,25 +24,25 @@ public class ExportData
     public List<ExportMaterial> StyleMaterials = new();
     //public List<ExportAttatchment> Attatchments = new();
     
-    public static async Task<UObject> CreateUIData(UBlueprintGeneratedClass asset )
+    public static async Task<UObject> CreateUiData(UBlueprintGeneratedClass asset )
     {
-        UObject Sla = null;
+        UObject loadedCdoUi = null;
         await Task.Run(() =>
         {
-            Sla = asset.ClassDefaultObject.Load();
+            loadedCdoUi = asset.ClassDefaultObject.Load();
         });
-        return Task.FromResult(Sla).Result;
+        return Task.FromResult(loadedCdoUi).Result;
     }
 
-    public static UObject HandleStyle(UObject Sty)
+    public static UObject HandleStyle(UObject sty)
     {
-        var useStyle = Sty as UBlueprintGeneratedClass;
-        var styleCdo = useStyle?.ClassDefaultObject.Load();
-        var loka = new UBlueprintGeneratedClass();
-        styleCdo?.TryGetValue(out loka, "EquippableSkinChroma");
-        var ReturnStyle = loka.ClassDefaultObject.Load();
+        var bpGnCast = sty as UBlueprintGeneratedClass;
+        var cdo_style = bpGnCast?.ClassDefaultObject.Load();
+        var returnBpGn = new UBlueprintGeneratedClass();
+        cdo_style?.TryGetValue(out returnBpGn, "EquippableSkinChroma");
+        var returnStyle = returnBpGn.ClassDefaultObject.Load();
         
-        return ReturnStyle;
+        return returnStyle;
 
     }
     
@@ -52,23 +52,22 @@ public class ExportData
         if (usedObj.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
         {
             var defaultObject = blueprint.ClassDefaultObject.Load();
-            return defaultObject;
-
+            if (defaultObject != null) return defaultObject;
         }
         return null;
     }
     
-    public static UObject GetCSMesh()
+    public static UObject GetCsMesh()
     {
-        UObject muob;
-        var idks = AppVM.MainVM.CurrentAsset.MainAsset;
-        idks.TryGetValue(out  muob, "CharacterSelectFXC");
-        var nanrtw = AppVM.CUE4ParseVM.Provider.LoadObjectExports(muob.GetPathName().Substring(0, muob.GetPathName().LastIndexOf(".")));
-        foreach (var VARIABLE in nanrtw)
+        UObject csObject;
+        var main_asset_loaded = AppVM.MainVM.CurrentAsset.MainAsset;
+        main_asset_loaded.TryGetValue(out  csObject, "CharacterSelectFXC");
+        var csExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(csObject.GetPathName().Substring(0, csObject.GetPathName().LastIndexOf(".")));
+        foreach (var propExp in csExports)
         {
-            if (VARIABLE.ExportType == "SkeletalMeshComponent" && VARIABLE.Name == "SkeletalMesh_GEN_VARIABLE" )
+            if (propExp.ExportType == "SkeletalMeshComponent" && propExp.Name == "SkeletalMesh_GEN_VARIABLE" )
             {
-                return VARIABLE;
+                return propExp;
             }
         }
 
@@ -93,8 +92,7 @@ public class ExportData
                         asset.TryGetValue(out meshes[0], "Mesh1P");
                     }
                     // one day make option to use character select or not
-                    meshes[1] = GetCSMesh();
-                    //asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
+                    meshes[1] = GetCsMesh();
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
                     break;
                 }

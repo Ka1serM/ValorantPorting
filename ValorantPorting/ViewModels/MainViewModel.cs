@@ -33,7 +33,6 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> bundles = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> harvestingTools = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> dances = new();
     [ObservableProperty] private ObservableCollection<StyleSelector> styles = new();
@@ -101,9 +100,6 @@ public partial class MainViewModel : ObservableObject
             case "Settings_Startup":
                 AppHelper.OpenWindow<StartupView>();
                 break;
-            case "Tools_BundleDownloader":
-                AppHelper.OpenWindow<BundleDownloaderView>();
-                break;
             case "Tools_Update":
                 // TODO
                 break;
@@ -122,11 +118,16 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public async Task ExportBlender()
     {
+        var loadTimez = new Stopwatch();
+        loadTimez.Start();
         var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles());
+        data.Name = currentAsset.DisplayName;
         BlenderService.Send(data, new BlenderExportSettings
         {
             ReorientBones = false
         });
+        loadTimez.Stop();
+        AppLog.Information($"Finished exporting {data.Name} in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
     }
 
     [RelayCommand]

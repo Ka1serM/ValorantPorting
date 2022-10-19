@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FortnitePorting", "FortnitePorting\FortnitePorting.csproj", "{08C6F4C5-1F49-4570-9139-0D760A3C9CD4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ValorantPorting", "ValorantPorting\ValorantPorting.csproj", "{08C6F4C5-1F49-4570-9139-0D760A3C9CD4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CUE4Parse", "CUE4Parse\CUE4Parse\CUE4Parse.csproj", "{D91DDC00-28DE-48BF-95CE-EAE85F274B0B}"
 EndProject

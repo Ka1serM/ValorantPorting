@@ -20,15 +20,15 @@ public partial class StyleSelector
 {
     public UObject OptionUsed;
 
-    public StyleSelector(UObject[] options, UObject[] ActualObjects )
+    public StyleSelector(UObject[] options, UObject[] actualObjects )
     {
         InitializeComponent();
         DataContext = this;
         for (int i = 0; i < options.Length; i++)
         {
-            UObject UIData = options[i];
-            UIData.TryGetValue(out FText channel, "DisplayName");
-            if (!UIData.TryGetValue(out UTexture2D previewTexture, "Swatch")) return;
+            UObject uiData = options[i];
+            uiData.TryGetValue(out FText channel, "DisplayName");
+            if (!uiData.TryGetValue(out UTexture2D previewTexture, "Swatch")) return;
             var previewBitmap = previewTexture.Decode();
             if (previewBitmap is null) continue;
 
@@ -40,7 +40,7 @@ public partial class StyleSelector
                 fullCanvas.DrawBitmap(previewBitmap, 0, 0);
             }
 
-            Options.Items.Add(new StyleSelectorItem(ActualObjects[i],UIData,channel.ToString(), fullBitmap));
+            Options.Items.Add(new StyleSelectorItem(actualObjects[i],uiData,channel.ToString(), fullBitmap));
         }
 
         Options.SelectedIndex = 0;

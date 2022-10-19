@@ -23,7 +23,7 @@ namespace FortnitePorting.Export;
 
 public static class ExportHelpers
 {
-    public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject OGObjects)
+    public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject ogObjects)
     {
         foreach (var part in inputParts)
         {
@@ -68,6 +68,7 @@ public static class ExportHelpers
                     exportMaterial.Textures = textures;
                     exportMaterial.Scalars = scalars;
                     exportMaterial.Vectors = vectors;
+                    exportMaterial.ParentName = materialInstance.Parent.Name;
                 }
                 exportPart.Materials.Add(exportMaterial);
 
@@ -80,36 +81,48 @@ public static class ExportHelpers
             exportParts.Add(exportPart);
         }
     }
-    public static USkeletalMesh GetWeapBase()
+    public static USkeletalMesh get_base_weapon()
     {
-        UBlueprintGeneratedClass muob;
-        UBlueprintGeneratedClass Agane;
-        UObject rturn;
+        UBlueprintGeneratedClass local_bgc_1;
+        UBlueprintGeneratedClass local_bgc_2;
+        UObject object_Return;
         var idks = AppVM.MainVM.CurrentAsset.MainAsset;
-        var e = idks.TryGetValue(out muob, "Equippable");
-        var n =muob.ClassDefaultObject.Load();
-        var eb = n.TryGetValue(out Agane, "Equippable");
-        var g = Agane.ClassDefaultObject.Load();
-        if (g.TryGetValue(out rturn, "Mesh1P"))
+        
+        if (idks.TryGetValue(out local_bgc_1, "Equippable"));
         {
-            return rturn.Get<USkeletalMesh>("SkeletalMesh");
+            var bgc1Equippable =local_bgc_1.ClassDefaultObject.Load();
+            if (bgc1Equippable.TryGetValue(out local_bgc_2, "Equippable"))
+            {
+                var bgc2Equippable = local_bgc_2.ClassDefaultObject.Load();
+                if (bgc2Equippable.TryGetValue(out object_Return, "Mesh1P"))
+                {
+                    return object_Return.Get<USkeletalMesh>("SkeletalMesh");
+                }
+            }
         }
         return null;
     }
+    // for some reason the mag mash is not in the properties here so gotta load all exports
     public static UStaticMesh GetMagMesh()
     {
-        UBlueprintGeneratedClass muob;
-        UObject dumb;
-        var idks = AppVM.MainVM.CurrentAsset.MainAsset;
-        idks.TryGetValue(out  muob, "Equippable");
-        var cdo = muob.ClassDefaultObject.Load();
-        cdo.TryGetValue(out  dumb, "Equippable");
-        var nanrtw = AppVM.CUE4ParseVM.Provider.LoadObjectExports(dumb.GetPathName().Substring(0, dumb.GetPathName().LastIndexOf(".")));
-        foreach (var VARIABLE in nanrtw)
+        // initializers
+        UBlueprintGeneratedClass magBgn;
+        UObject finalMagBgn;
+        // main asset current (PrimaryDataAsset reference)
+        var u_MainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+        if (u_MainAsset.TryGetValue(out magBgn, "Equippable"))
         {
-            if (VARIABLE.Name.Contains("Magazine_1P"))
+            var cdo = magBgn.ClassDefaultObject.Load();
+            if (cdo.TryGetValue(out finalMagBgn, "Equippable"))
             {
-                return VARIABLE.Get<UStaticMesh>("StaticMesh");
+                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(finalMagBgn.GetPathName().Substring(0, finalMagBgn.GetPathName().LastIndexOf(".")));
+                foreach (var VARIABLE in mainObjectExports)
+                {
+                    if (VARIABLE.Name.Contains("Magazine_1P"))
+                    {
+                        return VARIABLE.Get<UStaticMesh>("StaticMesh");
+                    }
+                }
             }
         }
 
@@ -117,72 +130,80 @@ public static class ExportHelpers
     }
 
 
-    public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> GetAttatchments(UObject current)
-    { // 3pReflexMesh
-        UScriptMap scriptMap;
+    public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> get_weapon_attatchments(UObject current, UScriptMap scriptMap)
+    {
+        // initializer for return tuple stuff
         var fullSockets = new List<string>();
-        Dictionary<FSoftObjectProperty, FSoftObjectProperty> mn;
         var fullOverrideMaterials = new List<UMaterialInstanceConstant[]>();
-        UBlueprintGeneratedClass db;
         var meshes = new List<UStaticMesh>();
-        // 
-        current.TryGetValue(out scriptMap, "AttachmentOverrides");
-        foreach (var VARIABLE in scriptMap.Properties)
+        //  loop 
+        foreach (var scriptMapVariable in scriptMap.Properties)
         {
             // initializers
-            UStaticMesh localMesh;
-            UMaterialInstanceConstant[] overrideMaterials = new UMaterialInstanceConstant[] { };
-            // funcs
-            var valueVariable = (FSoftObjectPath)VARIABLE.Value.GenericValue;
-            var objectLoaded = (UBlueprintGeneratedClass)valueVariable.Load();
-            var cdoObject = objectLoaded.ClassDefaultObject.Load();
-            // key hashmap 
-            var keyVariable = (FSoftObjectPath)VARIABLE.Key.GenericValue;
-            var loadKey = (UBlueprintGeneratedClass)keyVariable.Load();
-            var cdo_key = loadKey.ClassDefaultObject.Load();
-            var template_key = cdo_key.Template.Load();
-            //
-            if (cdoObject.TryGetValue(out localMesh, "3pReflexMesh"))
+            UStaticMesh localMesh_z;
+            UMaterialInstanceConstant[] overrideMaterials_z = new UMaterialInstanceConstant[] { };
+            string localSocket_z = null;
+            // main_values
+            var scriptMapValue = (FSoftObjectPath)scriptMapVariable.Value.GenericValue;
+            var scriptMapKey = (FSoftObjectPath)scriptMapVariable.Key.GenericValue;
+            
+            var valueLoaded = (UBlueprintGeneratedClass)scriptMapValue.Load();
+            var keyLoaded = (UBlueprintGeneratedClass)scriptMapKey.Load();
+            
+            var objectValue = valueLoaded.ClassDefaultObject.Load();
+            var objectKey = keyLoaded.ClassDefaultObject.Load();
+            
+            var templateKey = objectKey.Template?.Load();
+            var templateObject = objectValue.Template?.Load();
+            string[] scope = { "3pReflexMesh", "3pMaterialOverrides", "Reflex"};  
+            string[] silencer = { "3p Mesh", "3p MaterialOverrides", "Barrel"};  
+            List<List<string>> current_attatch_list  = new List<List<string>>();
+            current_attatch_list.Add(new List<string>(scope));
+            current_attatch_list.Add(new List<string>(silencer));
+
+            // 
+            for (int i = 0; i < current_attatch_list.Count; i++)
             {
-                cdoObject.TryGetValue(out overrideMaterials, "3pMaterialOverrides");
-                //
-                fullOverrideMaterials.Add(overrideMaterials);
-                fullSockets.Add("Reflex");
-                meshes.Add(localMesh);
-            }
-            else
-            {
-                if (template_key.TryGetValue(out localMesh, "3pReflexMesh"))
+                var vl = current_attatch_list[i];
+                var result_tuple = return_local_attatch(objectValue, templateKey,objectKey,vl[0], vl[1], vl[2]);
+                if (result_tuple.Item2 == null)
                 {
-                    cdo_key.TryGetValue(out overrideMaterials, "3pMaterialOverrides");
-                    
-                    fullOverrideMaterials.Add(overrideMaterials);
-                    fullSockets.Add("Reflex");
-                    meshes.Add(localMesh);
+                    continue;
                 }
+                fullSockets.Add(result_tuple.Item1);
+                meshes.Add(result_tuple.Item2);
+                fullOverrideMaterials.Add(result_tuple.Item3);
             }
-            if (cdoObject.TryGetValue(out localMesh, "3p Mesh"))
-            {
-                if (cdoObject.TryGetValue(out overrideMaterials, "3p MaterialOverrides"))
-                {
-                }
-                fullOverrideMaterials.Add(overrideMaterials);
-                fullSockets.Add("Barrel");
-                meshes.Add(localMesh);
-            }
-            else
-            {
-                if (template_key.TryGetValue(out localMesh, "3p Mesh"))
-                {
-                    cdo_key.TryGetValue(out overrideMaterials, "3p MaterialOverrides");
-                    fullOverrideMaterials.Add(overrideMaterials);
-                    fullSockets.Add("Barrel");
-                    meshes.Add(localMesh);
-                }
-            }
+
         }
         
         return Tuple.Create(fullSockets, meshes, fullOverrideMaterials);
+    }
+
+    public static Tuple<string, UStaticMesh, UMaterialInstanceConstant[]> return_local_attatch(UObject objValue,
+        UObject Tplate,UObject objKey, string nameMesh, string nameMat, string socketUse)
+    {
+        // INIT 
+        UStaticMesh localMesh;
+        UMaterialInstanceConstant[] overrideMaterials = new UMaterialInstanceConstant[] { };
+        string localSocket = null;
+        //
+        objValue.TryGetValue(out localMesh, nameMesh);
+        objValue.TryGetValue(out overrideMaterials, nameMat);
+        if (localMesh == null)
+        {
+            objKey.TryGetValue(out localMesh, nameMesh);
+            if (localMesh == null)
+            {
+                Tplate.TryGetValue(out localMesh, nameMesh);
+            }
+            objKey.TryGetValue(out overrideMaterials, nameMat);
+        }
+
+        localSocket = socketUse;
+        return Tuple.Create(localSocket, localMesh, overrideMaterials);
+
+
     }
     public static void Weapon(UObject weaponDefinition, List<ExportPart> exportParts, ExportData ActualData)
     {
@@ -209,7 +230,7 @@ public static class ExportHelpers
             }
             else
             {
-                Mesh(GetWeapBase(), exportParts);
+                Mesh(get_base_weapon(), exportParts);
             }
 
             if (defaultObject.TryGetValue(out MagazineWeap, "Magazine 1P"))
@@ -228,7 +249,7 @@ public static class ExportHelpers
             
             if (current.TryGetValue(out dant_attatchs, "AttachmentOverrides"))
             {
-                var scopeTuple = GetAttatchments(current);
+                var scopeTuple = get_weapon_attatchments(current, dant_attatchs);
                 for (int i = 0; i < scopeTuple.Item2.Count; i++)
                 {
                     var lMesh = scopeTuple.Item2[i];
@@ -353,6 +374,7 @@ public static class ExportHelpers
                 exportMaterial.Textures = textures;
                 exportMaterial.Scalars = scalars;
                 exportMaterial.Vectors = vectors;
+                exportMaterial.ParentName = material.Parent.Name;
             }
 
             exportMaterials.Add(exportMaterial);

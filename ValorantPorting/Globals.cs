@@ -6,8 +6,8 @@ namespace FortnitePorting;
 
 public static class Globals
 {
-    public const string DISCORD_URL = "https://discord.gg/DZ5YFXdBA6";
-    public const string GITHUB_URL = "https://github.com/halfuwu/FortnitePorting";
+    public const string DISCORD_URL = "https://discord.gg/avrJU3ggGj";
+    public const string GITHUB_URL = "https://github.com/djhaled/ValorantPorting";
 
     public const int BLENDER_PORT = 24280;
     public const int UNREAL_PORT = 24281;

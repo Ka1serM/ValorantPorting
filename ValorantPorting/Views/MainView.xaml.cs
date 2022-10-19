@@ -101,7 +101,7 @@ public partial class MainView
             var CDO = VARIABLE.ClassDefaultObject.Load();
             var channel = CDO.GetOrDefault("UIData", new UObject());
             var bpChannel = (UBlueprintGeneratedClass)channel;
-            var UIData = await ExportData.CreateUIData(bpChannel);
+            var UIData = await ExportData.CreateUiData(bpChannel);
             NStyles.Add(UIData);
         }
         var styleSelector = new StyleSelector(NStyles.ToArray(),styles);

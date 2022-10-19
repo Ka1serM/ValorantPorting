@@ -22,6 +22,7 @@ public record ExportMaterial
     public List<TextureParameter> Textures = new();
     public List<ScalarParameter> Scalars = new();
     public List<VectorParameter> Vectors = new();
+    public string ParentName;
 }
 
 public record ExportAttatchment

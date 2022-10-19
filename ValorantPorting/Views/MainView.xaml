@@ -32,7 +32,6 @@
                 <MenuItem Header="First-Time Startup" Command="{Binding MenuCommand}" CommandParameter="Settings_Startup"/>
             </MenuItem>
             <MenuItem Header="Tools">
-                <MenuItem Header="Bundle Downloader" Command="{Binding MenuCommand}" CommandParameter="Tools_BundleDownloader"/>
                 <MenuItem Header="Check for Updates" Command="{Binding MenuCommand}" CommandParameter="Tools_Update"/>
             </MenuItem>
             <MenuItem Header="Help">
@@ -59,7 +58,7 @@
                 <TabControl SelectionChanged="OnAssetTabSelectionChanged" IsEnabled="{Binding IsReady}">
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Characters" ImageSource="/FortnitePorting;component/Resources/Outfit.png"/>
+                            <controls:TextWithIcon Label="Characters" ImageSource="/ValorantPorting;component/Resources/Outfit.png"/>
                         </TabItem.Header>
                         <ListBox ItemsSource="{Binding Outfits}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
@@ -71,9 +70,9 @@
                     </TabItem>
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Weapon Skin Bundles" ImageSource="/FortnitePorting;component/Resources/Weapon.png"/>
+                            <controls:TextWithIcon Label="Weapon Skin Bundles" ImageSource="/ValorantPorting;component/Resources/Weapon.png"/>
                         </TabItem.Header>
-                        <ListBox ItemsSource="{Binding HarvestingTools}" SelectionChanged="OnAssetSelectionChanged">
+                        <ListBox ItemsSource="{Binding Weapons}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
                                 <ItemsPanelTemplate>
                                     <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="6"  VerticalAlignment="Top" HorizontalAlignment="Left"/>
@@ -142,7 +141,7 @@
                     <Button Grid.Row="4" Command="{Binding ExportBlenderCommand}">
                         <Button.Content>
                             <StackPanel Orientation="Horizontal">
-                                <Image Source="/FortnitePorting;component/Resources/Blender.png" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                <Image Source="/ValorantPorting;component/Resources/Blender.png" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
                                 <TextBlock Text="Send to Blender" VerticalAlignment="Center" Margin="5 0 0 0"/>
                             </StackPanel>
                         </Button.Content>
@@ -151,7 +150,7 @@
                     <Button Grid.Row="6" Command="{Binding ExportUnrealCommand}">
                         <Button.Content>
                            <StackPanel Orientation="Horizontal">
-                               <Image Source="/FortnitePorting;component/Resources/Unreal.png" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
+                               <Image Source="/ValorantPorting;component/Resources/Unreal.png" VerticalAlignment="Center" Width="16" Height="16" RenderOptions.BitmapScalingMode="HighQuality"/>
                                <TextBlock Text="Send to Unreal Engine" VerticalAlignment="Center" Margin="5 0 0 0"/>
                            </StackPanel>
                         </Button.Content>
