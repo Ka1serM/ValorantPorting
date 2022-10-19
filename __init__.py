@@ -219,15 +219,34 @@ def AttachToObject(entire_loop):
         if type(entire_object) != dict:
             return
         all_attachs = entire_object.get("Attatchments")
-        for attachs in all_attachs:
+        for idex,attachs in enumerate(all_attachs):
             target_obj = bpy.data.objects[entire_object.get("MeshName")]
             child_obj = bpy.data.objects[attachs.get("AttatchmentName")]
             constraint = child_obj.constraints.new(type='CHILD_OF')
+            constraint.name = str(idex)
             constraint.target = target_obj
             constraint.subtarget = attachs.get("BoneName")
-            bpy.ops.constraint.childof_clear_inverse(constraint="Child Of", owner='OBJECT')
+            try:
+                bpy.context.view_layer.objects.active = child_obj
+                bpy.ops.constraint.childof_clear_inverse(constraint=constraint.name, owner='OBJECT')
+
+            except:
+                continue
 
 
+
+def clear_and_set_inverse_object_constraint_child_of(object_name, constraint_name):
+
+    previous_mode = set_mode(active_object_name=object_name, mode='OBJECT', configure_scene_for_basic_ops=False)
+
+    current_object = bpy.data.objects[object_name]
+
+    override_context = bpy.context.copy()
+    override_context['constraint'] = current_object.constraints[constraint_name]
+
+    bpy.ops.constraint.childof_clear_inverse(override_context, constraint=constraint_name, owner='OBJECT')
+
+    bpy.ops.object.mode_set(mode=previous_mode)
 def import_shaders(shaderName):
     script_root = Path(os.path.dirname(os.path.abspath(__file__)))
     shaders_blend_file = Path(script_root.joinpath(shaderName))
