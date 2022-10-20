@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace FortnitePorting.Views.Extensions;
+namespace ValorantPorting.Views.Extensions;
 
 public static class StringExtensions
 {

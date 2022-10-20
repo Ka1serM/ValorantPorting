@@ -1,6 +1,6 @@
-﻿using FortnitePorting.ViewModels;
+﻿using ValorantPorting.ViewModels;
 
-namespace FortnitePorting.Services;
+namespace ValorantPorting.Services;
 
 public static class ApplicationService
 {

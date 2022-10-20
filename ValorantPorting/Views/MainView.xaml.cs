@@ -10,17 +10,17 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Engine;
-using FortnitePorting.AppUtils;
-using FortnitePorting.Services;
-using FortnitePorting.ViewModels;
-using FortnitePorting.Views.Controls;
-using FortnitePorting.Export;
-using FortnitePorting.Export.Blender;
-using FortnitePorting.Views.Extensions;
+using ValorantPorting.AppUtils;
+using ValorantPorting.Services;
+using ValorantPorting.ViewModels;
+using ValorantPorting.Views.Controls;
+using ValorantPorting.Export;
+using ValorantPorting.Export.Blender;
+using ValorantPorting.Views.Extensions;
 using Serilog;
-using StyleSelector = FortnitePorting.Views.Controls.StyleSelector;
+using StyleSelector = ValorantPorting.Views.Controls.StyleSelector;
 
-namespace FortnitePorting.Views;
+namespace ValorantPorting.Views;
 
 public partial class MainView
 {
@@ -107,17 +107,6 @@ public partial class MainView
         var styleSelector = new StyleSelector(NStyles.ToArray(),styles);
         if (styleSelector.Options.Items.Count == 0) return;
         AppVM.MainVM.Styles.Add(styleSelector);
-        //foreach (UBlueprintGeneratedClass  style in styles)
-        //{
-            //var cdo = style.ClassDefaultObject.Load();
-            //var ui_data_get = cdo.GetOrDefault("UIData", new UObject());
-            //var ui_data_bp = (UBlueprintGeneratedClass)ui_data_get;
-            //var UIData = await ExportData.CreateUIData(ui_data_bp);
-            //UIData.TryGetValue(out FText channel, "DisplayName");
-            //var styleSelector = new StyleSelector(UIData);
-            //if (styleSelector.Options.Items.Count == 0) continue;
-            //AppVM.MainVM.Styles.Add(styleSelector);
-        //}
     }
 
     private void StupidIdiotBadScroll(object sender, MouseWheelEventArgs e)

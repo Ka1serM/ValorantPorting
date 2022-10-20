@@ -1,9 +1,9 @@
 ﻿using System.Windows;
-using FortnitePorting.AppUtils;
-using FortnitePorting.Services;
-using FortnitePorting.ViewModels;
+using ValorantPorting.AppUtils;
+using ValorantPorting.Services;
+using ValorantPorting.ViewModels;
 
-namespace FortnitePorting.Views;
+namespace ValorantPorting.Views;
 
 public partial class SettingsView
 {

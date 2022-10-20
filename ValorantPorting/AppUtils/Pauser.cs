@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace FortnitePorting.AppUtils;
+namespace ValorantPorting.AppUtils;
 
 public class Pauser
 {

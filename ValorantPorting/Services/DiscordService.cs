@@ -2,18 +2,18 @@
 using System.Data;
 using DiscordRPC;
 using DiscordRPC.Logging;
-using FortnitePorting.Views.Extensions;
+using ValorantPorting.Views.Extensions;
 using Serilog;
 
-namespace FortnitePorting.Services;
+namespace ValorantPorting.Services;
 
 public static class DiscordService
 {
-    private const string ID = "1023964585482518621";
+    private const string ID = "1032405164130312283";
     
     private static DiscordRpcClient? Client;
     
-    private static readonly Assets Assets = new() { LargeImageKey = "icon", LargeImageText = "Fortnite Porting"};
+    private static readonly Assets Assets = new() { LargeImageKey = "icon",SmallImageKey = "icon" , LargeImageText = "Valorant Porting"};
     
     private static readonly Timestamps Timestamp = new() { Start = DateTime.UtcNow };
 

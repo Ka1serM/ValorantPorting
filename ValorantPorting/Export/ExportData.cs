@@ -6,14 +6,15 @@ using CUE4Parse_Conversion.Meshes;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Material;
 using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
+using CUE4Parse.UE4.Assets.Exports.StaticMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
-using FortnitePorting.Views.Extensions;
+using ValorantPorting.Views.Extensions;
 
-namespace FortnitePorting.Export;
+namespace ValorantPorting.Export;
 
 public class ExportData
 {
@@ -73,7 +74,9 @@ public class ExportData
 
         return null;
     }
-    public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style)
+
+    public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style,
+        Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> ent_tuple)
 
     {
         var data = new ExportData();
@@ -91,6 +94,7 @@ public class ExportData
                     {
                         asset.TryGetValue(out meshes[0], "Mesh1P");
                     }
+
                     // one day make option to use character select or not
                     meshes[1] = GetCsMesh();
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
@@ -98,24 +102,29 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
-                    ExportHelpers.Weapon(asset, data.Parts,data);
+                    ExportHelpers.Weapon(data.Parts,data, ent_tuple);
                     if (style != null)
                     {
-                        ExportHelpers.OverrideMaterials( HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
+                        ExportHelpers.OverrideMaterials(
+                            HandleStyle(style).GetOrDefault("MaterialOverrides",
+                                Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
                     }
                     else
                     {
-                        ExportHelpers.OverrideMaterials(HandleBaseChroma(asset).GetOrDefault("1p MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
+                        ExportHelpers.OverrideMaterials(
+                            HandleBaseChroma(asset).GetOrDefault("1p MaterialOverrides",
+                                Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
                     }
+
                     break;
                 }
                 case EAssetType.GunBuddy:
                 {
-                    var buddymesh = new  UObject[1];
+                    var buddymesh = new UObject[1];
                     buddymesh[0] = asset.GetOrDefault("Charm", new UObject());
                     ExportHelpers.CharacterParts(buddymesh, data.Parts, asset);
                     break;
-                    
+
                 }
                 default:
                     throw new ArgumentOutOfRangeException();

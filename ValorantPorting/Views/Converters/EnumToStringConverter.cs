@@ -2,9 +2,9 @@
 using System.Globalization;
 using System.Linq;
 using System.Windows.Data;
-using FortnitePorting.Views.Extensions;
+using ValorantPorting.Views.Extensions;
 
-namespace FortnitePorting.Views.Converters;
+namespace ValorantPorting.Views.Converters;
 
 public class EnumToStringConverter : IValueConverter
 {

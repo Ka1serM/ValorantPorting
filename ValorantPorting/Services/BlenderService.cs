@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using FortnitePorting.Export;
-using FortnitePorting.Export.Blender;
+using ValorantPorting.Export;
+using ValorantPorting.Export.Blender;
 using Newtonsoft.Json;
 
-namespace FortnitePorting.Services;
+namespace ValorantPorting.Services;
 
 public static class BlenderService
 {

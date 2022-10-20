@@ -2,11 +2,11 @@
 using System.Windows;
 using AdonisUI.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
-using FortnitePorting.AppUtils;
+using ValorantPorting.AppUtils;
 using MessageBox = AdonisUI.Controls.MessageBox;
 using MessageBoxImage = AdonisUI.Controls.MessageBoxImage;
 
-namespace FortnitePorting.ViewModels;
+namespace ValorantPorting.ViewModels;
 
 public class ApplicationViewModel : ObservableObject
 {

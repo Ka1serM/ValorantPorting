@@ -1,4 +1,4 @@
-namespace FortnitePorting.Views.Controls;
+namespace ValorantPorting.Views.Controls;
 
 using System;
 using System.Collections.Specialized;

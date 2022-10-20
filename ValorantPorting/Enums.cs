@@ -1,13 +1,13 @@
 ﻿using System.ComponentModel;
 
-namespace FortnitePorting;
+namespace ValorantPorting;
 
 public enum EInstallType
 {
     [Description("Local")]
     Local,
     
-    [Description("Fortnite Live")]
+    [Description("Valorant Live")]
     Live
 }
 

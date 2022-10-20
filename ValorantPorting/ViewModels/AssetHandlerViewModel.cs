@@ -16,12 +16,12 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Engine;
 using CUE4Parse.UE4.Objects.UObject;
-using FortnitePorting.AppUtils;
-using FortnitePorting.Views.Controls;
-using FortnitePorting.Views.Extensions;
+using ValorantPorting.AppUtils;
+using ValorantPorting.Views.Controls;
+using ValorantPorting.Views.Extensions;
 using Serilog;
 
-namespace FortnitePorting.ViewModels;
+namespace ValorantPorting.ViewModels;
 
 public class AssetHandlerViewModel
 {

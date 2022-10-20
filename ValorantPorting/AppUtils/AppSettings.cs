@@ -2,10 +2,10 @@
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CUE4Parse.UE4.Versions;
-using FortnitePorting.Services.Endpoints.Models;
+using ValorantPorting.Services.Endpoints.Models;
 using Newtonsoft.Json;
 
-namespace FortnitePorting.AppUtils;
+namespace ValorantPorting.AppUtils;
 
 public partial class AppSettings : ObservableObject
 {

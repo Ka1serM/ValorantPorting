@@ -1,8 +1,8 @@
 ﻿using System.Windows;
-using FortnitePorting.AppUtils;
-using FortnitePorting.ViewModels;
+using ValorantPorting.AppUtils;
+using ValorantPorting.ViewModels;
 
-namespace FortnitePorting.Views;
+namespace ValorantPorting.Views;
 
 public partial class StartupView
 {

@@ -8,7 +8,7 @@ using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using SkiaSharp;
 
-namespace FortnitePorting.Views.Extensions;
+namespace ValorantPorting.Views.Extensions;
 
 public static class CUE4ParseExtensions
 {

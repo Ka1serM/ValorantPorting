@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Windows.Controls;
 using System.Windows.Data;
 
-namespace FortnitePorting.Views.Converters;
+namespace ValorantPorting.Views.Converters;
 
 public class TabItemSizeConverter : IMultiValueConverter
 {

@@ -1,4 +1,4 @@
-﻿namespace FortnitePorting.Export.Blender;
+﻿namespace ValorantPorting.Export.Blender;
 
 public class BlenderExport
 {

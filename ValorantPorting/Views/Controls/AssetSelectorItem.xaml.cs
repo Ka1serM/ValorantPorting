@@ -9,11 +9,11 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Engine;
-using FortnitePorting.ViewModels;
+using ValorantPorting.ViewModels;
 using SkiaSharp;
 using CUE4Parse.UE4.Objects.UObject;
 
-namespace FortnitePorting.Views.Controls;
+namespace ValorantPorting.Views.Controls;
 
 public partial class AssetSelectorItem
 {

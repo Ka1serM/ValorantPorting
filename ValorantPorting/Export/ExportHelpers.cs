@@ -19,7 +19,7 @@ using CUE4Parse.UE4.Objects.UObject;
 using CUE4Parse.Utils;
 using SkiaSharp;
 
-namespace FortnitePorting.Export;
+namespace ValorantPorting.Export;
 
 public static class ExportHelpers
 {
@@ -205,78 +205,66 @@ public static class ExportHelpers
 
 
     }
-    public static void Weapon(UObject weaponDefinition, List<ExportPart> exportParts, ExportData ActualData)
+    public static void Weapon( List<ExportPart> exportParts, ExportData ActualData, Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> em_tuple)
     {
-        
-        if (weaponDefinition.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
+        var current = AppVM.MainVM.CurrentAsset.MainAsset;
+        UScriptMap dant_attatchs;
+        if (em_tuple.Item1 != null)
         {
-            var current = AppVM.MainVM.CurrentAsset.MainAsset;
-            var defaultObject = blueprint.ClassDefaultObject.Load();
-            USkeletalMesh weaponMeshData;
-            UScriptMap dant_attatchs;
-            USkeletalMesh weap_cosmetic;
-            UStaticMesh MagazineWeap;
-            if (defaultObject.TryGetValue(out  weaponMeshData, "Weapon 1P") || defaultObject.TryGetValue(out  weaponMeshData, "NewMesh") )
-            {
-                if (weaponMeshData.Name.ToLower().Contains("basemesh"))
-                {
-                    if (defaultObject.TryGetValue(out weap_cosmetic, "Weapon 1P Cosmetic"))
-                    {
-                        weaponMeshData = weap_cosmetic;
-                    }
-                }
+            Mesh(em_tuple.Item1, exportParts);
+        }
+        else
+        {
+            Mesh(get_base_weapon(), exportParts);
+        }
 
-                Mesh(weaponMeshData, exportParts);
-            }
-            else
-            {
-                Mesh(get_base_weapon(), exportParts);
-            }
+        if (em_tuple.Item4 != null)
+        {
+            SMesh(em_tuple.Item4, exportParts);
+        }
+        else
+        {
+            SMesh(GetMagMesh(), exportParts);
+        }
 
-            if (defaultObject.TryGetValue(out MagazineWeap, "Magazine 1P"))
-            {
-                SMesh(MagazineWeap, exportParts);
-                //ActualData.Attatchments.Add(attach);
-            }
-            else
-            {
-                SMesh(GetMagMesh(), exportParts);
-            }
-            var attach = new ExportAttatchment();
-            attach.BoneName = "Magazine_Main";
-            attach.AttatchmentName = exportParts.Last().MeshName;
-            exportParts.First().Attatchments.Add(attach);
+        if (em_tuple.Item2 != null)
+        {
+            OverrideMaterials(em_tuple.Item2, exportParts[0].OverrideMaterials);
+        }
+
+        if (em_tuple.Item3 != null)
+        {
+            OverrideMaterials(em_tuple.Item2, exportParts[0].OverrideMaterials);
+        }
+
+        var attach = new ExportAttatchment();
+        attach.BoneName = "Magazine_Main";
+        attach.AttatchmentName = exportParts.Last().MeshName;
+        exportParts.First().Attatchments.Add(attach);
             
-            if (current.TryGetValue(out dant_attatchs, "AttachmentOverrides"))
+        if (current.TryGetValue(out dant_attatchs, "AttachmentOverrides"))
+        {
+            var scopeTuple = get_weapon_attatchments(current, dant_attatchs);
+            for (int i = 0; i < scopeTuple.Item2.Count; i++)
             {
-                var scopeTuple = get_weapon_attatchments(current, dant_attatchs);
-                for (int i = 0; i < scopeTuple.Item2.Count; i++)
+                var lMesh = scopeTuple.Item2[i];
+                var lMats = scopeTuple.Item3[i];
+                var l_sockets = scopeTuple.Item1[i];
+                SMesh(lMesh, exportParts);
+                var scope_tach = new ExportAttatchment();
+                scope_tach.BoneName = l_sockets;
+                scope_tach.AttatchmentName = exportParts.Last().MeshName;
+                exportParts.First().Attatchments.Add(scope_tach);
+                if (lMats != null)
                 {
-                    var lMesh = scopeTuple.Item2[i];
-                    var lMats = scopeTuple.Item3[i];
-                    var l_sockets = scopeTuple.Item1[i];
-                    SMesh(lMesh, exportParts);
-                    var scope_tach = new ExportAttatchment();
-                    scope_tach.BoneName = l_sockets;
-                    scope_tach.AttatchmentName = exportParts.Last().MeshName;
-                    exportParts.First().Attatchments.Add(scope_tach);
-                    if (lMats != null)
-                    {
-                        OverrideMaterials(lMats,exportParts.Last().OverrideMaterials);
-                    }
+                    OverrideMaterials(lMats,exportParts.Last().OverrideMaterials);
                 }
             }
-
-
-            UMaterialInstanceConstant[] WeapOverrides;
-            if (defaultObject.TryGetValue(out  WeapOverrides, "1p MaterialOverrides") || defaultObject.TryGetValue(out  WeapOverrides, "1pMagazine MaterialOverrides") )
-            {
-                OverrideMaterials(WeapOverrides,exportParts[0].OverrideMaterials);
-            }
-            
         }
         
+            
     }
+    
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
     {
         if (skeletalMesh is null) return -1;

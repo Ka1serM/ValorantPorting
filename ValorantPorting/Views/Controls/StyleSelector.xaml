@@ -1,9 +1,9 @@
-﻿<UserControl x:Class="FortnitePorting.Views.Controls.StyleSelector"
+﻿<UserControl x:Class="ValorantPorting.Views.Controls.StyleSelector"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
-             xmlns:local="clr-namespace:FortnitePorting.Views.Controls">
+             xmlns:local="clr-namespace:ValorantPorting.Views.Controls">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

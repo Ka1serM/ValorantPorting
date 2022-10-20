@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CUE4Parse.UE4.Versions;
-using FortnitePorting.AppUtils;
+using ValorantPorting.AppUtils;
 
-namespace FortnitePorting.ViewModels;
+namespace ValorantPorting.ViewModels;
 
 public class SettingsViewModel : ObservableObject
 {

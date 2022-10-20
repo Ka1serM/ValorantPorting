@@ -1,7 +1,7 @@
-﻿<UserControl x:Class="FortnitePorting.Views.Controls.AssetSelectorItem"
+﻿<UserControl x:Class="ValorantPorting.Views.Controls.AssetSelectorItem"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FortnitePorting.Views.Controls"
+             xmlns:local="clr-namespace:ValorantPorting.Views.Controls"
              xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
              DataContext="{Binding RelativeSource={RelativeSource Self}}">
     <StackPanel HorizontalAlignment="Center" Width="64">

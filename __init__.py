@@ -2,6 +2,7 @@ import bpy
 from pathlib import Path
 import json
 import os
+import random
 import socket
 import threading
 from .io_import_scene_unreal_psa_psk_280 import pskimport
@@ -225,7 +226,10 @@ def AttachToObject(entire_loop):
             constraint = child_obj.constraints.new(type='CHILD_OF')
             constraint.name = str(idex)
             constraint.target = target_obj
-            constraint.subtarget = attachs.get("BoneName")
+            bone_name = attachs.get("BoneName")
+            if "revolver" in target_obj.name.lower():
+                bone_name = "Magazine_Extra"
+            constraint.subtarget = bone_name
             try:
                 bpy.context.view_layer.objects.active = child_obj
                 bpy.ops.constraint.childof_clear_inverse(constraint=constraint.name, owner='OBJECT')
@@ -337,10 +341,9 @@ def import_response(response):
     for imported_part in imported_parts:
         mesh = imported_part.get("Mesh")
         for style_material in import_data.get("StyleMaterials"):
-            slot = mesh.material_slots[style_material.get("SlotIndex")]
-            #if slot := mesh.material_slots.get(style_material.get("MaterialNameToSwap")):
-            import_material(slot, style_material,import_type)
-
+            if style_material.get("SlotIndex") < len(mesh.material_slots):
+                slot = mesh.material_slots[style_material.get("SlotIndex")]
+                import_material(slot, style_material,import_type)
 
 
 

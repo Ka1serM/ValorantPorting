@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
 using AdonisUI.Controls;
-using FortnitePorting.AppUtils;
-using FortnitePorting.Services;
+using ValorantPorting.AppUtils;
+using ValorantPorting.Services;
 using MessageBox = AdonisUI.Controls.MessageBox;
 using MessageBoxImage = AdonisUI.Controls.MessageBoxImage;
 
-namespace FortnitePorting;
+namespace ValorantPorting;
 
 public partial class App
 {

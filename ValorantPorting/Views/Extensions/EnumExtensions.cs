@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Markup;
 
-namespace FortnitePorting.Views.Extensions;
+namespace ValorantPorting.Views.Extensions;
 
 public static class EnumExtensions
 {

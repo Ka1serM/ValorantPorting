@@ -1,6 +1,6 @@
 ﻿using RestSharp;
 
-namespace FortnitePorting.Services.Endpoints;
+namespace ValorantPorting.Services.Endpoints;
 
 public abstract class EndpointBase
 {

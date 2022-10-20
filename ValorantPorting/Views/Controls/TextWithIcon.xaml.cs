@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Media;
 
-namespace FortnitePorting.Views.Controls;
+namespace ValorantPorting.Views.Controls;
 
 public partial class TextWithIcon
 {

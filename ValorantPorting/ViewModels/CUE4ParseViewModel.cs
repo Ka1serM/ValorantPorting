@@ -12,11 +12,11 @@ using CUE4Parse.UE4.Assets.Utils;
 using CUE4Parse.UE4.Objects.Core.Math;
 using CUE4Parse.UE4.Objects.Core.Misc;
 using CUE4Parse.UE4.Versions;
-using FortnitePorting.AppUtils;
-using FortnitePorting.Services;
-using FortnitePorting.Services.Endpoints.Models;
+using ValorantPorting.AppUtils;
+using ValorantPorting.Services;
+using ValorantPorting.Services.Endpoints.Models;
 
-namespace FortnitePorting.ViewModels;
+namespace ValorantPorting.ViewModels;
 
 public class CUE4ParseViewModel : ObservableObject
 {

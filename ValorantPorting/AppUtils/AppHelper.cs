@@ -3,7 +3,7 @@ using System.Linq;
 using System.Windows;
 using Ookii.Dialogs.Wpf;
 
-namespace FortnitePorting.AppUtils;
+namespace ValorantPorting.AppUtils;
 
 public static class AppHelper
 {

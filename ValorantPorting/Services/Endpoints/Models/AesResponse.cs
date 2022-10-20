@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace FortnitePorting.Services.Endpoints.Models;
+namespace ValorantPorting.Services.Endpoints.Models;
 
 public class AesResponse
 {

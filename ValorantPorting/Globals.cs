@@ -1,8 +1,8 @@
-﻿global using static FortnitePorting.Services.ApplicationService;
+﻿global using static ValorantPorting.Services.ApplicationService;
 global using Serilog;
 using CUE4Parse.UE4.Objects.Core.Misc;
 
-namespace FortnitePorting;
+namespace ValorantPorting;
 
 public static class Globals
 {
