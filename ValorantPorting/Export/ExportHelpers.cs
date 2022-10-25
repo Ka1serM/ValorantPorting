@@ -296,6 +296,7 @@ public static class ExportHelpers
                 exportMaterial.Textures = textures;
                 exportMaterial.Scalars = scalars;
                 exportMaterial.Vectors = vectors;
+                exportMaterial.ParentName = materialInstance.Parent.Name;
             }
 
             exportPart.Materials.Add(exportMaterial);
@@ -335,6 +336,7 @@ public static class ExportHelpers
                 exportMaterial.Textures = textures;
                 exportMaterial.Scalars = scalars;
                 exportMaterial.Vectors = vectors;
+                exportMaterial.ParentName = materialInstance.Parent.Name;
             }
 
             exportPart.Materials.Add(exportMaterial);
@@ -353,7 +355,7 @@ public static class ExportHelpers
             {
                 MaterialName = material.Name,
                 SlotIndex = i,
-                MaterialNameToSwap = material.GetOrDefault<FSoftObjectPath>("MaterialToSwap").AssetPathName.PlainText.SubstringAfterLast(".")
+                MaterialNameToSwap = material.GetOrDefault<FSoftObjectPath>("MaterialToSwap").AssetPathName.PlainText.SubstringAfterLast("."),
             };
 
             if (material is UMaterialInstanceConstant materialInstance)

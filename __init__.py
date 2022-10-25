@@ -50,6 +50,8 @@ class Receiver(threading.Thread):
         self.socket_server.bind((host, port))
         self.socket_server.settimeout(1.0)
         Log.information(f"ValorantPorting Server Listening at {host}:{port}")
+        import_shaders()
+        
 
         while self.keep_alive:
             try:
@@ -153,22 +155,24 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         target_material.name = material_name
         target_slot.material = target_material
     target_material.use_nodes = True
-
+    material_parent = material_data.get("ParentName")
     nodes = target_material.node_tree.nodes
     nodes.clear()
     links = target_material.node_tree.links
     links.clear()
-    import_shaders("VALORANT_Weapon.blend")
-    import_shaders("VALORANT_Agent.blend")
     output_node = nodes.new(type="ShaderNodeOutputMaterial")
     output_node.location = (200, 0)
 
     shader_node = nodes.new(type="ShaderNodeGroup")
     N_SHADER = shader_node
-    shader_node.name = "1P_Weapon_Mat_Base_V5"
-    if mat_type == "Character":
-        shader_node.name = "VALORANT_Agent"
+    shader_node.name = material_parent
     shader_node.node_tree = bpy.data.node_groups.get(shader_node.name)
+    if not shader_node.node_tree :
+        if mat_type == "Weapon":
+            shader_node.node_tree = bpy.data.node_groups.get("1P_Weapon_Mat_Base_V5")
+        if mat_type == "Character":
+            shader_node.node_tree = bpy.data.node_groups.get("CS_Base_S0_MI")
+        
 
     links.new(shader_node.outputs[0], output_node.inputs[0])
 
@@ -251,13 +255,12 @@ def clear_and_set_inverse_object_constraint_child_of(object_name, constraint_nam
     bpy.ops.constraint.childof_clear_inverse(override_context, constraint=constraint_name, owner='OBJECT')
 
     bpy.ops.object.mode_set(mode=previous_mode)
-def import_shaders(shaderName):
-    script_root = Path(os.path.dirname(os.path.abspath(__file__)))
-    shaders_blend_file = Path(script_root.joinpath(shaderName))
-    nodegroups_folder = shaders_blend_file.joinpath("NodeTree")
-    for shader in shaders_v:
-        if shader not in bpy.data.node_groups.keys():
-            bpy.ops.wm.append(filename=shader, directory=nodegroups_folder.__str__())
+def import_shaders():
+    addon_dir = os.path.dirname(os.path.splitext(__file__)[0])
+    with bpy.data.libraries.load(os.path.join(addon_dir, "VALORANT_SHADER.blend")) as (data_from, data_to):
+        if not bpy.data.node_groups.get("Fortnite Porting"):
+             data_to.node_groups = data_from.node_groups
+
 
 def mesh_from_armature(armature) -> bpy.types.Mesh:
     return armature.children[0]  # only used with psk, mesh is always first child
