@@ -79,6 +79,16 @@ public partial class MainView
         var selected = (AssetSelectorItem)listBox.SelectedItem;
 
     }
+    private void OnSearchTextChanged(object sender, TextChangedEventArgs e)
+    {
+        var searchBox = (TextBox) sender;
+        foreach (var tab in AssetControls.Items.OfType<TabItem>())
+        {
+            var listBox = (ListBox) tab.Content;
+            listBox.Items.Filter = o => ((AssetSelectorItem) o).Match(searchBox.Text);
+            listBox.Items.Refresh();
+        }
+    }
     private async void OnAssetSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is not ListBox listBox) return;

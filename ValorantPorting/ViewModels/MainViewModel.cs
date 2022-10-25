@@ -81,38 +81,32 @@ public partial class MainViewModel : ObservableObject
     public Tuple<USkeletalMesh,UMaterialInstanceConstant[],UMaterialInstanceConstant[],UStaticMesh> GetSelectedLevels()
     {
         var sant = AppVM.MainVM.CurrentAsset.MainAsset;
-        UBlueprintGeneratedClass[] van;
-        USkeletalMesh local_mesh_used;
-        UMaterialInstanceConstant[] local_mat_used;
-        UMaterialInstanceConstant[] mag_overrides;
-        UStaticMesh mag_mesh;
         // 
-        USkeletalMesh Vlocal_mesh_used = null;
-        UMaterialInstanceConstant[] Vlocal_mat_used = new UMaterialInstanceConstant[] { };
-        UMaterialInstanceConstant[] Vmag_overrides = new UMaterialInstanceConstant[] { };
-        UStaticMesh Vmag_mesh = null;
+        USkeletalMesh highestMeshUsed = null;
+        UMaterialInstanceConstant[] highestWeapMaterialUsed = new UMaterialInstanceConstant[] { };
+        UMaterialInstanceConstant[] highestMagMaterialUsed = new UMaterialInstanceConstant[] { };
+        UStaticMesh highestMagMeshUsed = null;
         //
-        var nab = sant.TryGetValue(out van, "Levels");
-        if (!nab) return null;
-        for (int i = 0; i < van.Length; i++)
+        sant.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
+        for (int i = 0; i < levels.Length; i++)
         {
-            var active_o = van[i];
-            var cdo_lo = active_o.ClassDefaultObject.Load();
-            UBlueprintGeneratedClass local_uob;
-            if (cdo_lo.TryGetValue(out local_uob, "SkinAttachment"))
+            var activeO = levels[i];
+            var cdoLo = activeO.ClassDefaultObject.Load();
+            UBlueprintGeneratedClass localUob;
+            if (cdoLo.TryGetValue(out localUob, "SkinAttachment"))
             {
-                var ready = local_uob.ClassDefaultObject.Load();
-                ready.TryGetValue(out local_mesh_used, "Weapon 1P Cosmetic","NewMesh");
-                if (local_mesh_used != null) Vlocal_mesh_used = local_mesh_used;
-                ready.TryGetValue(out local_mat_used, "1p MaterialOverrides");
-                if (local_mat_used != null) Vlocal_mat_used = local_mat_used;
-                ready.TryGetValue(out mag_overrides, "1pMagazine MaterialOverrides");
-                if (mag_overrides != null) Vmag_overrides = mag_overrides;
-                ready.TryGetValue(out mag_mesh, "Magazine 1P");
-                if (mag_mesh != null) Vmag_mesh = mag_mesh;
+                var ready = localUob.ClassDefaultObject.Load();
+                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic","NewMesh");
+                if (localMeshUsed != null)  highestMeshUsed = localMeshUsed;
+                ready.TryGetValue(out UMaterialInstanceConstant[] localMatUsed , "1p MaterialOverrides");
+                if (localMatUsed != null) highestWeapMaterialUsed = localMatUsed;
+                ready.TryGetValue(out UMaterialInstanceConstant[] magOverrides, "1pMagazine MaterialOverrides");
+                if (magOverrides != null) highestMagMaterialUsed = magOverrides;
+                ready.TryGetValue(out  UStaticMesh magMesh, "Magazine 1P");
+                if (magMesh != null) highestMagMeshUsed = magMesh;
             }
         }
-        return Tuple.Create(Vlocal_mesh_used,Vlocal_mat_used,Vmag_overrides,Vmag_mesh);
+        return Tuple.Create(highestMeshUsed,highestWeapMaterialUsed,highestMagMaterialUsed,highestMagMeshUsed);
     }
     [RelayCommand]
     public void Menu(string parameter)

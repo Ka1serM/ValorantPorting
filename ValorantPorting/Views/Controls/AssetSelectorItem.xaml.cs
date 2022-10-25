@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -62,6 +63,15 @@ public partial class AssetSelectorItem
 
         DisplayImage.Source = FullSource;
         //BeginAnimation(OpacityProperty, AppearAnimation);
+    }
+    public bool Match(string filter, bool useRegex = false)
+    {
+        if (useRegex)
+        {
+            return Regex.IsMatch(DisplayName, filter) || Regex.IsMatch(ID, filter);
+        }
+
+        return DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase) || ID.Contains(filter, StringComparison.OrdinalIgnoreCase);
     }
 
     private const int MARGIN = 2;
