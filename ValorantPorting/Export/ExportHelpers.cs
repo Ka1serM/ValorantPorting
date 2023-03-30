@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using CUE4Parse_Conversion;
 using CUE4Parse_Conversion.Meshes;
 using CUE4Parse_Conversion.Textures;
@@ -441,7 +442,7 @@ public static class ExportHelpers
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(skeletalMesh, ExportOptions, false);
-                        exporter.TryWriteToDir(App.AssetsFolder, out _);
+                        exporter.TryWriteToDir(App.AssetsFolder, out _, out path);
                         break;
                     }
 
@@ -451,7 +452,7 @@ public static class ExportHelpers
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(staticMesh, ExportOptions, false);
-                        exporter.TryWriteToDir(App.AssetsFolder, out _);
+                        exporter.TryWriteToDir(App.AssetsFolder, out _, out path);
                         break;
                     }
                     case UTexture2D texture:
