@@ -4,6 +4,11 @@ import json
 import os
 import socket
 import threading
+import bpy
+import os
+from math import radians
+import bpy.props
+from mathutils import Matrix, Vector, Euler, Quaternion
 from .io_import_scene_unreal_psa_psk_280 import pskimport
 
 bl_info = {
@@ -90,7 +95,6 @@ def import_mesh(path: str) -> bpy.types.Object:
         return bpy.context.active_object
     else:
         return None
-
 
 def import_texture(path: str) -> bpy.types.Image:
     path, name = path.split(".")
@@ -231,15 +235,21 @@ def import_response(response):
 
     Log.information(f"Received Import for {import_type}: {name}")
 
+    def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, rot=[radians(0), radians(0), radians(0)]):
+        constraint = child.constraints.new('CHILD_OF')
+        constraint.target = parent
+        constraint.subtarget = bone
+        child.rotation_mode = 'XYZ'
+        child.rotation_euler = rot
+        constraint.inverse_matrix = Matrix()
     imported_parts = []
     def import_part(parts):
         for part in parts:
-            part_type = part.get("Part")
-
             imported_part = import_mesh(part.get("MeshPath"))
+            attachments = part.get("Attatchments")
+
             if imported_part is None:
                 continue
-
             has_armature = imported_part.type == "ARMATURE"
             if has_armature:
                 mesh = mesh_from_armature(imported_part)
@@ -248,9 +258,8 @@ def import_response(response):
             bpy.context.view_layer.objects.active = mesh
 
             imported_parts.append({
-                "Part": part_type,
-                "Armature": imported_part if has_armature else None,
-                "Mesh": mesh
+                "Attachments": attachments,
+                "Parent": imported_part
             })
 
             for material in part.get("Materials"):
@@ -270,6 +279,21 @@ def import_response(response):
 
     import_part(import_data.get("StyleParts"))
     import_part(import_data.get("Parts"))
+    
+    for imported_part in imported_parts:
+        attachments = imported_part.get("Attachments")
+        parent_obj = imported_part.get("Parent")
+        for attachment in attachments:
+                child_name = attachment.get("AttatchmentName")
+                child_obj = bpy.context.scene.objects[child_name]
+                if child_obj.parent is not None: #AttatchmentName somehow points to mesh, get parent armature instead
+                    child_obj = child_obj.parent
+                print(child_obj)
+                bone_name = attachment.get("BoneName")
+                if child_obj:
+                    constraint_object(child_obj, parent_obj, bone_name)
+
+
 
 
 def register():
