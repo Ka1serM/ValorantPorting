@@ -442,7 +442,8 @@ public static class ExportHelpers
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(skeletalMesh, ExportOptions, false);
-                        exporter.TryWriteToDir(App.AssetsFolder, out _, out path);
+                        String SavedFilePath;
+                        exporter.TryWriteToDir(App.AssetsFolder, out _, out SavedFilePath);
                         break;
                     }
 
@@ -452,7 +453,8 @@ public static class ExportHelpers
                         if (File.Exists(path)) return;
 
                         var exporter = new MeshExporter(staticMesh, ExportOptions, false);
-                        exporter.TryWriteToDir(App.AssetsFolder, out _, out path);
+                        String SavedFilePath;
+                        exporter.TryWriteToDir(App.AssetsFolder, out _, out SavedFilePath);
                         break;
                     }
                     case UTexture2D texture:
