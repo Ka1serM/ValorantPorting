@@ -154,7 +154,12 @@ public partial class MainViewModel : ObservableObject
     {
         var loadTimez = new Stopwatch();
         loadTimez.Start();
-        var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles(),null);
+        Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> entTuple = null;
+        if (CurrentAssetType != EAssetType.Character)
+        {
+            entTuple = GetSelectedLevels();
+        }
+        var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles(), entTuple);
         data.Name = currentAsset.DisplayName;
         BlenderService.Send(data, new BlenderExportSettings
         {

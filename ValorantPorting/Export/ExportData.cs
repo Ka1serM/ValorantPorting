@@ -88,15 +88,16 @@ public class ExportData
             {
                 case EAssetType.Character:
                 {
-                    var meshes = new UObject[2];
+                    var meshes = new UObject[3];
                     asset.TryGetValue(out meshes[0], "MeshOverlay1P");
                     if (meshes[0].Properties.Count < 2)
                     {
                         asset.TryGetValue(out meshes[0], "Mesh1P");
                     }
+                    asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
 
                     // one day make option to use character select or not
-                    meshes[1] = GetCsMesh();
+                    meshes[2] = GetCsMesh();
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
                     break;
                 }
