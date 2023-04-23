@@ -75,9 +75,9 @@ class Receiver(threading.Thread):
         Log.information("ValorantPorting Server Closed")
 
 shaders_v = [
-            "VALORANT_Agent",
+            "3P_Character_Mat_V5",
             "1P_Weapon_Mat_Base_V5",
-            "FP Mapping"
+            "3P_EyeOverlay_Mat"
         ]
 
 def import_mesh(path: str) -> bpy.types.Object:
@@ -112,6 +112,7 @@ def import_texture(path: str) -> bpy.types.Image:
 
 def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type):
     material_name = material_data.get("MaterialName")
+    parent_name = material_data.get("ParentName")
     if (existing := bpy.data.materials.get(material_name)) and existing.use_nodes is True:  # assume default psk mat
         target_slot.material = existing
         return
@@ -133,9 +134,13 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
 
     shader_node = nodes.new(type="ShaderNodeGroup")
     N_SHADER = shader_node
-    shader_node.name = "1P_Weapon_Mat_Base_V5"
-    if mat_type == "Character":
-        shader_node.name = "VALORANT_Agent"
+
+    if bpy.data.node_groups.get(parent_name):
+        shader_node.name = parent_name
+    else:
+        shader_node.name = "1P_Weapon_Mat_Base_V5"
+        if mat_type == "Character":
+            shader_node.name = "3P_Character_Mat_V5"
     shader_node.node_tree = bpy.data.node_groups.get(shader_node.name)
 
     links.new(shader_node.outputs[0], output_node.inputs[0])
@@ -150,10 +155,20 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         tex_image_node.image = image
         tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
         tex_image_node.hide = True
+        tex_image_node.image.colorspace_settings.name = 'Linear'
         if name == 'Normal': tex_image_node.image.colorspace_settings.name = 'Non-Color'
+        if name == 'Albedo': tex_image_node.image.colorspace_settings.name = 'sRGB'
         #tex_image_node.location = location
         if name in N_SHADER.inputs:
-            links.new(tex_image_node.outputs[0], shader_node.inputs[name])
+            if name == 'Decal Mask Texture' or name == 'OverlayTexture':
+                links.new(tex_image_node.outputs[1], shader_node.inputs[name])
+            else:
+                links.new(tex_image_node.outputs[0], shader_node.inputs[name])
+            if 'Decal' in name:
+                uv_node = nodes.new(type="ShaderNodeUVMap")
+                uv_node.uv_map = 'EXTRAUVS0'
+                links.new(uv_node.outputs[0], tex_image_node.inputs[0])
+
         else:
             print(f"No Texture node with this name {name}")
 
@@ -164,7 +179,10 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         if name in N_SHADER.inputs:
             shader_node.inputs[name].default_value = value
         else:
-            print(f"No Scalar node with this name: {name}")
+            scalar_node = nodes.new(type="ShaderNodeValue")
+            scalar_node.label = name
+            scalar_node.outputs[0].default_value = value
+            print(f"Created Scalar node with name: {name}")
 
     def vector_parameter(data):
         name = data.get("Name")
@@ -172,7 +190,10 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         if name in N_SHADER.inputs:
             shader_node.inputs[name].default_value = (value["R"], value["G"], value["B"], 1)
         else:
-            print(f"No Vector node with this name: {name}")
+            color_node = nodes.new(type="ShaderNodeRGB")
+            color_node.label = name
+            color_node.outputs[0].default_value = (value["R"], value["G"], value["B"], 1)
+            print(f"Created Vector node with name: {name}")
 
 
     for texture in material_data.get("Textures"):
@@ -242,6 +263,7 @@ def import_response(response):
         child.rotation_mode = 'XYZ'
         child.rotation_euler = rot
         constraint.inverse_matrix = Matrix()
+    
     imported_parts = []
     def import_part(parts):
         for part in parts:
@@ -259,7 +281,8 @@ def import_response(response):
 
             imported_parts.append({
                 "Attachments": attachments,
-                "Parent": imported_part
+                "Parent": imported_part,
+                "Mesh": mesh
             })
 
             for material in part.get("Materials"):
@@ -272,15 +295,17 @@ def import_response(response):
                 if len(mesh.material_slots) > index:
                     import_material(mesh.material_slots.values()[index], override_material, import_type)
 
-            for style_material in import_data.get("StyleMaterials"):
-                index = style_material.get("SlotIndex")
-                if len(mesh.material_slots) > index:
-                    import_material(mesh.material_slots.values()[index], style_material, import_type)
-
     import_part(import_data.get("StyleParts"))
     import_part(import_data.get("Parts"))
-    
+
     for imported_part in imported_parts:
+        #style mats
+        mesh = imported_part.get("Mesh")
+        for style_material in import_data.get("StyleMaterials"):
+            if style_material.get("SlotIndex") < len(mesh.material_slots):
+                slot = mesh.material_slots[style_material.get("SlotIndex")]
+                import_material(slot, style_material,import_type)
+        #attachments
         attachments = imported_part.get("Attachments")
         parent_obj = imported_part.get("Parent")
         for attachment in attachments:
@@ -290,11 +315,8 @@ def import_response(response):
                     child_obj = child_obj.parent
                 print(child_obj)
                 bone_name = attachment.get("BoneName")
-                if child_obj:
-                    constraint_object(child_obj, parent_obj, bone_name)
-
-
-
+                if "revolver" in parent_obj.name.lower(): bone_name = "Magazine_Extra"
+                if child_obj: constraint_object(child_obj, parent_obj, bone_name)
 
 def register():
     import_event = threading.Event()

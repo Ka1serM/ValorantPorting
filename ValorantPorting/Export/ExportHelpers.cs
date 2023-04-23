@@ -129,6 +129,30 @@ public static class ExportHelpers
 
         return null;
     }
+    
+    public static UStaticMesh GetAllWeaponSM()
+    {
+        // initializers
+        UBlueprintGeneratedClass magBgn;
+        UObject final;
+        
+        // main gun asset current (PrimaryDataAsset reference)
+        var u_MainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+        if (u_MainAsset.TryGetValue(out magBgn, "Equippable"))
+        {
+            var cdo = magBgn.ClassDefaultObject.Load();
+            if (cdo.TryGetValue(out final, "Equippable"))
+            {
+                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(final.GetPathName().Substring(0, final.GetPathName().LastIndexOf(".")));
+                foreach (var VARIABLE in mainObjectExports)
+                {
+                    return VARIABLE.Get<UStaticMesh>("StaticMesh");
+                }
+            }
+        }
+
+        return null;
+    }
 
 
     public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> get_weapon_attatchments(UObject current, UScriptMap scriptMap)

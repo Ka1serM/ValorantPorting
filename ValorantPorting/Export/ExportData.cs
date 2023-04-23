@@ -102,6 +102,7 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
+                    //Console.WriteLine(ent_tuple.Item1.Name);
                     ExportHelpers.Weapon(data.Parts,data, ent_tuple);
                     if (style != null)
                     {
