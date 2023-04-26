@@ -96,7 +96,7 @@ public partial class MainViewModel : ObservableObject
             if (cdoLo.TryGetValue(out localUob, "SkinAttachment"))
             {
                 var ready = localUob.ClassDefaultObject.Load();
-                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic","NewMesh");
+                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic","NewMesh", "Weapon 1P");
                 if (localMeshUsed != null)  highestMeshUsed = localMeshUsed;
                 ready.TryGetValue(out UMaterialInstanceConstant[] localMatUsed , "1p MaterialOverrides");
                 if (localMatUsed != null) highestWeapMaterialUsed = localMatUsed;
