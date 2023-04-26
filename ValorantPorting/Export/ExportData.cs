@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using CUE4Parse_Conversion.Meshes;
@@ -74,7 +75,7 @@ public class ExportData
 
         return null;
     }
-
+    
     public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style,
         Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> ent_tuple)
 
@@ -95,8 +96,6 @@ public class ExportData
                         asset.TryGetValue(out meshes[0], "Mesh1P");
                     }
                     asset.TryGetValue(out meshes[1], "MeshCosmetic3P");
-
-                    // one day make option to use character select or not
                     meshes[2] = GetCsMesh();
                     ExportHelpers.CharacterParts(meshes, data.Parts, asset);
                     break;
