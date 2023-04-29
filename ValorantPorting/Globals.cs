@@ -9,7 +9,7 @@ public static class Globals
     public const string DISCORD_URL = "https://discord.gg/avrJU3ggGj";
     public const string GITHUB_URL = "https://github.com/djhaled/ValorantPorting";
 
-    public const int BLENDER_PORT = 24280;
+    public const int BLENDER_PORT = 24283;
     public const int UNREAL_PORT = 24281;
     public const int BUFFER_SIZE = 4096;
     

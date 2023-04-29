@@ -45,7 +45,7 @@ public class AssetHandlerViewModel
         AssetType = EAssetType.Character,
         TargetCollection = AppVM.MainVM.Outfits,
         ClassNames = new List<string> { "CharacterDataAsset" },
-        RemoveList = new List<string> { "_NPC", "_TBD", "_VIP", "_Creative", "_SG"},
+        RemoveList = {},
         IconGetter = UI_Asset =>
         {
             UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
@@ -61,8 +61,8 @@ public class AssetHandlerViewModel
         RemoveList = {},
         IconGetter = UI_Asset =>
         {
-            UI_Asset.TryGetValue(out UTexture2D? pImage, "DisplayIcon");
-            return pImage;
+            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
+            return previewImage;
         }
     };
 
@@ -70,11 +70,16 @@ public class AssetHandlerViewModel
     private readonly AssetHandlerData _buddyHandler = new()
     {
         AssetType = EAssetType.GunBuddy,
-        TargetCollection = AppVM.MainVM.Dances,
+        TargetCollection = AppVM.MainVM.Gunbuddies,
         ClassNames = new List<string> { "EquippableCharmLevelDataAsset" },
-        RemoveList = { "_CT", "_NPC"},
-        IconGetter = UI_Asset => UI_Asset.GetOrDefault<UTexture2D?>("DisplayIcon")
+        RemoveList = {},
+        IconGetter = UI_Asset =>
+        {
+            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
+            return previewImage;
+        }
     };
+    
     private readonly AssetHandlerData _mapsHandler = new()
     {
         AssetType = EAssetType.Maps,
@@ -149,8 +154,7 @@ public class AssetHandlerData
     }
     // make new function to handle labels
    
-  
-
+    
     private async Task DoLoad(FAssetData data, bool random = false)
     {
         await PauseState.WaitIfPaused();
@@ -170,8 +174,6 @@ public class AssetHandlerData
             uiAsset = uiObject.ClassDefaultObject.Load();
         }
         // switch on asset type
-        if (AssetType == EAssetType.Weapon && actualAsset.Name.Contains("LeverSniper")) return;
-        
         string loadable = "";
         switch (AssetType)
         {

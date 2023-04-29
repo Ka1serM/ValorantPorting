@@ -39,7 +39,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> bundles = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> dances = new();
+    [ObservableProperty] private ObservableCollection<AssetSelectorItem> gunbuddies = new();
     [ObservableProperty] private ObservableCollection<StyleSelector> styles = new();
     [ObservableProperty] 
     [NotifyPropertyChangedFor(nameof(LoadingVisibility))]
@@ -155,7 +155,7 @@ public partial class MainViewModel : ObservableObject
         var loadTimez = new Stopwatch();
         loadTimez.Start();
         Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> entTuple = null;
-        if (CurrentAssetType != EAssetType.Character)
+        if (CurrentAssetType == EAssetType.Weapon)
         {
             entTuple = GetSelectedLevels();
         }

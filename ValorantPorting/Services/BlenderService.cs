@@ -28,7 +28,6 @@ public static class BlenderService
         };
 
         var message = JsonConvert.SerializeObject(export);
-        Console.WriteLine(message);
         var messageBytes = Encoding.ASCII.GetBytes(message);
         Client.SendSpliced(messageBytes, Globals.BUFFER_SIZE);
         Client.Send(Encoding.ASCII.GetBytes("FPMessageFinished"));

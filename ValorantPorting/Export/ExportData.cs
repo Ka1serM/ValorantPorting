@@ -122,10 +122,19 @@ public class ExportData
                 case EAssetType.GunBuddy:
                 {
                     var buddymesh = new UObject[1];
-                    buddymesh[0] = asset.GetOrDefault("Charm", new UObject());
-                    ExportHelpers.CharacterParts(buddymesh, data.Parts, asset);
+                    asset.TryGetValue(out buddymesh[0], "Charm");
+                    if (buddymesh[0] is UStaticMesh staticMesh)
+                    {
+                        ExportHelpers.SMesh(staticMesh, data.Parts);
+                    }
+                    else
+                    {
+                        if (buddymesh[0] is USkeletalMesh skeletalMesh)
+                        {
+                            ExportHelpers.Mesh(skeletalMesh, data.Parts);
+                        }
+                    }
                     break;
-
                 }
                 default:
                     throw new ArgumentOutOfRangeException();

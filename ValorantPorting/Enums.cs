@@ -41,7 +41,7 @@ public enum EAssetType
     Character,
     [Description("Weapons")]
     Weapon,
-    [Description("GunBuddies")]
+    [Description("Gunbuddies")]
     GunBuddy,
     [Description("Maps")]
     Maps,

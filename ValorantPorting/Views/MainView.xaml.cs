@@ -94,10 +94,7 @@ public partial class MainView
         if (sender is not ListBox listBox) return;
         if (listBox.SelectedItem is null) return;
         var selected = (AssetSelectorItem)listBox.SelectedItem;
-        if (selected.aType == EAssetType.Weapon)
-        {
-        }
-
+        
         AppVM.MainVM.CurrentAsset = selected;
         AppVM.MainVM.Styles.Clear();
         var styles = selected.MainAsset.GetOrDefault("Chromas", Array.Empty<UObject>());

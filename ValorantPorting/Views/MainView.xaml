@@ -60,7 +60,7 @@
                 <TabControl Name="AssetControls" SelectionChanged="OnAssetTabSelectionChanged" IsEnabled="{Binding IsReady}">
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Characters" ImageSource="/ValorantPorting;component/Resources/Outfit.png"/>
+                            <controls:TextWithIcon Label="Agents" ImageSource="/ValorantPorting;component/Resources/Outfit.png"/>
                         </TabItem.Header>
                         <ListBox  ItemsSource="{Binding Outfits}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
@@ -72,7 +72,7 @@
                     </TabItem>
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Weapon Skin Bundles" ImageSource="/ValorantPorting;component/Resources/Weapon.png"/>
+                            <controls:TextWithIcon Label="Weapon Skins" ImageSource="/ValorantPorting;component/Resources/Weapon.png"/>
                         </TabItem.Header>
                         <ListBox  ItemsSource="{Binding Weapons}" SelectionChanged="OnAssetSelectionChanged">
                             <ListBox.ItemsPanel>
@@ -82,18 +82,18 @@
                             </ListBox.ItemsPanel>
                         </ListBox>
                     </TabItem>
-                   
-                    
-                    <!--<TabItem Style="{StaticResource TabItemEqualSize}">
-                        <TabItem.Header>
-                            <controls:TextWithIcon Label="Props" ImageSource="pack://application:,,,/Resources/Props.png"/>
-                        </TabItem.Header>
-                    </TabItem>
                     <TabItem Style="{StaticResource TabItemEqualSize}">
                         <TabItem.Header>
-                            <controls:TextWithIcon Label="Meshes" ImageSource="pack://application:,,,/Resources/Mesh.png"/>
+                            <controls:TextWithIcon Label="Gun Buddies" ImageSource="/ValorantPorting;component/Resources/Mesh.png"/>
                         </TabItem.Header>
-                    </TabItem>-->
+                        <ListBox  ItemsSource="{Binding Gunbuddies}" SelectionChanged="OnAssetSelectionChanged">
+                            <ListBox.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:UniformGridPanel IsItemsHost="True" Rows="5" Columns="10" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+                                </ItemsPanelTemplate>
+                            </ListBox.ItemsPanel>
+                        </ListBox>
+                    </TabItem>
                 </TabControl>
             </GroupBox>
             

@@ -24,6 +24,9 @@ namespace ValorantPorting.Export;
 
 public static class ExportHelpers
 {
+    public static void Gunbuddy(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject ogObjects)
+    {
+    }
     public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject ogObjects)
     {
         foreach (var part in inputParts)
@@ -43,7 +46,6 @@ public static class ExportHelpers
             exportPart.MeshPath = skeletalMesh.GetPathName();
             Save(skeletalMesh);
             exportPart.Part = "FP";
-            // OPTION CharacterSelect or not later plz
             if (skeletalMesh.Name.Contains("CS"))
             {
                 exportPart.Part = "CS";
@@ -82,7 +84,7 @@ public static class ExportHelpers
             exportParts.Add(exportPart);
         }
     }
-    public static USkeletalMesh get_base_weapon()
+    public static USkeletalMesh GetBaseWeapon()
     {
         UBlueprintGeneratedClass local_bgc_1;
         UBlueprintGeneratedClass local_bgc_2;
@@ -155,7 +157,7 @@ public static class ExportHelpers
     }
 
 
-    public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> get_weapon_attatchments(UObject current, UScriptMap scriptMap)
+    public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> GetWeaponAttatchments(UObject current, UScriptMap scriptMap)
     {
         // initializer for return tuple stuff
         var fullSockets = new List<string>();
@@ -190,7 +192,7 @@ public static class ExportHelpers
             for (int i = 0; i < current_attatch_list.Count; i++)
             {
                 var vl = current_attatch_list[i];
-                var result_tuple = return_local_attatch(objectValue, templateKey,objectKey,vl[0], vl[1], vl[2]);
+                var result_tuple = ReturnLocalAttatch(objectValue, templateKey,objectKey,vl[0], vl[1], vl[2]);
                 if (result_tuple.Item2 == null)
                 {
                     continue;
@@ -205,7 +207,7 @@ public static class ExportHelpers
         return Tuple.Create(fullSockets, meshes, fullOverrideMaterials);
     }
 
-    public static Tuple<string, UStaticMesh, UMaterialInstanceConstant[]> return_local_attatch(UObject objValue,
+    public static Tuple<string, UStaticMesh, UMaterialInstanceConstant[]> ReturnLocalAttatch(UObject objValue,
         UObject Tplate,UObject objKey, string nameMesh, string nameMat, string socketUse)
     {
         // INIT 
@@ -240,7 +242,7 @@ public static class ExportHelpers
         }
         else
         {
-            Mesh(get_base_weapon(), exportParts);
+            Mesh(GetBaseWeapon(), exportParts);
         }
 
         if (em_tuple.Item4 != null)
@@ -269,7 +271,7 @@ public static class ExportHelpers
             
         if (current.TryGetValue(out dant_attatchs, "AttachmentOverrides"))
         {
-            var scopeTuple = get_weapon_attatchments(current, dant_attatchs);
+            var scopeTuple = GetWeaponAttatchments(current, dant_attatchs);
             for (int i = 0; i < scopeTuple.Item2.Count; i++)
             {
                 var lMesh = scopeTuple.Item2[i];
