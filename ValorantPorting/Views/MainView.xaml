@@ -126,7 +126,6 @@
                             <TextBlock Text="{Binding CurrentAsset.DisplayName}" FontSize="21" TextTrimming="CharacterEllipsis"/>
                         </StackPanel>
                     </StackPanel>
-                    
                     <Separator Grid.Row="1" Style="{StaticResource NamedSeparator}" Tag="STYLES"/>
                      
                     <ScrollViewer Grid.Row="2" PreviewMouseWheel="StupidIdiotBadScroll">

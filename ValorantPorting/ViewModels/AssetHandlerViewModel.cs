@@ -71,7 +71,7 @@ public class AssetHandlerViewModel
     {
         AssetType = EAssetType.GunBuddy,
         TargetCollection = AppVM.MainVM.Gunbuddies,
-        ClassNames = new List<string> { "EquippableCharmLevelDataAsset" },
+        ClassNames = new List<string> { "EquippableCharmDataAsset" },
         RemoveList = {},
         IconGetter = UI_Asset =>
         {
@@ -187,6 +187,8 @@ public class AssetHandlerData
                 loadable = "None";
                 break;
             default:
+                actualAsset.TryGetValue<UBlueprintGeneratedClass[]>(out var bBp, "Levels");
+                actualAsset = bBp[0].ClassDefaultObject.Load();
                 loadable = "CharmAttachment";
                 break;
         }

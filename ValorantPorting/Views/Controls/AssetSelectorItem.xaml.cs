@@ -39,8 +39,8 @@ public partial class AssetSelectorItem
         UIAsset = UIasset;
         Asset = asset;
         MainAsset = MainDataAsset;
-        DisplayName = UIAsset.GetOrDefault("DisplayName", new FText("Unnamed")).Text;
-        Description = UIAsset.GetOrDefault("Description", new FText("No description.")).Text;
+        DisplayName = UIAsset.GetOrDefault("DisplayName", new FText("")).Text;
+        Description = UIAsset.GetOrDefault("Description", new FText("")).Text;
         ID = UIAsset.Name;
 
         TooltipName = $"{DisplayName} ({ID})";
