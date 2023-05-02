@@ -30,6 +30,8 @@
             <MenuItem Header="Settings">
                 <MenuItem Header="Options" Command="{Binding MenuCommand}" CommandParameter="Settings_Options"/>
                 <MenuItem Header="First-Time Startup" Command="{Binding MenuCommand}" CommandParameter="Settings_Startup"/>
+                <MenuItem Header="Blender" Command="{Binding MenuCommand}" CommandParameter="Settings_Blender"/>
+                <MenuItem Header="Unreal" Command="{Binding MenuCommand}" CommandParameter="Settings_Unreal"/>
             </MenuItem>
             <MenuItem Header="Tools">
                 <MenuItem Header="Check for Updates" Command="{Binding MenuCommand}" CommandParameter="Tools_Update"/>

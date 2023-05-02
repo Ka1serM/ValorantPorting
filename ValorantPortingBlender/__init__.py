@@ -75,25 +75,45 @@ class Receiver(threading.Thread):
         self.socket_server.close()
         Log.information("ValorantPorting Server Closed")
 
-shaders_v = [
-            "3P_Character_Mat_V5",
-            "1P_Weapon_Mat_Base_V5",
-            "3P_EyeOverlay_Mat",
-            "1P_Weapon_Glass_MAT"
-        ]
-
 def import_mesh(path: str) -> bpy.types.Object:
     path = path[1:] if path.startswith("/") else path
     mesh_path = os.path.join(import_assets_root, path.split(".")[0] + "_LOD0")
 
     if os.path.exists(mesh_path + ".psk"):
         mesh_path += ".psk"
-        pskimport(mesh_path)
+        pskimport(
+        mesh_path,
+        context = None,
+        bImportmesh = True,
+        bImportbone = True,
+        bSpltiUVdata = False,
+        fBonesize = 5.0,
+        fBonesizeRatio = 0.6,
+        bDontInvertRoot = True,
+        bReorientBones = import_settings.get("ReorientBones"),
+        bReorientDirectly = False,
+        bScaleDown = True,
+        bToSRGB = False,
+        error_callback = None)
+
         return bpy.context.active_object
     
     if os.path.exists(mesh_path + ".pskx"):
         mesh_path += ".pskx"
-        pskimport(mesh_path)
+        pskimport(
+        mesh_path,
+        context = None,
+        bImportmesh = True,
+        bImportbone = False,
+        bSpltiUVdata = False,
+        fBonesize = 5.0,
+        fBonesizeRatio = 0.6,
+        bDontInvertRoot = True,
+        bReorientBones = False,
+        bReorientDirectly = False,
+        bScaleDown = True,
+        bToSRGB = False,
+        error_callback = None)
         return bpy.context.active_object
     else:
         return None
@@ -144,12 +164,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     main_shader_node.name = parent_name
     parent_node_exists = True
 
-    #create principled BSDF
-    principled_node = nodes.new(type="ShaderNodeBsdfPrincipled")
-    principled_node.location = (300,0)
-    #link principled BSDF to output
-    links.new(principled_node.outputs[0], output_node.inputs[0])
-
     if bpy.data.node_groups.get(parent_name) != None:
         main_shader_node.node_tree = bpy.data.node_groups.get(main_shader_node.name)
         #assign this so group input stays consistent
@@ -173,23 +187,16 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
             imported_shader_node.name = "3P_Character_Mat_V5"
         imported_shader_node.node_tree = bpy.data.node_groups.get(imported_shader_node.name)
 
-        #create outputs on outer group
-        for output in imported_shader_node.outputs:
-            type = output.type
-            if type == "RGBA": type = "NodeSocketColor"
-            if type == "VECTOR": type = "NodeSocketVector"
-            if type == "VALUE": type = "NodeSocketFloat"
-            main_shader_node.node_tree.outputs.new(type, output.name)
+        #create output on outer group
+        group_outputs.inputs.new("NodeSocketShader", "BSDF")
 
         #link imported inner group's outputs to outer group output
         for output in imported_shader_node.outputs:
             if group_outputs.inputs.get(output.name) != None:
                 new_shader_internals.links.new(output, group_outputs.inputs.get(output.name))
-    
+        
     #link imported group's outputs to principled BSDF
-    for output in main_shader_node.outputs:
-        if principled_node.inputs.get(output.name):
-            links.new(output, principled_node.inputs.get(output.name))
+    links.new(main_shader_node.outputs[0], output_node.inputs[0])
 
 
     def texture_parameter(data):

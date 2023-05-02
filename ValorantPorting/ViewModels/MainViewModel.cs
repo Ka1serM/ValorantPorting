@@ -18,6 +18,7 @@ using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Engine;
 using ValorantPorting.Export;
 using ValorantPorting.Export.Blender;
+using ValorantPorting.Export.Unreal;
 using ValorantPorting.Services;
 using ValorantPorting.Views;
 using ValorantPorting.Views.Controls;
@@ -146,6 +147,9 @@ public partial class MainViewModel : ObservableObject
             case "Help_About":
                 // TODO
                 break;
+            case "Settings_Blender":
+                AppHelper.OpenWindow<BlenderView>();
+                break;
         }
     }
 
@@ -163,16 +167,14 @@ public partial class MainViewModel : ObservableObject
         data.Name = currentAsset.DisplayName;
         BlenderService.Send(data, new BlenderExportSettings
         {
-            ReorientBones = false
+            ReorientBones = true
         });
         loadTimez.Stop();
-        AppLog.Information($"Finished exporting {data.Name} in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
+        AppLog.Information($"Finished exporting {data.Name} to BLENDER in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
     }
 
     [RelayCommand]
     public async Task ExportUnreal()
     {
-
     }
-
 }

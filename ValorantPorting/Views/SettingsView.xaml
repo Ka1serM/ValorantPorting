@@ -9,7 +9,7 @@
         xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
         xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
         
-        Title="Settings" Width="480" Height="240" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+        Title="Options" Width="480" Height="240" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="10*"/>
@@ -47,6 +47,7 @@
             
             <TextBlock Grid.Row="6" Grid.Column="0" Text="Discord RPC" VerticalAlignment="Center"/>
             <ComboBox Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3" ItemsSource="{extensions:EnumToItemsSource {x:Type local:ERichPresenceAccess}}" SelectedItem="{Binding DiscordRPC, Converter={StaticResource EnumToString}}"/>
+
 
             
         </Grid>

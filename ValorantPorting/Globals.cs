@@ -6,13 +6,15 @@ namespace ValorantPorting;
 
 public static class Globals
 {
-    public const string DISCORD_URL = "https://discord.gg/avrJU3ggGj";
-    public const string GITHUB_URL = "https://github.com/djhaled/ValorantPorting";
+    public const string DISCORD_URL = "https://discord.gg/fortniteporting";
+    public const string GITHUB_URL = "https://github.com/KaiserM21/ValorantPorting";
 
     public const int BLENDER_PORT = 24283;
     public const int UNREAL_PORT = 24281;
     public const int BUFFER_SIZE = 4096;
     
+    public const string UDPClient_MessageTerminator = "MessageFinished";
+    public const string UDPClient_Ping = "Ping";
 
     public const string WHITE = "#e1e9f2";
     public const string BLUE = "#4b8ad1";
