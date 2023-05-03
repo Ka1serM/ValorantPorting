@@ -118,7 +118,7 @@ public static class ExportHelpers
             var cdo = magBgn.ClassDefaultObject.Load();
             if (cdo.TryGetValue(out finalMagBgn, "Equippable"))
             {
-                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(finalMagBgn.GetPathName().Substring(0, finalMagBgn.GetPathName().LastIndexOf(".")));
+                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadAllObjects(finalMagBgn.GetPathName().Substring(0, finalMagBgn.GetPathName().LastIndexOf(".")));
                 foreach (var VARIABLE in mainObjectExports)
                 {
                     if (VARIABLE.Name.Contains("Magazine_1P"))
@@ -145,7 +145,7 @@ public static class ExportHelpers
             var cdo = magBgn.ClassDefaultObject.Load();
             if (cdo.TryGetValue(out final, "Equippable"))
             {
-                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(final.GetPathName().Substring(0, final.GetPathName().LastIndexOf(".")));
+                var mainObjectExports = AppVM.CUE4ParseVM.Provider.LoadAllObjects(final.GetPathName().Substring(0, final.GetPathName().LastIndexOf(".")));
                 foreach (var VARIABLE in mainObjectExports)
                 {
                     return VARIABLE.Get<UStaticMesh>("StaticMesh");

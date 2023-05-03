@@ -64,7 +64,7 @@ public class ExportData
         UObject csObject;
         var main_asset_loaded = AppVM.MainVM.CurrentAsset.MainAsset;
         main_asset_loaded.TryGetValue(out  csObject, "CharacterSelectFXC");
-        var csExports = AppVM.CUE4ParseVM.Provider.LoadObjectExports(csObject.GetPathName().Substring(0, csObject.GetPathName().LastIndexOf(".")));
+        var csExports = AppVM.CUE4ParseVM.Provider.LoadAllObjects(csObject.GetPathName().Substring(0, csObject.GetPathName().LastIndexOf(".")));
         foreach (var propExp in csExports)
         {
             if (propExp.ExportType == "SkeletalMeshComponent" && propExp.Name == "SkeletalMesh_GEN_VARIABLE" )
