@@ -83,18 +83,9 @@ def import_mesh(path: str) -> bpy.types.Object:
         mesh_path += ".psk"
         pskimport(
         mesh_path,
-        context = None,
-        bImportmesh = True,
-        bImportbone = True,
-        bSpltiUVdata = False,
-        fBonesize = 5.0,
-        fBonesizeRatio = 0.6,
-        bDontInvertRoot = True,
         bReorientBones = import_settings.get("ReorientBones"),
-        bReorientDirectly = False,
         bScaleDown = True,
-        bToSRGB = False,
-        error_callback = None)
+        bToSRGB = False)
 
         return bpy.context.active_object
     
@@ -102,18 +93,8 @@ def import_mesh(path: str) -> bpy.types.Object:
         mesh_path += ".pskx"
         pskimport(
         mesh_path,
-        context = None,
-        bImportmesh = True,
-        bImportbone = False,
-        bSpltiUVdata = False,
-        fBonesize = 5.0,
-        fBonesizeRatio = 0.6,
-        bDontInvertRoot = True,
-        bReorientBones = False,
-        bReorientDirectly = False,
         bScaleDown = True,
-        bToSRGB = False,
-        error_callback = None)
+        bToSRGB = False)
         return bpy.context.active_object
     else:
         return None

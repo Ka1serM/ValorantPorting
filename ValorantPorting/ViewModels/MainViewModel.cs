@@ -103,12 +103,13 @@ public partial class MainViewModel : ObservableObject
                 if (localMatUsed != null) highestWeapMaterialUsed = localMatUsed;
                 ready.TryGetValue(out UMaterialInstanceConstant[] magOverrides, "1pMagazine MaterialOverrides");
                 if (magOverrides != null) highestMagMaterialUsed = magOverrides;
-                ready.TryGetValue(out  UStaticMesh magMesh, "Magazine 1P");
+                ready.TryGetValue(out  UStaticMesh magMesh, "Magazine 1P", "SpeedLoader");
                 if (magMesh != null) highestMagMeshUsed = magMesh;
             }
         }
         return Tuple.Create(highestMeshUsed,highestWeapMaterialUsed,highestMagMaterialUsed,highestMagMeshUsed);
     }
+
     [RelayCommand]
     public void Menu(string parameter)
     {
@@ -165,9 +166,10 @@ public partial class MainViewModel : ObservableObject
         }
         var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles(), entTuple);
         data.Name = currentAsset.DisplayName;
+        var reorient = CurrentAssetType != EAssetType.Weapon;
         BlenderService.Send(data, new BlenderExportSettings
         {
-            ReorientBones = true
+            ReorientBones = reorient
         });
         loadTimez.Stop();
         AppLog.Information($"Finished exporting {data.Name} to BLENDER in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");

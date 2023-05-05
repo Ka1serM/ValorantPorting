@@ -24,9 +24,36 @@ namespace ValorantPorting.Export;
 
 public static class ExportHelpers
 {
-    public static void Gunbuddy(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject ogObjects)
+    public static Tuple<List<UStaticMesh>, List<UMaterialInstanceConstant>> GetVfxMeshes()
     {
+        var currentAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+        currentAsset.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
+        foreach (var currentLevel in levels)
+        {
+            var classDefaultObj = currentLevel.ClassDefaultObject.Load();
+
+            UBlueprintGeneratedClass localUObject;
+            if (classDefaultObj.TryGetValue(out localUObject, "SkinAttachment"))
+            {
+                FStructFallback[] vfxStruct;
+                var skinAttachment = localUObject.ClassDefaultObject.Load();
+                if (skinAttachment.TryGetValue(out vfxStruct, "VFX Meshes"))
+                {
+                    List<UStaticMesh> vfxMesh = new List<UStaticMesh>();
+                    List<UMaterialInstanceConstant> overrideMaterial = new List<UMaterialInstanceConstant>();
+                    List<string> attachment = new List<string>();
+                    for (int i = 0; i < vfxStruct.Length; i++)
+                    {
+                        vfxMesh.Add(vfxStruct[i].GetOrDefault<FPackageIndex>("Mesh_2_F4F3A0874905DA0E7987EDB9EA823F16").Load<UStaticMesh>());
+                        overrideMaterial.Add(vfxStruct[i].GetOrDefault<FPackageIndex>("Material_9_2DB1229240DECB0BC013F4AAF45EA539").Load<UMaterialInstanceConstant>());
+                    }
+                    return Tuple.Create(vfxMesh, overrideMaterial);
+                }
+            }
+        }
+        return null;
     }
+
     public static void CharacterParts(IEnumerable<UObject> inputParts, List<ExportPart> exportParts, UObject ogObjects)
     {
         foreach (var part in inputParts)
@@ -268,7 +295,7 @@ public static class ExportHelpers
         attach.BoneName = "Magazine_Main";
         attach.AttatchmentName = exportParts.Last().MeshName;
         exportParts.First().Attatchments.Add(attach);
-            
+        
         if (current.TryGetValue(out dant_attatchs, "AttachmentOverrides"))
         {
             var scopeTuple = GetWeaponAttatchments(current, dant_attatchs);
@@ -288,8 +315,18 @@ public static class ExportHelpers
                 }
             }
         }
-        
-            
+        var vfxTuple = GetVfxMeshes();
+        for (int i = 0; i < vfxTuple.Item1.Count; i++)
+        {
+            var mesh = vfxTuple.Item1[i];
+            UMaterialInstanceConstant[] material = new UMaterialInstanceConstant[1];
+            material[0] = vfxTuple.Item2[i];
+            SMesh(mesh, exportParts);
+            if (material[0] != null)
+            {
+                OverrideMaterials(material, exportParts.Last().OverrideMaterials);
+            }
+        }
     }
     
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
