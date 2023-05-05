@@ -24,30 +24,43 @@ namespace ValorantPorting.Export;
 
 public static class ExportHelpers
 {
-    public static Tuple<List<UStaticMesh>, List<UMaterialInstanceConstant>> GetVfxMeshes()
+    public static Tuple<List<UStaticMesh>, List<UMaterialInstanceConstant>, List<ExportAttatchment>> GetVfxMeshes()
     {
         var currentAsset = AppVM.MainVM.CurrentAsset.MainAsset;
-        currentAsset.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
-        foreach (var currentLevel in levels)
+        if (currentAsset.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels"))
         {
-            var classDefaultObj = currentLevel.ClassDefaultObject.Load();
-
-            UBlueprintGeneratedClass localUObject;
-            if (classDefaultObj.TryGetValue(out localUObject, "SkinAttachment"))
+            foreach (var currentLevel in levels)
             {
-                FStructFallback[] vfxStruct;
-                var skinAttachment = localUObject.ClassDefaultObject.Load();
-                if (skinAttachment.TryGetValue(out vfxStruct, "VFX Meshes"))
+                var classDefaultObj = currentLevel.ClassDefaultObject.Load();
+                UBlueprintGeneratedClass localUObject;
+                if (classDefaultObj.TryGetValue(out localUObject, "SkinAttachment"))
                 {
-                    List<UStaticMesh> vfxMesh = new List<UStaticMesh>();
-                    List<UMaterialInstanceConstant> overrideMaterial = new List<UMaterialInstanceConstant>();
-                    List<string> attachment = new List<string>();
-                    for (int i = 0; i < vfxStruct.Length; i++)
+                    FStructFallback[] vfxStruct;
+                    var skinAttachment = localUObject.ClassDefaultObject.Load();
+                    if (skinAttachment.TryGetValue(out vfxStruct, "VFX Meshes"))
                     {
-                        vfxMesh.Add(vfxStruct[i].GetOrDefault<FPackageIndex>("Mesh_2_F4F3A0874905DA0E7987EDB9EA823F16").Load<UStaticMesh>());
-                        overrideMaterial.Add(vfxStruct[i].GetOrDefault<FPackageIndex>("Material_9_2DB1229240DECB0BC013F4AAF45EA539").Load<UMaterialInstanceConstant>());
+                        List<UStaticMesh> vfxMesh = new();
+                        List<UMaterialInstanceConstant> overrideMaterial = new();
+                        List<ExportAttatchment> attachment = new();
+                        for (int i = 0; i < vfxStruct.Length; i++)
+                        {
+                            var attach = new ExportAttatchment();
+                            if (vfxStruct[i].GetOrDefault<FPackageIndex>("Mesh_2_F4F3A0874905DA0E7987EDB9EA823F16").TryLoad(out UStaticMesh mesh))
+                            {
+                                vfxMesh.Add(mesh);
+                                attach.AttatchmentName = vfxMesh.Last().Name + "_LOD0.mo";
+                            }
+                            if (vfxStruct[i].GetOrDefault<FPackageIndex>("Material_9_2DB1229240DECB0BC013F4AAF45EA539").TryLoad(out UMaterialInstanceConstant material)) overrideMaterial.Add(material);
+                            vfxStruct[i].TryGetValue(out FName attachSocket, "AttachSocket_6_5BE0CAE14A9C7BB424A96CB1FE9F5DAF"); 
+                            vfxStruct[i].TryGetValue(out FVector offset, "Offset_17_31AB75334559002C947D3CB9D35AAC45");
+                            vfxStruct[i].TryGetValue(out FRotator rotation, "Rotation_18_3C7AD0914F2FC8A61C88F295F2E435B7");
+                            attach.BoneName = attachSocket.ToString();
+                            attach.Offset = offset;
+                            attach.Rotation = rotation;
+                            attachment.Add(attach);
+                        }
+                        return Tuple.Create(vfxMesh, overrideMaterial, attachment);
                     }
-                    return Tuple.Create(vfxMesh, overrideMaterial);
                 }
             }
         }
@@ -315,16 +328,27 @@ public static class ExportHelpers
                 }
             }
         }
+        //vfx meshes
         var vfxTuple = GetVfxMeshes();
-        for (int i = 0; i < vfxTuple.Item1.Count; i++)
+        if (vfxTuple != null)
         {
-            var mesh = vfxTuple.Item1[i];
-            UMaterialInstanceConstant[] material = new UMaterialInstanceConstant[1];
-            material[0] = vfxTuple.Item2[i];
-            SMesh(mesh, exportParts);
-            if (material[0] != null)
+            for (int i = 0; i < vfxTuple.Item1.Count; i++)
             {
-                OverrideMaterials(material, exportParts.Last().OverrideMaterials);
+                if (vfxTuple.Item1[i] != null)
+                {
+                    var mesh = vfxTuple.Item1[i];
+                    UMaterialInstanceConstant[] material = new UMaterialInstanceConstant[1];
+                    SMesh(mesh, exportParts);
+                    if (vfxTuple.Item2[i] != null)
+                    {
+                        material[0] = vfxTuple.Item2[i];
+                        OverrideMaterials(material, exportParts.Last().OverrideMaterials);
+                    }
+                    if (vfxTuple.Item3[i] != null)
+                    {
+                        exportParts.First().Attatchments.Add(vfxTuple.Item3[i]);
+                    }
+                }
             }
         }
     }

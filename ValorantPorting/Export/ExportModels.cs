@@ -29,6 +29,8 @@ public record ExportAttatchment
 {
     public string AttatchmentName;
     public string BoneName;
+    public FVector Offset;
+    public FRotator Rotation;
 }
 public record TextureParameter(string Name, string Value);
 

@@ -160,7 +160,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         # create group output
         group_outputs = new_shader_internals.nodes.new("NodeGroupOutput")
         group_outputs.location = (600,0)
-
         #create imported inner goup
         imported_shader_node = new_shader_internals.nodes.new(type="ShaderNodeGroup")
         imported_shader_node.name = "1P_Weapon_Mat_Base_V5"
@@ -171,10 +170,11 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         #create output on outer group
         group_outputs.inputs.new("NodeSocketShader", "BSDF")
 
-        #link imported inner group's outputs to outer group output
-        for output in imported_shader_node.outputs:
-            if group_outputs.inputs.get(output.name) != None:
-                new_shader_internals.links.new(output, group_outputs.inputs.get(output.name))
+        #link outer group output to imported inner group's input
+        for output in group_inputs.outputs:
+            if imported_shader_node.inputs.get(output.name) != None:
+               new_shader_internals.links.new(output, imported_shader_node.inputs.get(output.name))
+        new_shader_internals.links.new(imported_shader_node.outputs[0], group_outputs.inputs.get("BSDF"))
         
     #link imported group's outputs to principled BSDF
     links.new(main_shader_node.outputs[0], output_node.inputs[0])
@@ -317,13 +317,14 @@ def import_response(response):
 
     Log.information(f"Received Import for {import_type}: {name}")
 
-    def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, rot=[radians(0), radians(0), radians(0)]):
+    def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, loc, rot):
         constraint = child.constraints.new('CHILD_OF')
         constraint.target = parent
         constraint.subtarget = bone
         child.rotation_mode = 'XYZ'
-        child.rotation_euler = rot
         constraint.inverse_matrix = Matrix()
+        if (loc != None): child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
+        if (rot != None): child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
     
     imported_parts = []
     def import_part(parts):
@@ -376,7 +377,7 @@ def import_response(response):
                     child_obj = child_obj.parent
                 bone_name = attachment.get("BoneName")
                 if "revolver" in parent_obj.name.lower(): bone_name = "Magazine_Extra"
-                if child_obj: constraint_object(child_obj, parent_obj, bone_name)
+                if child_obj: constraint_object(child_obj, parent_obj, bone_name, attachment.get("Offset"), attachment.get("Rotation"))
 
 def register():
     import_event = threading.Event()
