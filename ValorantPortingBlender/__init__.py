@@ -357,17 +357,20 @@ def import_response(response):
                 if len(mesh.material_slots) > index:
                     import_material(mesh.material_slots.values()[index], override_material, import_type)
 
-    import_part(import_data.get("StyleParts"))
     import_part(import_data.get("Parts"))
+    import_part(import_data.get("StyleParts"))
 
-    for imported_part in imported_parts:
         #style mats
+    for imported_part in import_data.get("StyleParts"):
         mesh = imported_part.get("Mesh")
-        for style_material in import_data.get("StyleMaterials"):
-            if style_material.get("SlotIndex") < len(mesh.material_slots):
-                slot = mesh.material_slots[style_material.get("SlotIndex")]
-                import_material(slot, style_material,import_type)
-        #attachments
+        if mesh != None:
+            for style_material in import_data.get("StyleMaterials"):
+                if style_material.get("SlotIndex") < len(mesh.material_slots):
+                    slot = mesh.material_slots[style_material.get("SlotIndex")]
+                    import_material(slot, style_material,import_type)
+    
+    #attachments
+    for imported_part in imported_parts:
         attachments = imported_part.get("Attachments")
         parent_obj = imported_part.get("Parent")
         for attachment in attachments:

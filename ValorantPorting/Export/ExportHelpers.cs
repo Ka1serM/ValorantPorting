@@ -197,12 +197,12 @@ public static class ExportHelpers
     }
 
 
-    public static Tuple<List<string>,List<UStaticMesh>,List<UMaterialInstanceConstant[]>> GetWeaponAttatchments(UObject current, UScriptMap scriptMap)
+    public static Tuple<List<string>,List<USkeletalMesh>,List<UMaterialInstanceConstant[]>> GetWeaponAttatchments(UObject current, UScriptMap scriptMap)
     {
         // initializer for return tuple stuff
         var fullSockets = new List<string>();
         var fullOverrideMaterials = new List<UMaterialInstanceConstant[]>();
-        var meshes = new List<UStaticMesh>();
+        var meshes = new List<USkeletalMesh>();
         //  loop 
         foreach (var scriptMapVariable in scriptMap.Properties)
         {
@@ -212,66 +212,35 @@ public static class ExportHelpers
             string localSocket_z = null;
             // main_values
             var scriptMapValue = (FSoftObjectPath)scriptMapVariable.Value.GenericValue;
-            var scriptMapKey = (FSoftObjectPath)scriptMapVariable.Key.GenericValue;
-            
             var valueLoaded = (UBlueprintGeneratedClass)scriptMapValue.Load();
-            var keyLoaded = (UBlueprintGeneratedClass)scriptMapKey.Load();
-            
-            var objectValue = valueLoaded.ClassDefaultObject.Load();
-            var objectKey = keyLoaded.ClassDefaultObject.Load();
-            
-            var templateKey = objectKey.Template?.Load();
-            var templateObject = objectValue.Template?.Load();
-            string[] scope = { "3pReflexMesh", "3pMaterialOverrides", "Reflex"};  
-            string[] silencer = { "3p Mesh", "3p MaterialOverrides", "Barrel"};  
-            List<List<string>> current_attatch_list  = new List<List<string>>();
-            current_attatch_list.Add(new List<string>(scope));
-            current_attatch_list.Add(new List<string>(silencer));
+            var classDefaultObject = valueLoaded.ClassDefaultObject.Load();
+
+            string[] scope = { "1pReflexMesh", "MaterialOverrides", "Reflex"};
+            string[] silencer = { "1p Mesh", "1p MaterialOverrides", "Barrel"};  
+            List<List<string>> currentAttatchList  = new List<List<string>>();
+            currentAttatchList.Add(new List<string>(scope));
+            currentAttatchList.Add(new List<string>(silencer));
 
             // 
-            for (int i = 0; i < current_attatch_list.Count; i++)
+            for (int i = 0; i < currentAttatchList.Count; i++)
             {
-                var vl = current_attatch_list[i];
-                var result_tuple = ReturnLocalAttatch(objectValue, templateKey,objectKey,vl[0], vl[1], vl[2]);
-                if (result_tuple.Item2 == null)
+                var currentAttach = currentAttatchList[i];
+                classDefaultObject.TryGetValue(out USkeletalMesh localMesh, currentAttach[0]);
+                classDefaultObject.TryGetValue(out UMaterialInstanceConstant[] localmat, currentAttach[1]);
+                if (localMesh == null)
                 {
                     continue;
                 }
-                fullSockets.Add(result_tuple.Item1);
-                meshes.Add(result_tuple.Item2);
-                fullOverrideMaterials.Add(result_tuple.Item3);
+                fullSockets.Add(currentAttach[2]);
+                meshes.Add(localMesh);
+                fullOverrideMaterials.Add(localmat);
             }
 
         }
         
         return Tuple.Create(fullSockets, meshes, fullOverrideMaterials);
     }
-
-    public static Tuple<string, UStaticMesh, UMaterialInstanceConstant[]> ReturnLocalAttatch(UObject objValue,
-        UObject Tplate,UObject objKey, string nameMesh, string nameMat, string socketUse)
-    {
-        // INIT 
-        UStaticMesh localMesh;
-        UMaterialInstanceConstant[] overrideMaterials = new UMaterialInstanceConstant[] { };
-        string localSocket = null;
-        //
-        objValue.TryGetValue(out localMesh, nameMesh);
-        objValue.TryGetValue(out overrideMaterials, nameMat);
-        if (localMesh == null)
-        {
-            objKey.TryGetValue(out localMesh, nameMesh);
-            if (localMesh == null)
-            {
-                Tplate.TryGetValue(out localMesh, nameMesh);
-            }
-            objKey.TryGetValue(out overrideMaterials, nameMat);
-        }
-
-        localSocket = socketUse;
-        return Tuple.Create(localSocket, localMesh, overrideMaterials);
-
-
-    }
+    
     public static void Weapon( List<ExportPart> exportParts, ExportData ActualData, Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> em_tuple)
     {
         var current = AppVM.MainVM.CurrentAsset.MainAsset;
@@ -279,30 +248,26 @@ public static class ExportHelpers
         if (em_tuple.Item1 != null)
         {
             Mesh(em_tuple.Item1, exportParts);
+            if (em_tuple.Item2 != null) OverrideMaterials(em_tuple.Item2, exportParts.Last().OverrideMaterials);
         }
         else
         {
             Mesh(GetBaseWeapon(), exportParts);
+            if (em_tuple.Item2 != null) OverrideMaterials(em_tuple.Item2, exportParts.Last().OverrideMaterials);
         }
 
         if (em_tuple.Item4 != null)
         {
             SMesh(em_tuple.Item4, exportParts);
+            if (em_tuple.Item3 != null) OverrideMaterials(em_tuple.Item2, exportParts.Last().OverrideMaterials);
         }
         else
         {
             SMesh(GetMagMesh(), exportParts);
+            if (em_tuple.Item3 != null) OverrideMaterials(em_tuple.Item2, exportParts.Last().OverrideMaterials);
         }
 
-        if (em_tuple.Item2 != null)
-        {
-            OverrideMaterials(em_tuple.Item2, exportParts[0].OverrideMaterials);
-        }
 
-        if (em_tuple.Item3 != null)
-        {
-            OverrideMaterials(em_tuple.Item2, exportParts[0].OverrideMaterials);
-        }
 
         var attach = new ExportAttatchment();
         attach.BoneName = "Magazine_Main";
@@ -317,7 +282,7 @@ public static class ExportHelpers
                 var lMesh = scopeTuple.Item2[i];
                 var lMats = scopeTuple.Item3[i];
                 var l_sockets = scopeTuple.Item1[i];
-                SMesh(lMesh, exportParts);
+                Mesh(lMesh, exportParts);
                 var scope_tach = new ExportAttatchment();
                 scope_tach.BoneName = l_sockets;
                 scope_tach.AttatchmentName = exportParts.Last().MeshName;
@@ -329,6 +294,7 @@ public static class ExportHelpers
             }
         }
         //vfx meshes
+        /*
         var vfxTuple = GetVfxMeshes();
         if (vfxTuple != null)
         {
@@ -351,6 +317,7 @@ public static class ExportHelpers
                 }
             }
         }
+        */
     }
     
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
