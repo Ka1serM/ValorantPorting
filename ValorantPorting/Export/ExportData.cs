@@ -75,7 +75,7 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
-                    ExportHelpers.Weapon(data.Parts,data, style);
+                    ExportHelpers.Weapon(data.Parts, style);
                     break;
                 }
                 case EAssetType.GunBuddy:

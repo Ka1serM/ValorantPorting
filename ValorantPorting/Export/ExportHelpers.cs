@@ -26,11 +26,14 @@ public static class ExportHelpers
 {
     public static UObject HandleStyle(UObject style)
     {
-        var bpGnCast = style as UBlueprintGeneratedClass;
-        var styleClassDefaultObject = bpGnCast.ClassDefaultObject.Load();
-        if (styleClassDefaultObject.TryGetValue(out UBlueprintGeneratedClass attachmentOverrides, "EquippableSkinChroma"))
+        if (style != null)
         {
-            return attachmentOverrides.ClassDefaultObject.Load();
+            var bpGnCast = style as UBlueprintGeneratedClass;
+            var styleClassDefaultObject = bpGnCast.ClassDefaultObject.Load();
+            if (styleClassDefaultObject.TryGetValue(out UBlueprintGeneratedClass attachmentOverrides, "EquippableSkinChroma"))
+            {
+                return attachmentOverrides.ClassDefaultObject.Load();
+            }
         }
         return null;
     }
@@ -239,13 +242,13 @@ public static class ExportHelpers
     }
 
 
-    public static Tuple<string[], USkeletalMesh[], UMaterialInstanceConstant[][], UMaterialInstanceConstant[][]> GetWeaponAttatchments(UScriptMap scriptMap, UObject? style)
+    public static Tuple<string[], USkeletalMesh[], UMaterialInstanceConstant[][], string[]> GetWeaponAttatchments(UScriptMap scriptMap)
     {
         // initializer for return tuple stuff
         var fullSockets = new string[2];
         var fullOverrideMaterials = new UMaterialInstanceConstant[2][];
-        var fullStyleMaterials = new UMaterialInstanceConstant[2][];
         var meshes = new USkeletalMesh[2];
+        var paramNames = new string[2];
         //  loop 
         foreach (var scriptMapVariable in scriptMap.Properties)
         {
@@ -258,7 +261,6 @@ public static class ExportHelpers
             List<List<string>> currentAttatchList  = new List<List<string>>();
             currentAttatchList.Add(new List<string>(scope));
             currentAttatchList.Add(new List<string>(silencer));
-
             // 
             for (int i = 0; i < currentAttatchList.Count; i++)
             {
@@ -272,41 +274,33 @@ public static class ExportHelpers
                 fullSockets[i] = currentAttach[2];
                 meshes[i] = localMesh;
                 fullOverrideMaterials[i] = localmat;
-                //handle attachment style mats
-                if (GetStyleAttatchmentMats(style, currentAttach[1]) != null)
-                {
-                    var styleMats = GetStyleAttatchmentMats(style, currentAttach[1]);
-                    fullStyleMaterials[i] = styleMats;
-                }
+                paramNames[i] = currentAttach[1];
             }
         }
-        return Tuple.Create(fullSockets, meshes, fullOverrideMaterials, fullStyleMaterials);
+        return Tuple.Create(fullSockets, meshes, fullOverrideMaterials, paramNames);
     }
     
     public static UMaterialInstanceConstant[] GetStyleAttatchmentMats(UObject style, string paramName)
     {
-        if (style != null)
+        var bpGnCast = style as UBlueprintGeneratedClass;
+        var styleClassDefaultObject = bpGnCast.ClassDefaultObject.Load();
+        if (styleClassDefaultObject.TryGetValue(out UScriptMap styleAttachmentOverrides, "AttachmentOverrides"))
         {
-            var bpGnCast = style as UBlueprintGeneratedClass;
-            var styleClassDefaultObject = bpGnCast.ClassDefaultObject.Load();
-            if (styleClassDefaultObject.TryGetValue(out UScriptMap styleAttachmentOverrides, "AttachmentOverrides"))
+            //  loop 
+            foreach (var scriptMapVariable in styleAttachmentOverrides.Properties)
             {
-                //  loop 
-                foreach (var scriptMapVariable in styleAttachmentOverrides.Properties)
-                {
-                    var scriptMapValue = (FSoftObjectPath)scriptMapVariable.Value.GenericValue;
-                    var valueLoaded = (UBlueprintGeneratedClass)scriptMapValue.Load();
-                    var classDefaultObject = valueLoaded.ClassDefaultObject.Load();
-                    classDefaultObject.TryGetValue(out UMaterialInstanceConstant[] materials, paramName);
-                    return materials;
-                }
+                var scriptMapValue = (FSoftObjectPath)scriptMapVariable.Value.GenericValue;
+                var valueLoaded = (UBlueprintGeneratedClass)scriptMapValue.Load();
+                var classDefaultObject = valueLoaded.ClassDefaultObject.Load();
+                classDefaultObject.TryGetValue(out UMaterialInstanceConstant[] materials, paramName);
+                return materials;
             }
         }
         return null;
     }
     
     
-    public static void Weapon( List<ExportPart> exportParts, ExportData ActualData, UObject style)
+    public static void Weapon( List<ExportPart> exportParts, UObject style)
     {
         
         var mainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
@@ -330,8 +324,8 @@ public static class ExportHelpers
         }
         //handle style materials for gun mesh
         if (style != null && HandleStyle(style) != null)
-        {
-            OverrideMaterials(HandleStyle(style).GetOrDefault("MaterialOverrides", Array.Empty<UMaterialInstanceConstant>()), exportParts.Last().StyleMaterials);
+        {//get 3P overwrites for 1P gun because riot games ;-;
+            OverrideMaterials(HandleStyle(style).GetOrDefault("3p Material Overrides", Array.Empty<UMaterialInstanceConstant>()), exportParts.Last().StyleMaterials);
         }
         //mag mesh
         if (levelTuple.Item4 != null)
@@ -362,7 +356,7 @@ public static class ExportHelpers
         //attachment (scope & silencer)
         if (mainAsset.TryGetValue(out UScriptMap attachmentOverrides, "AttachmentOverrides"))
         {
-            var attachmentTuple = GetWeaponAttatchments(attachmentOverrides, style);
+            var attachmentTuple = GetWeaponAttatchments(attachmentOverrides);
             for (int i = 0; i < attachmentTuple.Item2.Length; i++)
             {
                 Mesh(attachmentTuple.Item2[i], exportParts);
@@ -374,11 +368,16 @@ public static class ExportHelpers
                 {
                     OverrideMaterials(attachmentTuple.Item3[i],exportParts.Last().OverrideMaterials);
                 }
-                if (attachmentTuple.Item4[i] != null)
+                //handle attachment style mats
+                if (style != null)
                 {
-                    OverrideMaterials(attachmentTuple.Item4[i],exportParts.Last().StyleMaterials);
+                    //scope, muzzle
+                    string[] matNames = new[] { "3pMaterialOverrides", "1p MaterialOverrides" };
+                    if (GetStyleAttatchmentMats(style, matNames[i]) != null)
+                    {
+                        OverrideMaterials(GetStyleAttatchmentMats(style, matNames[i]),exportParts.Last().StyleMaterials);
+                    }
                 }
-                //attachment style
             }
         }
 
