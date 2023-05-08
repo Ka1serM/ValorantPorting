@@ -22,9 +22,6 @@ public class ExportData
     public string Name;
     public string Type;
     public List<ExportPart> Parts = new();
-    public List<ExportPart> StyleParts = new();
-    public List<ExportMaterial> StyleMaterials = new();
-    //public List<ExportAttatchment> Attatchments = new();
     
     public static async Task<UObject> CreateUiData(UBlueprintGeneratedClass asset )
     {
@@ -34,29 +31,6 @@ public class ExportData
             loadedCdoUi = asset.ClassDefaultObject.Load();
         });
         return Task.FromResult(loadedCdoUi).Result;
-    }
-
-    public static UObject HandleStyle(UObject sty)
-    {
-        var bpGnCast = sty as UBlueprintGeneratedClass;
-        var cdo_style = bpGnCast?.ClassDefaultObject.Load();
-        var returnBpGn = new UBlueprintGeneratedClass();
-        cdo_style?.TryGetValue(out returnBpGn, "EquippableSkinChroma");
-        var returnStyle = returnBpGn.ClassDefaultObject.Load();
-        
-        return returnStyle;
-
-    }
-    
-    
-    public static UObject HandleBaseChroma(UObject usedObj)
-    {
-        if (usedObj.TryGetValue(out UBlueprintGeneratedClass blueprint, "SkinAttachment"))
-        {
-            var defaultObject = blueprint.ClassDefaultObject.Load();
-            if (defaultObject != null) return defaultObject;
-        }
-        return null;
     }
     
     public static UObject GetCsMesh()
@@ -76,8 +50,7 @@ public class ExportData
         return null;
     }
     
-    public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style,
-        Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> ent_tuple)
+    public static async Task<ExportData> Create(UObject asset, EAssetType assetType, UObject style)
 
     {
         var data = new ExportData();
@@ -102,21 +75,7 @@ public class ExportData
                 }
                 case EAssetType.Weapon:
                 {
-                    //Console.WriteLine(ent_tuple.Item1.Name);
-                    ExportHelpers.Weapon(data.Parts,data, ent_tuple);
-                    if (style != null)
-                    {
-                        ExportHelpers.OverrideMaterials(
-                            HandleStyle(style).GetOrDefault("MaterialOverrides",
-                                Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
-                    }
-                    else
-                    {
-                        ExportHelpers.OverrideMaterials(
-                            HandleBaseChroma(asset).GetOrDefault("1p MaterialOverrides",
-                                Array.Empty<UMaterialInstanceConstant>()), data.StyleMaterials);
-                    }
-
+                    ExportHelpers.Weapon(data.Parts,data, style);
                     break;
                 }
                 case EAssetType.GunBuddy:

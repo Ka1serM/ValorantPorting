@@ -11,6 +11,7 @@ public class ExportPart
     public string? Part;
     public List<ExportMaterial> Materials = new();
     public List<ExportMaterial> OverrideMaterials = new();
+    public List<ExportMaterial> StyleMaterials = new();
     public List<ExportAttatchment> Attatchments = new();
 }
 

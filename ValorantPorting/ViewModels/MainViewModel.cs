@@ -76,40 +76,9 @@ public partial class MainViewModel : ObservableObject
         {
             return ObjectStyle[0];
         }
-
         return null;
     }
-    public Tuple<USkeletalMesh,UMaterialInstanceConstant[],UMaterialInstanceConstant[],UStaticMesh> GetSelectedLevels()
-    {
-        var sant = AppVM.MainVM.CurrentAsset.MainAsset;
-        // 
-        USkeletalMesh highestMeshUsed = null;
-        UMaterialInstanceConstant[] highestWeapMaterialUsed = new UMaterialInstanceConstant[] { };
-        UMaterialInstanceConstant[] highestMagMaterialUsed = new UMaterialInstanceConstant[] { };
-        UStaticMesh highestMagMeshUsed = null;
-        //
-        sant.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
-        for (int i = 0; i < levels.Length; i++)
-        {
-            var activeO = levels[i];
-            var cdoLo = activeO.ClassDefaultObject.Load();
-            UBlueprintGeneratedClass localUob;
-            if (cdoLo.TryGetValue(out localUob, "SkinAttachment"))
-            {
-                var ready = localUob.ClassDefaultObject.Load();
-                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic","NewMesh", "Weapon 1P");
-                if (localMeshUsed != null)  highestMeshUsed = localMeshUsed;
-                ready.TryGetValue(out UMaterialInstanceConstant[] localMatUsed , "1p MaterialOverrides");
-                if (localMatUsed != null) highestWeapMaterialUsed = localMatUsed;
-                ready.TryGetValue(out UMaterialInstanceConstant[] magOverrides, "1pMagazine MaterialOverrides");
-                if (magOverrides != null) highestMagMaterialUsed = magOverrides;
-                ready.TryGetValue(out  UStaticMesh magMesh, "Magazine 1P", "SpeedLoader");
-                if (magMesh != null) highestMagMeshUsed = magMesh;
-            }
-        }
-        return Tuple.Create(highestMeshUsed,highestWeapMaterialUsed,highestMagMaterialUsed,highestMagMeshUsed);
-    }
-
+    
     [RelayCommand]
     public void Menu(string parameter)
     {
@@ -159,12 +128,7 @@ public partial class MainViewModel : ObservableObject
     {
         var loadTimez = new Stopwatch();
         loadTimez.Start();
-        Tuple<USkeletalMesh, UMaterialInstanceConstant[], UMaterialInstanceConstant[], UStaticMesh> entTuple = null;
-        if (CurrentAssetType == EAssetType.Weapon)
-        {
-            entTuple = GetSelectedLevels();
-        }
-        var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles(), entTuple);
+        var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles());
         data.Name = currentAsset.DisplayName;
         var reorient = CurrentAssetType != EAssetType.Weapon;
         BlenderService.Send(data, new BlenderExportSettings
