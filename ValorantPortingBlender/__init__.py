@@ -27,9 +27,11 @@ global import_data
 global server
 global MAIN_SHADER
 global INNER_SHADER
+
 class Log:
     INFO = u"\u001b[36m"
     WARNING = u"\u001b[31m"
+    ERROR = u"\u001b[33m"
     RESET = u"\u001b[0m"
 
     @staticmethod
@@ -39,8 +41,12 @@ class Log:
     @staticmethod
     def warning(message):
         print(f"{Log.WARNING}[WARN] {Log.RESET}{message}")
+        
+    @staticmethod
+    def error(message):
+        print(f"{Log.WARNING}[ERROR] {Log.RESET}{message}")
 
-
+    
 class Receiver(threading.Thread):
 
     def __init__(self, event):
@@ -53,7 +59,7 @@ class Receiver(threading.Thread):
     def run(self):
         host, port = 'localhost', 24283
         self.socket_server.bind((host, port))
-        self.socket_server.settimeout(1.0)
+        self.socket_server.settimeout(3.0)
         Log.information(f"ValorantPorting Server Listening at {host}:{port}")
 
         while self.keep_alive:
@@ -62,13 +68,20 @@ class Receiver(threading.Thread):
                 while True:
                     info = self.socket_server.recvfrom(4096)
                     if data := info[0].decode('utf-8'):
-                        if data == "FPMessageFinished":
+                        if data == "VPMessageFinished":
                             break
                         data_string += data
                 self.event.set()
                 self.data = json.loads(data_string)
-            except OSError:
+                           
+            except OSError as e:
                 pass
+            except EOFError as e:
+                Log.error(e)
+            except zlib.error as e:
+                Log.error(e)
+            except json.JSONDecodeError as e:
+                Log.error(e) 
 
     def stop(self):
         self.keep_alive = False
@@ -168,15 +181,15 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         imported_shader_node.node_tree = bpy.data.node_groups.get(imported_shader_node.name)
 
         #create output on outer group
-        group_outputs.inputs.new("NodeSocketShader", "BSDF")
+        new_shader_internals.outputs.new("NodeSocketShader", "BSDF")
 
         #link outer group output to imported inner group's input
         for output in group_inputs.outputs:
             if imported_shader_node.inputs.get(output.name) != None:
-               new_shader_internals.links.new(output, imported_shader_node.inputs.get(output.name))
-        new_shader_internals.links.new(imported_shader_node.outputs[0], group_outputs.inputs.get("BSDF"))
+               new_shader_internals.links.new(output, imported_shader_node.node_tree.inputs.get(output.name))
+        new_shader_internals.links.new(imported_shader_node.outputs[0], group_outputs.inputs[0])
         
-    #link imported group's outputs to principled BSDF
+    #link outer group's outputs to shader output
     links.new(main_shader_node.outputs[0], output_node.inputs[0])
 
 
@@ -320,11 +333,11 @@ def import_response(response):
     def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, loc, rot):
         constraint = child.constraints.new('CHILD_OF')
         constraint.target = parent
-        constraint.subtarget = bone
+        if bone != None: constraint.subtarget = bone
         child.rotation_mode = 'XYZ'
         constraint.inverse_matrix = Matrix()
-        if (loc != None): child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
-        if (rot != None): child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
+        if loc != None: child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
+        if rot != None: child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
     
     imported_parts = []
     def import_part(parts):
@@ -356,19 +369,13 @@ def import_response(response):
                 index = override_material.get("SlotIndex")
                 if len(mesh.material_slots) > index:
                     import_material(mesh.material_slots.values()[index], override_material, import_type)
+            for style_material in part.get("StyleMaterials"):
+                index = style_material.get("SlotIndex")
+                if len(mesh.material_slots) > index:
+                    import_material(mesh.material_slots.values()[index], style_material, import_type)        
 
     import_part(import_data.get("Parts"))
-    import_part(import_data.get("StyleParts"))
 
-        #style mats
-    for imported_part in import_data.get("StyleParts"):
-        mesh = imported_part.get("Mesh")
-        if mesh != None:
-            for style_material in import_data.get("StyleMaterials"):
-                if style_material.get("SlotIndex") < len(mesh.material_slots):
-                    slot = mesh.material_slots[style_material.get("SlotIndex")]
-                    import_material(slot, style_material,import_type)
-    
     #attachments
     for imported_part in imported_parts:
         attachments = imported_part.get("Attachments")
@@ -378,9 +385,8 @@ def import_response(response):
                 child_obj = bpy.context.scene.objects[child_name]
                 if child_obj.parent is not None: #AttatchmentName somehow points to mesh, get parent armature instead
                     child_obj = child_obj.parent
-                bone_name = attachment.get("BoneName")
                 if "revolver" in parent_obj.name.lower(): bone_name = "Magazine_Extra"
-                if child_obj: constraint_object(child_obj, parent_obj, bone_name, attachment.get("Offset"), attachment.get("Rotation"))
+                if child_obj: constraint_object(child_obj, parent_obj, attachment.get("BoneName"), attachment.get("Offset"), attachment.get("Rotation"))
 
 def register():
     import_event = threading.Event()

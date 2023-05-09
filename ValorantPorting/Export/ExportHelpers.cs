@@ -50,14 +50,14 @@ public static class ExportHelpers
     }
     public static Tuple<USkeletalMesh,UMaterialInstanceConstant[],UMaterialInstanceConstant[],UStaticMesh> GetHighestLevel()
     {
-        var sant = AppVM.MainVM.CurrentAsset.MainAsset;
+        var mainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
         // 
         USkeletalMesh highestMeshUsed = null;
         UMaterialInstanceConstant[] highestWeapMaterialUsed = new UMaterialInstanceConstant[] { };
         UMaterialInstanceConstant[] highestMagMaterialUsed = new UMaterialInstanceConstant[] { };
         UStaticMesh highestMagMeshUsed = null;
         //
-        sant.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
+        mainAsset.TryGetValue(out UBlueprintGeneratedClass[] levels, "Levels");
         for (int i = 0; i < levels.Length; i++)
         {
             var activeO = levels[i];

@@ -31,7 +31,7 @@ public static class BlenderService
         Console.WriteLine(message);
         var messageBytes = Encoding.ASCII.GetBytes(message);
         Client.SendSpliced(messageBytes, Globals.BUFFER_SIZE);
-        Client.Send(Encoding.ASCII.GetBytes("FPMessageFinished"));
+        Client.Send(Encoding.ASCII.GetBytes("VPMessageFinished"));
     }
 
     public static int SendSpliced(this UdpClient client, IEnumerable<byte> arr, int size)
