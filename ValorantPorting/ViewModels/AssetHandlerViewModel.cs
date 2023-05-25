@@ -119,7 +119,7 @@ public class AssetHandlerData
                 // for ClassNames
                 foreach (var cName in ClassNames)
                 {
-                    if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == cName && !variable.AssetName.ToString().Contains("NPE"))  
+                    if (tValue.Key.PlainText == "PrimaryAssetType" && tValue.Value.ToString() == cName)  
                     {
                         items.Add(variable);
                     }
@@ -161,8 +161,9 @@ public class AssetHandlerData
         // remove everything after the last . in data.ObjectPath
         UObject actualAsset;
         UObject uiAsset = null;
-        var firstTag = data.TagsAndValues.First().Value.Replace("BlueprintGeneratedClass", "").Replace("'", ""); ;
-        actualAsset = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(firstTag);
+        var firstTag = data.ObjectPath;
+        actualAsset = await AppVM.CUE4ParseVM.Provider.TryLoadObjectAsync(firstTag);
+        if (actualAsset == null) {return;}
         var uBlueprintGeneratedClass = actualAsset as UBlueprintGeneratedClass;
         actualAsset = uBlueprintGeneratedClass.ClassDefaultObject.Load();
         var mainA = actualAsset;
