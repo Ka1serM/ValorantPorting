@@ -142,5 +142,12 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public async Task ExportUnreal()
     {
+        var loadTimez = new Stopwatch();
+        loadTimez.Start();
+        var data = await ExportData.Create(CurrentAsset.Asset, CurrentAssetType, GetSelectedStyles());
+        data.Name = currentAsset.DisplayName;
+        UnrealService.Send(data);
+        loadTimez.Stop();
+        AppLog.Information($"Finished exporting {data.Name} to BLENDER in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
     }
 }

@@ -1,5 +1,5 @@
 ﻿namespace ValorantPorting.Export.Unreal;
 
-public class UnrealExportSettings
+public class UnrealExportSettings : ExportSettingsBase
 {
 }

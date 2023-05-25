@@ -6,37 +6,32 @@ using System.Text;
 using ValorantPorting.Export;
 using ValorantPorting.Export.Blender;
 using Newtonsoft.Json;
+using ValorantPorting.Export.Unreal;
+using ValorantPorting.Services.Export;
 
 namespace ValorantPorting.Services;
 
-public static class BlenderService
+public class UnrealService : SocketServiceBase
 {
     private static readonly UdpClient Client = new();
 
-    static BlenderService()
+    static UnrealService()
     {
-        Client.Connect("localhost", Globals.BLENDER_PORT);
+        Client.Connect("localhost", Globals.UNREAL_PORT);
     }
 
-    public static void Send(ExportData data, BlenderExportSettings settings)
+    public static void Send(ExportData data)
     {
-        var export = new BlenderExport
+        var export = new UnrealExport()
         {
             Data = data,
-            Settings = settings,
             AssetsRoot = App.AssetsFolder.FullName.Replace("\\", "/")
         };
 
         var message = JsonConvert.SerializeObject(export);
         Console.WriteLine(message);
         var messageBytes = Encoding.ASCII.GetBytes(message);
-        Client.SendSpliced(messageBytes, Globals.BUFFER_SIZE);
+        SendSpliced(Client, messageBytes, Globals.BUFFER_SIZE);
         Client.Send(Encoding.ASCII.GetBytes("VPMessageFinished"));
     }
-
-    public static int SendSpliced(this UdpClient client, IEnumerable<byte> arr, int size)
-    {
-        return arr.Chunk(size).ToList().Sum(chunk => client.Send(chunk));
-    }
-    
 }
