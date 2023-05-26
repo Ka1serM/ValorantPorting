@@ -148,6 +148,6 @@ public partial class MainViewModel : ObservableObject
         data.Name = currentAsset.DisplayName;
         UnrealService.Send(data);
         loadTimez.Stop();
-        AppLog.Information($"Finished exporting {data.Name} to BLENDER in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
+        AppLog.Information($"Finished exporting {data.Name} to UNREAL in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
     }
 }

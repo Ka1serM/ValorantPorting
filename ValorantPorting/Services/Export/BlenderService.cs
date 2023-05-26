@@ -29,9 +29,8 @@ public class BlenderService : SocketServiceBase
         };
 
         var message = JsonConvert.SerializeObject(export);
-        Console.WriteLine(message);
         var messageBytes = Encoding.ASCII.GetBytes(message);
         SendSpliced(Client, messageBytes, Globals.BUFFER_SIZE);
-        Client.Send(Encoding.ASCII.GetBytes("VPMessageFinished"));
+        Client.Send(Encoding.ASCII.GetBytes("MessageFinished"));
     }
 }

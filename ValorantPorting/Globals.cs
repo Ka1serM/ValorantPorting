@@ -10,7 +10,7 @@ public static class Globals
     public const string GITHUB_URL = "https://github.com/KaiserM21/ValorantPorting";
 
     public const int BLENDER_PORT = 24283;
-    public const int UNREAL_PORT = 24281;
+    public const int UNREAL_PORT = 24284;
     public const int BUFFER_SIZE = 4096;
     
     public const string UDPClient_MessageTerminator = "MessageFinished";
