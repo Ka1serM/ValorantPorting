@@ -37,7 +37,7 @@ jobs:
         with:
           files: |
               ./ValorantPorting/bin/Publish/ValorantPorting.exe
-              ./ValorantPorting/bin/Publish/libSkiaSharp.dll
+              ./ValorantPorting/bin/Publish/SkiaSharp.dll
           dest: ValorantPorting.zip # will end up in working directory not the Publish folder
           
       - name: Blender ZIP File
