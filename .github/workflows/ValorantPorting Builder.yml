@@ -1,0 +1,56 @@
+name: ValorantPorting Builder
+
+on:
+  workflow_dispatch:
+    inputs:
+        appVersion:
+          description: 'ValorantPorting Version And Release Tag'
+          required: true
+          default: '1.0.X.X'
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: GIT Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: 'true'
+
+      - name: Fetch Submodules Recursively
+        run: git submodule update --init --recursive
+
+      - name: .NET 6 Setup
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: '6.0.x'
+
+      - name: .NET Restore
+        run: dotnet restore ValorantPorting
+
+      - name: .NET Publish
+        run: dotnet publish ValorantPorting -c Release --no-self-contained -r win-x64 -f net6.0-windows -o "./ValorantPorting/bin/Publish/" -p:PublishReadyToRun=false -p:PublishSingleFile=true -p:DebugType=None -p:GenerateDocumentationFile=false -p:DebugSymbols=false -p:AssemblyVersion=${{ github.event.inputs.appVersion }} -p:FileVersion=${{ github.event.inputs.appVersion }}
+
+      - name: Main ZIP File
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./ValorantPorting/bin/Publish/ValorantPorting.exe
+          dest: ValorantPorting.zip # will end up in working directory not the Publish folder
+          
+      - name: Blender ZIP File
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./ValorantPortingBlender/
+          dest: ValorantPortingBlender.zip # will end up in working directory not the Publish folder
+
+      - name: GIT Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          title: "ValorantPorting v${{ github.event.inputs.appVersion }}"
+          automatic_release_tag: ${{ github.event.inputs.appVersion }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          prerelease: false
+          files: |
+            ValorantPorting.zip
+            ValorantPortingBlender.zip

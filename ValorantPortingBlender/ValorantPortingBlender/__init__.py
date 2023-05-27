@@ -68,7 +68,7 @@ class Receiver(threading.Thread):
                 while True:
                     info = self.socket_server.recvfrom(4096)
                     if data := info[0].decode('utf-8'):
-                        if data == "VPMessageFinished":
+                        if data == "MessageFinished":
                             break
                         data_string += data
                 self.event.set()
