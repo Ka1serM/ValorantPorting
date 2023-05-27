@@ -7,6 +7,7 @@
         <UseWPF>true</UseWPF>
         <ApplicationIcon>ValorantPorting.ico</ApplicationIcon>
         <RootNamespace>ValorantPorting</RootNamespace>
+        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     </PropertyGroup>
 
     <ItemGroup>
