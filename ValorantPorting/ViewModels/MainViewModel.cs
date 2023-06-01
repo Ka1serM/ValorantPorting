@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms.Design;
+using System.Windows.Input;
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -22,6 +24,7 @@ using ValorantPorting.Export.Unreal;
 using ValorantPorting.Services;
 using ValorantPorting.Views;
 using ValorantPorting.Views.Controls;
+using StyleSelector = ValorantPorting.Views.Controls.StyleSelector;
 
 namespace ValorantPorting.ViewModels;
 
@@ -29,10 +32,16 @@ public partial class MainViewModel : ObservableObject
 {
 
     [ObservableProperty]
+
     [NotifyPropertyChangedFor(nameof(StyleImage))]
     [NotifyPropertyChangedFor(nameof(StyleVisibility))]
-    private AssetSelectorItem currentAsset;
+    private IExportableAsset? currentAsset;
 
+    [ObservableProperty] 
+    [NotifyPropertyChangedFor(nameof(StyleImage))] 
+    [NotifyPropertyChangedFor(nameof(StyleVisibility))]
+    private List<IExportableAsset> extendedAssets = new();
+    
     public ImageSource StyleImage => currentAsset.FullSource;
     public Visibility StyleVisibility => currentAsset is null ? Visibility.Collapsed : Visibility.Visible;
 
@@ -42,6 +51,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> gunbuddies = new();
     [ObservableProperty] private ObservableCollection<StyleSelector> styles = new();
+    [ObservableProperty] private SuppressibleObservableCollection<TreeItem> meshes = new();
+    [ObservableProperty] private SuppressibleObservableCollection<AssetItem> assets = new();
+
     [ObservableProperty] 
     [NotifyPropertyChangedFor(nameof(LoadingVisibility))]
     private bool isReady;
@@ -49,6 +61,13 @@ public partial class MainViewModel : ObservableObject
     public EAssetType CurrentAssetType;
 
     public Visibility LoadingVisibility => IsReady ? Visibility.Collapsed : Visibility.Visible;
+    
+    private static readonly string[] AllowedMeshTypes =
+    {
+        "Skeleton",
+        "SkeletalMesh",
+        "StaticMesh"
+    };
 
     public async Task Initialize()
     {
@@ -149,5 +168,105 @@ public partial class MainViewModel : ObservableObject
         UnrealService.Send(data);
         loadTimez.Stop();
         AppLog.Information($"Finished exporting {data.Name} to UNREAL in {Math.Round(loadTimez.Elapsed.TotalSeconds, 3)}s");
+    }
+    
+    public async Task SetupMeshSelection(string path)
+    {
+        ExtendedAssets.Clear();
+        //MeshPreviews.Clear();
+        //OptionTabText = "SELECTED MESHES";
+        
+        var meshObject = await AppVM.CUE4ParseVM.Provider.LoadObjectAsync(path);
+        CurrentAsset = AllowedMeshTypes.Contains(meshObject.ExportType) ? new MeshAssetItem(meshObject) : null;
+    }
+    
+    // public async Task SetupMeshSelection(AssetItem[] extendedItems)
+    // {
+    //     ExtendedAssets.Clear();
+    //     MeshPreviews.Clear();
+    //     OptionTabText = "SELECTED MESHES";
+    //     
+    //     var index = 0;
+    //     var validMeshSelected = false;
+    //     foreach (var item in extendedItems)
+    //     {
+    //         var meshObject = await AppVM.CUE4ParseVM.Provider.TryLoadObjectAsync(item.PathWithoutExtension);
+    //         meshObject ??= await Task.Run(() =>
+    //         {
+    //             return AppVM.CUE4ParseVM.Provider.LoadAllObjects(item.PathWithoutExtension).FirstOrDefault(x => AllowedMeshTypes.Contains(x.ExportType));
+    //         });
+    //         if (meshObject is null) continue;
+    //         
+    //         if (AllowedMeshTypes.Contains(meshObject.ExportType))
+    //         {
+    //             var meshItem = new MeshAssetItem(meshObject);
+    //             if (index == 0) CurrentAsset = meshItem;
+    //             ExtendedAssets.Add(meshItem);
+    //             index++;
+    //             validMeshSelected = true;
+    //         }
+    //     }
+    //     
+    //     MeshPreviews.Add(new StyleSelector(ExtendedAssets));
+    //   
+    //     if (!validMeshSelected) CurrentAsset = null;
+    // }
+    
+    private async void AssetFolderTree_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        var treeView = (TreeView) sender;
+        var treeItem = (TreeItem) treeView.SelectedItem;
+        if (treeItem is null) return;
+        if (treeItem.AssetType == ETreeItemType.Folder) return;
+
+        await AppVM.MainVM.SetupMeshSelection(treeItem.FullPath!);
+    }
+    
+    //
+    // private async void AssetFlatView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    // {
+    //     var listBox = (ListBox) sender;
+    //     var selectedItem = (AssetItem) listBox.SelectedItem;
+    //     if (selectedItem is null) return;
+    //     
+    //     await AppVM.MainVM.SetupMeshSelection(listBox.SelectedItems.OfType<AssetItem>().ToArray());
+    // }
+
+    private void AssetFlatView_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        var listBox = (ListBox) sender;
+        var selectedItem = (AssetItem) listBox.SelectedItem;
+        if (selectedItem is null) return;
+        
+        JumpToAsset(selectedItem.PathWithoutExtension);
+    }
+    
+    private void JumpToAsset(string directory)
+    {
+        var children = AppVM.MainVM.Meshes;
+
+        var i = 0;
+        var folders = directory.Split('/');
+        while (true)
+        {
+            foreach (var folder in children)
+            {
+                if (!folder.Header.Equals(folders[i], StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (folder.AssetType == ETreeItemType.Asset)
+                {
+                    folder.IsSelected = true;
+                    return;
+                }
+
+                folder.IsExpanded = true;
+                children = folder.Children;
+                break;
+            }
+
+            i++;
+            if (children.Count == 0) break;
+        }
     }
 }

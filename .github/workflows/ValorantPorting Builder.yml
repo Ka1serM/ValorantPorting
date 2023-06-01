@@ -31,18 +31,18 @@ jobs:
 
       - name: .NET Publish
         run: dotnet publish ValorantPorting -c Release --no-self-contained -r win-x64 -f net6.0-windows -o "./ValorantPorting/bin/Publish/" -p:PublishReadyToRun=false -p:PublishSingleFile=true -p:DebugType=None -p:GenerateDocumentationFile=false -p:DebugSymbols=false -p:AssemblyVersion=${{ github.event.inputs.appVersion }} -p:FileVersion=${{ github.event.inputs.appVersion }}
-
-      - name: Main ZIP File
-        uses: papeloto/action-zip@v1
-        with:
-          files: ./ValorantPorting/bin/Publish/ValorantPorting.exe
-          dest: ValorantPorting.zip # will end up in working directory not the Publish folder
-          
+   
       - name: Blender ZIP File
         uses: papeloto/action-zip@v1
         with:
           files: ./ValorantPortingBlender/
-          dest: ValorantPortingBlender.zip # will end up in working directory not the Publish folder
+          dest: ValorantPortingBlender.zip
+
+      - name: Blender Octane ZIP File
+        uses: papeloto/action-zip@v1
+        with:
+          files: ./ValorantPortingBlenderOctane/
+          dest: ValorantPortingBlenderOctane.zip
 
       - name: GIT Release
         uses: marvinpinto/action-automatic-releases@latest
@@ -52,5 +52,5 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
           files: |
-            ValorantPorting.zip
+            ./ValorantPorting/bin/Publish/ValorantPorting.exe
             ValorantPortingBlender.zip

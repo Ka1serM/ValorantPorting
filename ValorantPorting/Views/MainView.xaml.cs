@@ -10,9 +10,9 @@ using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Core.i18N;
 using CUE4Parse.UE4.Objects.Engine;
+using ValorantPorting.ViewModels;
 using ValorantPorting.AppUtils;
 using ValorantPorting.Services;
-using ValorantPorting.ViewModels;
 using ValorantPorting.Views.Controls;
 using ValorantPorting.Export;
 using ValorantPorting.Export.Blender;
@@ -127,6 +127,64 @@ public partial class MainView
             case > 0:
                 scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - 88);
                 break;
+        }
+    }
+    
+    private async void AssetFolderTree_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
+    {
+        var treeView = (TreeView) sender;
+        var treeItem = (TreeItem) treeView.SelectedItem;
+        if (treeItem is null) return;
+        if (treeItem.AssetType == ETreeItemType.Folder) return;
+
+        await AppVM.MainVM.SetupMeshSelection(treeItem.FullPath!);
+    }
+
+
+    // private async void AssetFlatView_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+    // {
+    //     var listBox = (ListBox) sender;
+    //     var selectedItem = (AssetItem) listBox.SelectedItem;
+    //     if (selectedItem is null) return;
+    //     
+    //     await AppVM.MainVM.SetupMeshSelection(listBox.SelectedItems.OfType<AssetItem>().ToArray());
+    // }
+
+    private void AssetFlatView_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        var listBox = (ListBox) sender;
+        var selectedItem = (AssetItem) listBox.SelectedItem;
+        if (selectedItem is null) return;
+        
+        JumpToAsset(selectedItem.PathWithoutExtension);
+    }
+    
+    private void JumpToAsset(string directory)
+    {
+        var children = AppVM.MainVM.Meshes;
+
+        var i = 0;
+        var folders = directory.Split('/');
+        while (true)
+        {
+            foreach (var folder in children)
+            {
+                if (!folder.Header.Equals(folders[i], StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (folder.AssetType == ETreeItemType.Asset)
+                {
+                    folder.IsSelected = true;
+                    return;
+                }
+
+                folder.IsExpanded = true;
+                children = folder.Children;
+                break;
+            }
+
+            i++;
+            if (children.Count == 0) break;
         }
     }
 }

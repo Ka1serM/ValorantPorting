@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using CUE4Parse.Encryption.Aes;
 using CUE4Parse.FileProvider;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.AssetRegistry;
+using CUE4Parse.UE4.AssetRegistry.Objects;
 using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Assets.Utils;
 using CUE4Parse.UE4.Objects.Core.Math;
@@ -25,7 +27,49 @@ public class CUE4ParseViewModel : ObservableObject
     public FAssetRegistryState? AssetRegistry;
     
     public RarityCollection[] RarityData = new RarityCollection[8];
+    
+    public HashSet<string> MeshEntries;
+    
+    public readonly List<FAssetData> AssetDataBuffers = new();
 
+    private static readonly string[] MeshRemoveList = {
+        "/Sounds",
+        "/Playsets",
+        "/UI",
+        "/2dAssets",
+        "/Textures",
+        "/Audio",
+        "/Sound",
+        "/Materials",
+        "/Icons",
+        "/Anims",
+        "/DataTables",
+        "/TextureData",
+        "/ActorBlueprints",
+        "/Physics",
+        "/_Verse",
+        
+        "/PPID_",
+        "/MI_",
+        "/MF_",
+        "/NS_",
+        "/T_",
+        "/P_",
+        "/TD_",
+        "/MPC_",
+        "/BP_",
+        
+        "Engine/",
+        
+        "_Physics",
+        "_AnimBP",
+        "_PhysMat",
+        "_PoseAsset",
+        
+        "PlaysetGrenade",
+        "NaniteDisplacement"
+    };
+    
     public CUE4ParseViewModel(string directory)
     {
         Provider = new DefaultFileProvider(directory, SearchOption.TopDirectoryOnly, isCaseInsensitive: true, new VersionContainer(EGame.GAME_Valorant));
@@ -43,9 +87,21 @@ public class CUE4ParseViewModel : ObservableObject
         if (assetArchive is not null)
         {
             AssetRegistry = new FAssetRegistryState(assetArchive);
+            AssetDataBuffers.AddRange(AssetRegistry.PreallocatedAssetDataBuffers);
         }
         
-        
+        var allEntries = AppVM.CUE4ParseVM.Provider.Files.ToArray();
+        var removeEntries = AppVM.CUE4ParseVM.AssetDataBuffers.Select(x => AppVM.CUE4ParseVM.Provider.FixPath(x.ObjectPath) + ".uasset").ToHashSet();
+        MeshEntries = new HashSet<string>();
+        for (var idx = 0; idx < allEntries.Length; idx++)
+        {
+            var entry = allEntries[idx];
+            if (!entry.Key.EndsWith(".uasset")) continue;
+            if (MeshRemoveList.Any(x => entry.Key.Contains(x, StringComparison.OrdinalIgnoreCase))) continue;
+            if (removeEntries.Contains(entry.Key)) continue;
+
+            MeshEntries.Add(entry.Value.Path);
+        }
     }
 
     private async Task InitializeKeys()

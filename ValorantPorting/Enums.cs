@@ -43,10 +43,14 @@ public enum EAssetType
     Weapon,
     [Description("Gunbuddies")]
     GunBuddy,
+    [Description("Gunbuddies")]
+    Ability,
     [Description("Maps")]
     Maps,
     [Description("Bundles")]
     Bundles,
+    [Description("Mesh")]
+    Mesh,
 
     /*[Description("Props")]
     Prop,
@@ -59,4 +63,10 @@ public enum EValBodyType : byte
 {
     FP = 0,
     TP = 1,
+}
+
+public enum ETreeItemType
+{
+    Folder,
+    Asset
 }

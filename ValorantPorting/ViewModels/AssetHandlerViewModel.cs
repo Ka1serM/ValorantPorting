@@ -162,6 +162,7 @@ public class AssetHandlerData
         UObject actualAsset;
         UObject uiAsset = null;
         var firstTag = data.ObjectPath;
+        if (firstTag.Contains("NPE")) {return;}
         actualAsset = await AppVM.CUE4ParseVM.Provider.TryLoadObjectAsync(firstTag);
         if (actualAsset == null) {return;}
         var uBlueprintGeneratedClass = actualAsset as UBlueprintGeneratedClass;

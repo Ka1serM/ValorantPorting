@@ -147,8 +147,8 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     parent_name = material_data.get("ParentName")
     if parent_name  == None:
         parent_name = material_name
-    if "Eye" in parent_name:
-        target_material.blend_method = 'BLEND'
+    #if "Eye" in parent_name:
+    #    target_material.blend_method = 'BLEND'
 
     output_node = nodes.new(type="ShaderNodeOutputMaterial")
     output_node.location = (200, 0)
@@ -159,7 +159,7 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     parent_node_exists = True
 
     if bpy.data.node_groups.get(parent_name) != None:
-        main_shader_node.node_tree = bpy.data.node_groups.get(main_shader_node.name)
+        main_shader_node.node_tree = bpy.data.node_groups.get(main_shader_node.name).copy()
         #assign this so group input stays consistent
         group_inputs = main_shader_node.inputs
     else:

@@ -16,15 +16,14 @@ using CUE4Parse.UE4.Objects.UObject;
 
 namespace ValorantPorting.Views.Controls;
 
-public partial class AssetSelectorItem
+public partial class AssetSelectorItem  : IExportableAsset
 {
-    public UObject UIAsset;
-    public UObject MainAsset;
     public SKBitmap IconBitmap;
     public SKBitmap FullBitmap;
-    public BitmapImage FullSource;
-    public UObject Asset;
-    
+    public UObject UIAsset { get; set; }
+    public UObject MainAsset { get; set; }
+    public BitmapImage FullSource { get; set; }
+    public UObject Asset { get; set; }
     public bool IsRandom { get; set; }
     public string DisplayName { get; set; }
     public EAssetType aType { get; set; }
