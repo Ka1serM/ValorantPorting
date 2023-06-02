@@ -1,9 +1,9 @@
-﻿# ValorantPorting [![Discord](https://discord.com/api/guilds/866821077769781249/widget.png?style=shield)](https://discord.gg/DZ5YFXdBA6)
+﻿# ValorantPorting [![Discord](https://discord.com/api/guilds/866821077769781249/widget.png?style=shield)](https://discord.com/invite/valorant3d)
 A free and open-source tool created to automate the Valorant porting process to Blender and Unreal Engine
 
 # Installation
 
-## Requirements
+### Requirements
 * [Blender](https://www.blender.org/download/)
 * [Visual C++ Distributables x64](https://docs.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170)
 * [.NET 6.0 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/6.0/runtime)
@@ -31,3 +31,8 @@ A free and open-source tool created to automate the Valorant porting process to 
 
 ### Unreal Engine
 * ***TBD***
+
+### Credits:
+* https://github.com/halfuwu
+* https://github.com/djhaled
+* https://github.com/KaiserM21
