@@ -95,6 +95,10 @@ public class ExportData
                     }
                     break;
                 }
+                case EAssetType.Mesh:
+                {
+                    break;
+                }
                 default:
                     throw new ArgumentOutOfRangeException();
             }
