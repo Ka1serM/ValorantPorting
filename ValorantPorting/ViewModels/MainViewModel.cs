@@ -46,10 +46,11 @@ public partial class MainViewModel : ObservableObject
     public Visibility StyleVisibility => currentAsset is null ? Visibility.Collapsed : Visibility.Visible;
 
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
-    [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> bundles = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> gunbuddies = new();
+    //[ObservableProperty] private ObservableCollection<AssetSelectorItem> abilities = new();
+    [ObservableProperty] private ObservableCollection<AssetSelectorItem> maps = new();
     [ObservableProperty] private ObservableCollection<StyleSelector> styles = new();
     [ObservableProperty] private SuppressibleObservableCollection<TreeItem> meshes = new();
     [ObservableProperty] private SuppressibleObservableCollection<AssetItem> assets = new();

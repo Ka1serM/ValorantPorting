@@ -43,10 +43,8 @@ public enum EAssetType
     Weapon,
     [Description("Gunbuddies")]
     GunBuddy,
-    [Description("Gunbuddies")]
-    Ability,
     [Description("Maps")]
-    Maps,
+    Map,
     [Description("Bundles")]
     Bundles,
     [Description("Mesh")]
@@ -57,12 +55,6 @@ public enum EAssetType
     
     [Description("Meshes")]
     Mesh,*/
-}
-
-public enum EValBodyType : byte
-{
-    FP = 0,
-    TP = 1,
 }
 
 public enum ETreeItemType
