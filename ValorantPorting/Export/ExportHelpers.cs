@@ -364,6 +364,11 @@ public static class ExportHelpers
             exportParts.First().Attatchments.Add(attachment);
         }
     }
+
+    public static void Map()
+    {
+        var mainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+    }
     
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
     {
@@ -583,19 +588,5 @@ public static class ExportHelpers
 
         var finalPath = Path.Combine(App.AssetsFolder.FullName, path) + $"{extra}.{ext.ToLower()}";
         return finalPath;
-    }
-
-    public static void Ability(UObject asset, List<ExportPart> exportParts)
-    {
-        var csExports = AppVM.CUE4ParseVM.Provider.LoadAllObjects(asset.GetPathName().Substring(0, asset.GetPathName().LastIndexOf(".")));
-        foreach (var propExp in csExports)
-        {
-            if (propExp.ExportType == "SkeletalMeshComponent")
-            {
-                {
-                    Console.WriteLine(propExp.Name);
-                }
-            }
-        }
     }
 }

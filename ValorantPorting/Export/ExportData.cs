@@ -95,8 +95,9 @@ public class ExportData
                     }
                     break;
                 }
-                case EAssetType.Mesh:
+                case EAssetType.Map:
                 {
+                    ExportHelpers.Map();
                     break;
                 }
                 default:

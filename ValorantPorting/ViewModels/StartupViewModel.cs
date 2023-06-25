@@ -38,7 +38,7 @@ public class StartupViewModel : ObservableObject
     
     public void CheckForInstallation()
     {
-        string resultJ = null;
+        string resultJ = "";
         foreach (var drive in DriveInfo.GetDrives())
         {
             var launcherInstalledPath = $"{drive.Name}ProgramData\\Riot Games\\Metadata\\valorant.live\\valorant.live.product_settings.yaml";
@@ -46,8 +46,6 @@ public class StartupViewModel : ObservableObject
             var ymlContents = File.ReadAllText(launcherInstalledPath);
             Regex cusRegex = new Regex("product_install_full_path: .*");
             resultJ = cusRegex.Match(ymlContents).Value.Replace("product_install_full_path: ", string.Empty).Replace("\"", "");
-            ArchivePath = resultJ + "/ShooterGame/Content/Paks";
-
         }
         ArchivePath = resultJ.Replace("\r","") + "/ShooterGame/Content/Paks";
         Log.Information("Detected VALORANT Installation at {0}", ArchivePath);
