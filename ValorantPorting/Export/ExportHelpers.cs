@@ -66,7 +66,7 @@ public static class ExportHelpers
             if (cdoLo.TryGetValue(out localUob, "SkinAttachment"))
             {
                 var ready = localUob.ClassDefaultObject.Load();
-                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic","NewMesh", "Weapon 1P");
+                ready.TryGetValue(out USkeletalMesh localMeshUsed, "Weapon 1P Cosmetic", "Weapon 1P", "NewMesh");
                 if (localMeshUsed != null)  highestMeshUsed = localMeshUsed;
                 ready.TryGetValue(out UMaterialInstanceConstant[] localMatUsed , "1p MaterialOverrides");
                 if (localMatUsed != null) highestWeapMaterialUsed = localMatUsed;
@@ -345,26 +345,23 @@ public static class ExportHelpers
         
         //vfx meshes
         var vfxTuple = GetVfxMeshes();
-        if (vfxTuple != null)
+        if (vfxTuple == null) return;
+        foreach (var mesh in vfxTuple.Item1)
         {
-            for (int i = 0; i < vfxTuple.Item1.Count; i++)
+            if (mesh == null) return;
+            UMaterialInstanceConstant[] material = new UMaterialInstanceConstant[1];
+            SMesh(mesh, exportParts);
+            foreach (var mat in vfxTuple.Item2)
             {
-                if (vfxTuple.Item1[i] != null)
-                {
-                    var mesh = vfxTuple.Item1[i];
-                    UMaterialInstanceConstant[] material = new UMaterialInstanceConstant[1];
-                    SMesh(mesh, exportParts);
-                    if (vfxTuple.Item2[i] != null)
-                    {
-                        material[0] = vfxTuple.Item2[i];
-                        OverrideMaterials(material, exportParts.Last().OverrideMaterials);
-                    }
-                    if (vfxTuple.Item3[i] != null)
-                    {
-                        exportParts.First().Attatchments.Add(vfxTuple.Item3[i]);
-                    }
-                }
+                if (mat == null) return;
+                material[0] = mat;
+                OverrideMaterials(material, exportParts.Last().OverrideMaterials);
             }
+        }
+        foreach (var attachment in vfxTuple.Item3)
+        {
+            if (attachment == null) return;
+            exportParts.First().Attatchments.Add(attachment);
         }
     }
     
