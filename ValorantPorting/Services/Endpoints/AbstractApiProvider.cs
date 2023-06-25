@@ -2,11 +2,11 @@
 
 namespace ValorantPorting.Services.Endpoints;
 
-public abstract class EndpointBase
+public abstract class AbstractApiProvider
 {
     protected RestClient _client;
 
-    protected EndpointBase(RestClient client)
+    protected AbstractApiProvider(RestClient client)
     {
         _client = client;
     }

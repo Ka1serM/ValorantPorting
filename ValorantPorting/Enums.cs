@@ -7,7 +7,7 @@ public enum EInstallType
     [Description("Local")]
     Local,
     
-    [Description("Valorant Live")]
+    [Description("Valorant [Live]")]
     Live
 }
 
