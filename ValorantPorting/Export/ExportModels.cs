@@ -24,6 +24,7 @@ public record ExportMaterial
     public List<ScalarParameter> Scalars = new();
     public List<VectorParameter> Vectors = new();
     public string ParentName;
+    public string BlendMode;
 }
 
 public record ExportAttatchment

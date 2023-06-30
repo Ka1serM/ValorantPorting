@@ -76,8 +76,8 @@ public partial class MainViewModel : ObservableObject
         {
             var loadTime = new Stopwatch();
             loadTime.Start();
-            var ArchiveP = "C:\\ValContentEvent\\ShooterGame\\Content\\Paks";
-            AppVM.CUE4ParseVM = new CUE4ParseViewModel(AppSettings.Current.ArchivePath, EInstallType.Local);
+
+            AppVM.CUE4ParseVM = new CUE4ParseViewModel(AppSettings.Current.ArchivePath, AppSettings.Current.InstallType);
             await AppVM.CUE4ParseVM.Initialize();
             loadTime.Stop();
 

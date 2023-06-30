@@ -487,8 +487,8 @@
                                         <Setter TargetName="ItemIcon" Property="Source" Value="/ValorantPorting;component/Resources/Unreal.png"></Setter>
                                     </DataTrigger>
 
-                                    <DataTrigger Binding="{Binding Header}" Value="ShooterGame">
-                                        <Setter TargetName="ItemIcon" Property="Source" Value="/ValorantPorting;component/Resources/Fortnite.png"></Setter>
+                                    <DataTrigger Binding="{Binding Header}" Value="Weapon">
+                                        <Setter TargetName="ItemIcon" Property="Source" Value="/ValorantPorting;component/Resources/Weapon.png"></Setter>
                                     </DataTrigger>
 
                                     <Trigger Property="IsExpanded" Value="False">

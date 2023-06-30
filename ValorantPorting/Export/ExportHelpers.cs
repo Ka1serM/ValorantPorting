@@ -368,6 +368,8 @@ public static class ExportHelpers
     public static void Map()
     {
         var mainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+        mainAsset.TryGetValue(out String mapURL, "MapURL");
+        Console.WriteLine(mapURL);
     }
     
     public static int Mesh(USkeletalMesh? skeletalMesh, List<ExportPart> exportParts)
@@ -478,50 +480,67 @@ public static class ExportHelpers
     public static (List<TextureParameter>, List<ScalarParameter>, List<VectorParameter>) MaterialParameters(UMaterialInstanceConstant materialInstance)
     {
         var textures = new List<TextureParameter>();
+        var scalars = new List<ScalarParameter>();
+        var vectors = new List<VectorParameter>();
+        
+        
+        ParentMaterialInstanceParameters(materialInstance, textures, scalars, vectors);
+        return (textures, scalars, vectors);
+    }
+
+    public static void ParentMaterialInstanceParameters(UMaterialInstanceConstant materialInstance, List<TextureParameter> textures, List<ScalarParameter> scalars, List<VectorParameter> vectors)
+    {
         foreach (var parameter in materialInstance.TextureParameterValues)
         {
             if (!parameter.ParameterValue.TryLoad(out UTexture2D texture)) continue;
+            if (textures.Any(x => x.Name.Equals(parameter.Name))) continue;
             textures.Add(new TextureParameter(parameter.ParameterInfo.Name.PlainText, texture.GetPathName()));
             Save(texture);
         }
         
-        var scalars = new List<ScalarParameter>();
         foreach (var parameter in materialInstance.ScalarParameterValues)
         {
+            if (scalars.Any(x => x.Name.Equals(parameter.Name))) continue;
             scalars.Add(new ScalarParameter(parameter.ParameterInfo.Name.PlainText, parameter.ParameterValue));
         }
-        
-        var vectors = new List<VectorParameter>();
         foreach (var parameter in materialInstance.VectorParameterValues)
         {
             if (parameter.ParameterValue is null) continue;
+            if (vectors.Any(x => x.Name.Equals(parameter.Name))) continue;
             vectors.Add(new VectorParameter(parameter.ParameterInfo.Name.PlainText, parameter.ParameterValue.Value));
         }
-
-        if (materialInstance.Parent is UMaterialInstanceConstant { Parent: UMaterialInstanceConstant } materialParent)
+        if (materialInstance.Parent is UMaterialInstanceConstant parent)
         {
-            var (parentTextures, parentScalars, parentVectors) = MaterialParameters(materialParent);
-            foreach (var parentTexture in parentTextures)
-            {
-                if (textures.Any(x => x.Name.Equals(parentTexture.Name))) continue;
-                textures.Add(parentTexture);
-            }
-            
-            foreach (var parentScalar in parentScalars)
-            {
-                if (scalars.Any(x => x.Name.Equals(parentScalar.Name))) continue;
-                scalars.Add(parentScalar);
-            }
-            
-            foreach (var parentVector in parentVectors)
-            {
-                if (vectors.Any(x => x.Name.Equals(parentVector.Name))) continue;
-                vectors.Add(parentVector);
-            }
+            ParentMaterialInstanceParameters(parent, textures, scalars, vectors);
         }
-        return (textures, scalars, vectors);
+
+        if (materialInstance.Parent is UMaterial baseMaterial)
+        {
+            baseMaterial.TryGetValue(out FStructFallback cachedData, "CachedExpressionData");
+            cachedData.TryGetValue(out FStructFallback parameterValues, "Parameters");
+            
+            cachedData.TryGetValue(out UObject[] referencedTextures, "ReferencedTextures");
+            
+            parameterValues.TryGetValue(out float[] scalarValues, "ScalarValues");
+            parameterValues.TryGetValue(out FLinearColor[] vectorValues, "VectorValues");
+            parameterValues.TryGetValue(out UObject[] textureValues, "TextureValues");
+
+            parameterValues.TryGetValue(out FStructFallback runtimeEntries, "RuntimeEntries");
+
+            foreach (var obj in referencedTextures)
+            {
+            }
+            
+            if (cachedData != null) Console.WriteLine("CachedExpressionData");
+            if (vectorValues != null) Console.WriteLine("vectors");
+            if (scalarValues != null) Console.WriteLine("scalars");
+            if (referencedTextures != null) Console.WriteLine("referencedTextures");
+            //vectorValues[0].TryGetValue(out FLinearColor value, "Value");
+            //Console.WriteLine(value);
+        }
     }
-    
+
+
     public static readonly List<Task> Tasks = new();
     private static readonly ExporterOptions ExportOptions = new()
     {

@@ -89,7 +89,8 @@ public class CUE4ParseViewModel : ObservableObject
     
     public async Task Initialize()
     {
-        Provider.Initialize();
+        if (Provider is null) return;
+        
         await InitializeProvider();
         await InitializeKeys();
         
@@ -121,6 +122,7 @@ public class CUE4ParseViewModel : ObservableObject
         var keyString = "0x4BE71AF2459CF83899EC9DC2CB60E22AC4B3047E0211034BBABE9D174C069DD6";
         await Provider.SubmitKeyAsync(Globals.ZERO_GUID, new FAesKey(keyString));
     }
+    
     
     private async Task InitializeProvider()
     {

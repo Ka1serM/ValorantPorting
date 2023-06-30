@@ -127,7 +127,6 @@ public class AssetHandlerData
         {
             foreach (var tagsAndValue in variable.TagsAndValues)
             {
-                //if (variable.AssetName.PlainText.Contains("Ascent_PrimaryAsset_C")) Console.WriteLine(tagsAndValue.Value);
                 if (ClassNames.Contains(tagsAndValue.Value) && tagsAndValue.Key.PlainText == "PrimaryAssetType") items.Add(variable);
             }
         }
