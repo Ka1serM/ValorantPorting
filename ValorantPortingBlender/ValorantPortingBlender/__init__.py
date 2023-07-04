@@ -331,13 +331,15 @@ def import_response(response):
     Log.information(f"Received Import for {import_type}: {name}")
 
     def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, loc, rot):
-        constraint = child.constraints.new('CHILD_OF')
-        constraint.target = parent
-        if bone != None: constraint.subtarget = bone
-        child.rotation_mode = 'XYZ'
-        constraint.inverse_matrix = Matrix()
-        if loc != None: child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
-        if rot != None: child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
+        if parent != None:
+            constraint = child.constraints.new('CHILD_OF')
+            constraint.target = parent
+            if bone != None: constraint.subtarget = bone
+            child.rotation_mode = 'XYZ'
+            constraint.inverse_matrix = Matrix()
+            if loc != None: child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
+            if rot != None: child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
+
     
     imported_parts = []
     def import_part(parts):
