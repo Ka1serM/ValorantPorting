@@ -33,6 +33,7 @@ A free and open-source tool created to automate the Valorant porting process to 
 * ***TBD***
 
 ### Credits:
+* Valorant [live] Code: https://github.com/4sval/FModel & https://github.com/FortniteCentral/MercuryCommons 
 * https://github.com/halfuwu
 * https://github.com/djhaled
 * https://github.com/KaiserM21
