@@ -205,7 +205,7 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         tex_image_node.hide = True
         tex_image_node.image.colorspace_settings.name = 'Linear'
         if name == 'Normal': tex_image_node.image.colorspace_settings.name = 'Non-Color'
-        if name == 'Albedo': tex_image_node.image.colorspace_settings.name = 'sRGB'
+        if name == 'Albedo' or name == 'LUTs' or name == 'Projected Texture': tex_image_node.image.colorspace_settings.name = 'sRGB'
         #tex_image_node.location = location
 
         if 'decal' in name.lower():
