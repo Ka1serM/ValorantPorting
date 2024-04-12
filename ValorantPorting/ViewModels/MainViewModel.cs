@@ -42,7 +42,7 @@ public partial class MainViewModel : ObservableObject
     [NotifyPropertyChangedFor(nameof(StyleVisibility))]
     private List<IExportableAsset> extendedAssets = new();
     
-    public ImageSource StyleImage => currentAsset.FullSource;
+    public ImageSource StyleImage => currentAsset?.FullSource;
     public Visibility StyleVisibility => currentAsset is null ? Visibility.Collapsed : Visibility.Visible;
 
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
