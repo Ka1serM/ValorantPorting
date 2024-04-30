@@ -1,6 +1,5 @@
-﻿using ValorantPorting.AppUtils;
+﻿namespace ValorantPorting.Export;
 
-namespace ValorantPorting.Export;
 public class ExportSettingsBase
 {
 }

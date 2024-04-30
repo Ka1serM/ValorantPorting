@@ -1,30 +1,29 @@
 ﻿using System.Collections.Generic;
 using CUE4Parse.UE4.Objects.Core.Math;
-using Newtonsoft.Json;
 
 namespace ValorantPorting.Export;
 
 public class ExportPart
 {
-    public string MeshPath;
-    public string MeshName;
-    public string? Part;
-    public List<ExportMaterial> Materials = new();
-    public List<ExportMaterial> OverrideMaterials = new();
-    public List<ExportMaterial> StyleMaterials = new();
     public List<ExportAttatchment> Attatchments = new();
+    public List<ExportMaterial> Materials = new();
+    public string MeshName;
+    public string MeshPath;
+    public List<ExportMaterial> OverrideMaterials = new();
+    public string? Part;
+    public List<ExportMaterial> StyleMaterials = new();
 }
 
 public record ExportMaterial
 {
-    public string MaterialName;
-    public int SlotIndex;
-    public string? MaterialNameToSwap;
-    public List<TextureParameter> Textures = new();
-    public List<ScalarParameter> Scalars = new();
-    public List<VectorParameter> Vectors = new();
-    public string ParentName;
     public string BlendMode;
+    public string MaterialName;
+    public string? MaterialNameToSwap;
+    public string ParentName;
+    public List<ScalarParameter> Scalars = new();
+    public int SlotIndex;
+    public List<TextureParameter> Textures = new();
+    public List<VectorParameter> Vectors = new();
 }
 
 public record ExportAttatchment
@@ -34,6 +33,7 @@ public record ExportAttatchment
     public FVector Offset;
     public FRotator Rotation;
 }
+
 public record TextureParameter(string Name, string Value);
 
 public record ScalarParameter(string Name, float Value);

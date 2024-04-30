@@ -2,25 +2,24 @@
 using System.IO;
 using System.Threading.Tasks;
 using RestSharp;
-using RestSharp.Serializers.NewtonsoftJson;
 using ValorantPorting.Services.Endpoints;
 
 namespace ValorantPorting.ViewModels;
 
 public class ApiEndpointViewModel
 {
-    private readonly RestClient _client = new (new RestClientOptions
+    private readonly RestClient _client = new(new RestClientOptions
     {
         UserAgent = $"FModel/{Globals.APP_VERSION}",
         MaxTimeout = 3 * 1000
     });
-    
-    public ValorantApiEndpoint ValorantApi { get; }
-    
+
     public ApiEndpointViewModel()
     {
         ValorantApi = new ValorantApiEndpoint(_client);
     }
+
+    public ValorantApiEndpoint ValorantApi { get; }
 
     public async Task DownloadFileAsync(string fileLink, string installationPath)
     {

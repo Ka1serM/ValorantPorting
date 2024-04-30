@@ -1,32 +1,33 @@
 ﻿<adonisCtrls:AdonisWindow x:Class="ValorantPorting.Views.SettingsView"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        
-        xmlns:local="clr-namespace:ValorantPorting"
-        xmlns:extensions="clr-namespace:ValorantPorting.Views.Extensions"
-        xmlns:cue4Parse="clr-namespace:CUE4Parse;assembly=CUE4Parse"
-        xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-        xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
-        xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
-        
-        Title="Options" Width="480" Height="240" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
+                          xmlns:local="clr-namespace:ValorantPorting"
+                          xmlns:extensions="clr-namespace:ValorantPorting.Views.Extensions"
+                          xmlns:cue4Parse="clr-namespace:CUE4Parse;assembly=CUE4Parse"
+                          xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+                          xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
+                          xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
+
+                          Title="Options" Width="480" Height="240" WindowStartupLocation="CenterScreen"
+                          ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="{adonisUi:Space 1}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
             </Grid.RowDefinitions>
-            
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="{adonisUi:Space 1}" />
@@ -34,28 +35,38 @@
                 <ColumnDefinition Width="{adonisUi:Space 1}" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Installation Type*" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" ItemsSource="{extensions:EnumToItemsSource {x:Type local:EInstallType}}" SelectedItem="{Binding InstallType, Converter={StaticResource EnumToString}}"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Game Installation*" VerticalAlignment="Center"/>
-            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding ArchivePath}" adonisExt:WatermarkExtension.Watermark="Paks Folder" IsEnabled="{Binding IsLocalInstall}"/>
-            <Button Grid.Row="2" Grid.Column="4" Content="..." Click="OnClickInstallation" IsEnabled="{Binding IsLocalInstall}"/>
-            
-            <TextBlock Grid.Row="4" Grid.Column="0" Text="Game Language" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" ItemsSource="{extensions:EnumToItemsSource {x:Type cue4Parse:UE4.Versions.ELanguage}}" SelectedItem="{Binding Language, Converter={StaticResource EnumToString}}"/>
-            
-            <TextBlock Grid.Row="6" Grid.Column="0" Text="Discord RPC" VerticalAlignment="Center"/>
-            <ComboBox Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3" ItemsSource="{extensions:EnumToItemsSource {x:Type local:ERichPresenceAccess}}" SelectedItem="{Binding DiscordRPC, Converter={StaticResource EnumToString}}"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Installation Type*" VerticalAlignment="Center" />
+            <ComboBox Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3"
+                      ItemsSource="{extensions:EnumToItemsSource {x:Type local:EInstallType}}"
+                      SelectedItem="{Binding InstallType, Converter={StaticResource EnumToString}}" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Game Installation*" VerticalAlignment="Center" />
+            <TextBox Grid.Row="2" Grid.Column="2" Text="{Binding ArchivePath}"
+                     adonisExt:WatermarkExtension.Watermark="Paks Folder" IsEnabled="{Binding IsLocalInstall}" />
+            <Button Grid.Row="2" Grid.Column="4" Content="..." Click="OnClickInstallation"
+                    IsEnabled="{Binding IsLocalInstall}" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Game Language" VerticalAlignment="Center" />
+            <ComboBox Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3"
+                      ItemsSource="{extensions:EnumToItemsSource {x:Type cue4Parse:UE4.Versions.ELanguage}}"
+                      SelectedItem="{Binding Language, Converter={StaticResource EnumToString}}" />
+
+            <TextBlock Grid.Row="6" Grid.Column="0" Text="Discord RPC" VerticalAlignment="Center" />
+            <ComboBox Grid.Row="6" Grid.Column="2" Grid.ColumnSpan="3"
+                      ItemsSource="{extensions:EnumToItemsSource {x:Type local:ERichPresenceAccess}}"
+                      SelectedItem="{Binding DiscordRPC, Converter={StaticResource EnumToString}}" />
 
 
-            
         </Grid>
-        <Border Grid.Row="1" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}" adonisExt:LayerExtension.IncreaseLayer="True">
-           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-               <TextBlock Text="* requires a restart for changes to take effect"  HorizontalAlignment="Right" VerticalAlignment="Center"></TextBlock>
-               <Button MinWidth="80" Margin="{adonisUi:Space 1}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Content="OK" Click="OnClickOK"/>
-           </StackPanel>
+        <Border Grid.Row="1" Background="{DynamicResource {x:Static adonisUi:Brushes.Layer1BackgroundBrush}}"
+                adonisExt:LayerExtension.IncreaseLayer="True">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                <TextBlock Text="* requires a restart for changes to take effect" HorizontalAlignment="Right"
+                           VerticalAlignment="Center" />
+                <Button MinWidth="80" Margin="{adonisUi:Space 1}" HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom" Content="OK" Click="OnClickOK" />
+            </StackPanel>
         </Border>
     </Grid>
 </adonisCtrls:AdonisWindow>

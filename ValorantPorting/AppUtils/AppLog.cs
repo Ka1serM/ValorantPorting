@@ -3,7 +3,6 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Serilog;
 
 namespace ValorantPorting.AppUtils;
 
@@ -12,7 +11,8 @@ public static class AppLog
     public static RichTextBox Logger;
     private static readonly BrushConverter BrushConverter = new();
 
-    private static void Write(object text, string color = Globals.WHITE, FontWeight weights = default, bool newLine = true)
+    private static void Write(object text, string color = Globals.WHITE, FontWeight weights = default,
+        bool newLine = true)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
@@ -29,7 +29,7 @@ public static class AppLog
             Logger.ScrollToEnd();
         }, DispatcherPriority.Background);
     }
-    
+
     public static void Information(string text)
     {
         Log.Information(text);
@@ -43,7 +43,7 @@ public static class AppLog
         Write("[WRN] ", Globals.YELLOW, FontWeights.Bold, false);
         Write(text);
     }
-    
+
     public static void Error(string text)
     {
         Log.Error(text);

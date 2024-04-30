@@ -1,7 +1,4 @@
-﻿using System.Windows;
-using ValorantPorting.AppUtils;
-using ValorantPorting.Services;
-using ValorantPorting.ViewModels;
+﻿using ValorantPorting.ViewModels;
 
 namespace ValorantPorting.Views;
 
@@ -13,5 +10,4 @@ public partial class BlenderView
         AppVM.BlenderVM = new BlenderViewModel();
         DataContext = AppVM.BlenderVM;
     }
-
 }

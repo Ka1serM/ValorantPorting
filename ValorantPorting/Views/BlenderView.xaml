@@ -1,32 +1,29 @@
 ﻿<adonisCtrls:AdonisWindow x:Class="ValorantPorting.Views.BlenderView"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        
-        xmlns:local="clr-namespace:ValorantPorting"
-        xmlns:extensions="clr-namespace:ValorantPorting.Views.Extensions"
-        xmlns:cue4Parse="clr-namespace:CUE4Parse;assembly=CUE4Parse"
-        xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
-        xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
-        xmlns:adonisExt="clr-namespace:AdonisUI.Extensions;assembly=AdonisUI"
-        
-        Title="Blender Settings" Width="480" Height="240" WindowStartupLocation="CenterScreen" ResizeMode="NoResize">
+                          xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                          xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+
+                          xmlns:adonisUi="clr-namespace:AdonisUI;assembly=AdonisUI"
+                          xmlns:adonisCtrls="clr-namespace:AdonisUI.Controls;assembly=AdonisUI"
+
+                          Title="Blender Settings" Width="480" Height="240" WindowStartupLocation="CenterScreen"
+                          ResizeMode="NoResize">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="10*"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="10*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid Grid.Row="0" Margin="{adonisUi:Space 1}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="{adonisUi:Space 1}"/>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="{adonisUi:Space 1}" />
             </Grid.RowDefinitions>
-            
+
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="{adonisUi:Space 1}" />
@@ -34,9 +31,10 @@
                 <ColumnDefinition Width="{adonisUi:Space 1}" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            
+
             <TextBlock Grid.Row="2" Grid.Column="0" Text="Reorient Bones" VerticalAlignment="Center" />
-            <ToggleButton Grid.Row="2" Grid.Column="2" Style="{DynamicResource {x:Static adonisUi:Styles.ToggleSwitch }}" />
+            <ToggleButton Grid.Row="2" Grid.Column="2"
+                          Style="{DynamicResource {x:Static adonisUi:Styles.ToggleSwitch }}" />
         </Grid>
     </Grid>
 </adonisCtrls:AdonisWindow>

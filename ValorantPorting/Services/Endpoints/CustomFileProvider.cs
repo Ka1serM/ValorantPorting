@@ -16,28 +16,37 @@ using Ionic.Zip;
 namespace ValorantPorting.Services.Endpoints;
 
 /// <summary>
-/// This class is used as a base type for all other custom file provider implementations
-/// It includes constructors and methods from both <see cref="CUE4Parse.FileProvider.StreamedFileProvider"/> and <see cref="CUE4Parse.FileProvider.DefaultFileProvider"/>
+///     This class is used as a base type for all other custom file provider implementations
+///     It includes constructors and methods from both <see cref="CUE4Parse.FileProvider.StreamedFileProvider" /> and
+///     <see cref="CUE4Parse.FileProvider.DefaultFileProvider" />
 /// </summary>
 public abstract class CustomFileProvider : AbstractVfsFileProvider
 {
-    private DirectoryInfo _workingDirectory;
-    private readonly SearchOption _searchOption;
     private readonly List<DirectoryInfo> _extraDirectories = new();
+    private readonly SearchOption _searchOption;
+    private DirectoryInfo _workingDirectory;
 
-    public CustomFileProvider(bool isCaseInsensitive = false, VersionContainer versions = null) : base(isCaseInsensitive, versions) { }
+    public CustomFileProvider(bool isCaseInsensitive = false, VersionContainer versions = null) : base(
+        isCaseInsensitive, versions)
+    {
+    }
 
-    public CustomFileProvider(string directory, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer versions = null)
-        : this(new DirectoryInfo(directory), searchOption, isCaseInsensitive, versions) { }
+    public CustomFileProvider(string directory, SearchOption searchOption, bool isCaseInsensitive = false,
+        VersionContainer versions = null)
+        : this(new DirectoryInfo(directory), searchOption, isCaseInsensitive, versions)
+    {
+    }
 
-    public CustomFileProvider(DirectoryInfo directory, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer versions = null)
+    public CustomFileProvider(DirectoryInfo directory, SearchOption searchOption, bool isCaseInsensitive = false,
+        VersionContainer versions = null)
         : base(isCaseInsensitive, versions)
     {
         _workingDirectory = directory;
         _searchOption = searchOption;
     }
 
-    public CustomFileProvider(DirectoryInfo mainDirectory, List<DirectoryInfo> extraDirectories, SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer versions = null)
+    public CustomFileProvider(DirectoryInfo mainDirectory, List<DirectoryInfo> extraDirectories,
+        SearchOption searchOption, bool isCaseInsensitive = false, VersionContainer versions = null)
         : base(isCaseInsensitive, versions)
     {
         _workingDirectory = mainDirectory;
@@ -46,18 +55,16 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
     }
 
     /// <summary>
-    /// Initialize all local files in the directory
+    ///     Initialize all local files in the directory
     /// </summary>
     /// <exception cref="ArgumentException">Caused by having a not valid working directory</exception>
     public void InitializeLocal()
     {
-        if (!_workingDirectory.Exists) throw new ArgumentException("Given directory must exist", nameof(_workingDirectory));
+        if (!_workingDirectory.Exists)
+            throw new ArgumentException("Given directory must exist", nameof(_workingDirectory));
 
         IterateFiles(_workingDirectory, _searchOption);
-        foreach (var dir in _extraDirectories)
-        {
-            IterateFiles(dir, _searchOption);
-        }
+        foreach (var dir in _extraDirectories) IterateFiles(dir, _searchOption);
     }
 
     public void InitializeRawFiles(DirectoryInfo info)
@@ -66,12 +73,13 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
     }
 
     /// <summary>
-    /// Used to initialize individual local files, and all streamed files.
+    ///     Used to initialize individual local files, and all streamed files.
     /// </summary>
     /// <param name="file">Name of file</param>
     /// <param name="stream">Stream containing either a single pak file, or utoc/ucas combination</param>
     /// <param name="openContainerStreamFunc">Used to initialize another file with a utoc</param>
-    public void Initialize(string file = "", Stream[] stream = null, Func<string, FArchive> openContainerStreamFunc = null)
+    public void Initialize(string file = "", Stream[] stream = null,
+        Func<string, FArchive> openContainerStreamFunc = null)
     {
         var ext = file.SubstringAfterLast('.');
         if (string.IsNullOrEmpty(ext) || stream == null) return;
@@ -80,11 +88,10 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
         {
             try
             {
-                var reader = new PakFileReader(file, stream[0], Versions) { IsConcurrent = true, CustomEncryption = CustomEncryption };
+                var reader = new PakFileReader(file, stream[0], Versions)
+                    { IsConcurrent = true, CustomEncryption = CustomEncryption };
                 if (reader.IsEncrypted && !_requiredKeys.ContainsKey(reader.Info.EncryptionKeyGuid))
-                {
                     _requiredKeys[reader.Info.EncryptionKeyGuid] = null;
-                }
                 _unloadedVfs[reader] = null;
             }
             catch (Exception e)
@@ -98,11 +105,12 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
 
             try
             {
-                var reader = new IoStoreReader(file, stream[0], openContainerStreamFunc, EIoStoreTocReadOptions.ReadDirectoryIndex, Versions) { IsConcurrent = true, CustomEncryption = CustomEncryption };
+                var reader =
+                    new IoStoreReader(file, stream[0], openContainerStreamFunc,
+                            EIoStoreTocReadOptions.ReadDirectoryIndex, Versions)
+                        { IsConcurrent = true, CustomEncryption = CustomEncryption };
                 if (reader.IsEncrypted && !_requiredKeys.ContainsKey(reader.Info.EncryptionKeyGuid))
-                {
                     _requiredKeys[reader.Info.EncryptionKeyGuid] = null;
-                }
                 _unloadedVfs[reader] = null;
             }
             catch (Exception e)
@@ -113,7 +121,7 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
     }
 
     /// <summary>
-    /// Registers a local file into the provider
+    ///     Registers a local file into the provider
     /// </summary>
     /// <param name="file">Info for a file</param>
     public void RegisterFile(FileInfo file)
@@ -125,7 +133,8 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
         }
         else if (ext.Equals("utoc", StringComparison.OrdinalIgnoreCase))
         {
-            Initialize(file.FullName, new Stream[] { file.OpenRead() }, it => new FStreamArchive(it, File.OpenRead(it), Versions));
+            Initialize(file.FullName, new Stream[] { file.OpenRead() },
+                it => new FStreamArchive(it, File.OpenRead(it), Versions));
         }
         else if (ext.Equals("apk", StringComparison.OrdinalIgnoreCase))
         {
@@ -144,7 +153,6 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
                 {
                     var streams = new Stream[2];
                     if (fileentry.FileName.EndsWith(".pak"))
-                    {
                         try
                         {
                             streams[0] = new MemoryStream();
@@ -155,9 +163,7 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
                         {
                             Log.Warning("{Exception}", e.ToString());
                         }
-                    }
                     else if (fileentry.FileName.EndsWith(".utoc"))
-                    {
                         try
                         {
                             streams[0] = new MemoryStream();
@@ -165,7 +171,6 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
                             streams[0].Seek(0, SeekOrigin.Begin);
 
                             foreach (var ucas in container.Entries) // look for ucas file
-                            {
                                 if (ucas.FileName.Equals(fileentry.FileName.SubstringBeforeLast('.') + ".ucas"))
                                 {
                                     streams[1] = new MemoryStream();
@@ -173,18 +178,15 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
                                     streams[1].Seek(0, SeekOrigin.Begin);
                                     break;
                                 }
-                            }
-                            if (streams[1] is not { }) continue; // ucas file not found
+
+                            if (streams[1] is null) continue; // ucas file not found
                         }
                         catch (Exception e)
                         {
                             Log.Warning("{Exception}", e.ToString());
                         }
-                    }
                     else
-                    {
                         continue;
-                    }
 
                     Initialize(fileentry.FileName, streams);
                 }
@@ -193,7 +195,7 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
     }
 
     /// <summary>
-    /// Iterate through all files in a directory to load into the provider
+    ///     Iterate through all files in a directory to load into the provider
     /// </summary>
     /// <param name="directory">Directory to files</param>
     /// <param name="option">File search options</param>
@@ -208,7 +210,9 @@ public abstract class CustomFileProvider : AbstractVfsFileProvider
             if (!file.Exists || string.IsNullOrEmpty(ext)) continue;
 
             if (!GameFile.Ue4KnownExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase))
+            {
                 RegisterFile(file);
+            }
             else
             {
                 var osFile = new OsGameFile(directory, file, string.Empty, Versions);

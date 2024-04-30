@@ -17,26 +17,18 @@ public partial class SettingsView
     private void OnClickOK(object sender, RoutedEventArgs e)
     {
         if (AppVM.SettingsVM.IsRestartRequired)
-        {
-            AppVM.RestartWithMessage("A restart is required.", "An option has been changed that requires a restart to take effect.");
-        }
+            AppVM.RestartWithMessage("A restart is required.",
+                "An option has been changed that requires a restart to take effect.");
 
         if (AppVM.SettingsVM.DiscordRPC == ERichPresenceAccess.Always)
-        {
             DiscordService.Initialize();
-        }
         else
-        {
             DiscordService.DeInitialize();
-        }
         Close();
     }
 
     private void OnClickInstallation(object sender, RoutedEventArgs e)
     {
-        if (AppHelper.TrySelectFolder(out var path))
-        {
-            AppVM.SettingsVM.ArchivePath = path;
-        }
+        if (AppHelper.TrySelectFolder(out var path)) AppVM.SettingsVM.ArchivePath = path;
     }
 }

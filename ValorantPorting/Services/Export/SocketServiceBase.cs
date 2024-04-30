@@ -5,21 +5,20 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
-using ValorantPorting.Views.Extensions;
-using ValorantPorting;
 using ValorantPorting.Export;
 
 namespace ValorantPorting.Services.Export;
 
 public abstract class SocketServiceBase
 {
-    protected virtual IPEndPoint Endpoint { get; set; }
     protected UdpClient Client = new();
 
     public SocketServiceBase()
     {
         Client.Connect(Endpoint);
     }
+
+    protected virtual IPEndPoint Endpoint { get; set; }
 
     public virtual void Send(List<ExportDataBase> data, ExportSettingsBase settings)
     {

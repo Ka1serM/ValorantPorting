@@ -1,45 +1,31 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Navigation;
 using System.Windows.Threading;
 using CUE4Parse.UE4.AssetRegistry.Objects;
 using CUE4Parse.UE4.Assets.Exports;
-using CUE4Parse.UE4.Assets.Exports.SkeletalMesh;
 using CUE4Parse.UE4.Assets.Exports.Texture;
-using CUE4Parse.UE4.Assets.Objects;
 using CUE4Parse.UE4.Objects.Engine;
-using CUE4Parse.UE4.Objects.UObject;
 using ValorantPorting.AppUtils;
 using ValorantPorting.Views.Controls;
-using ValorantPorting.Views.Extensions;
-using Serilog;
-using ZstdSharp.Unsafe;
 
 namespace ValorantPorting.ViewModels;
 
 public class AssetHandlerViewModel
 {
-    public readonly Dictionary<EAssetType, AssetHandlerData> Handlers ;
-
-
-    public AssetHandlerViewModel()
+    private readonly AssetHandlerData _buddyHandler = new()
     {
-        Handlers = new Dictionary<EAssetType, AssetHandlerData>
+        AssetType = EAssetType.GunBuddy,
+        TargetCollection = AppVM.MainVM.Gunbuddies,
+        ClassNames = new List<string> { "EquippableCharmDataAsset" },
+        IconGetter = UI_Asset =>
         {
-            { EAssetType.Character, _characterHandler },
-            { EAssetType.Weapon, _weaponHandler },
-            { EAssetType.GunBuddy, _buddyHandler },
-            { EAssetType.Map, _mapHandler }
-        };
-
-    }
+            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
+            return previewImage;
+        }
+    };
 
     private readonly AssetHandlerData _characterHandler = new()
     {
@@ -65,99 +51,70 @@ public class AssetHandlerViewModel
         }
     };
 
+    public readonly Dictionary<EAssetType, AssetHandlerData> Handlers;
 
-    private readonly AssetHandlerData _buddyHandler = new()
+
+    public AssetHandlerViewModel()
     {
-        AssetType = EAssetType.GunBuddy,
-        TargetCollection = AppVM.MainVM.Gunbuddies,
-        ClassNames = new List<string> { "EquippableCharmDataAsset" },
-        IconGetter = UI_Asset =>
+        Handlers = new Dictionary<EAssetType, AssetHandlerData>
         {
-            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
-            return previewImage;
-        }
-    };
-    private readonly AssetHandlerData _mapHandler = new()
-    {
-        AssetType = EAssetType.Map,
-        TargetCollection = AppVM.MainVM.Maps,
-        ClassNames = new List<string> { "MapDataAsset" },
-        IconGetter = UI_Asset =>
-        {
-            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
-            return previewImage;
-        }
-    };
-    
-    private readonly AssetHandlerData _abilityHandler = new()
-    {
-        //AssetType = EAssetType.Map,
-        TargetCollection = AppVM.MainVM.Maps,
-        ClassNames = new List<string> { "EquippableDataAsset" },
-        IconGetter = UI_Asset =>
-        {
-            UI_Asset.TryGetValue(out UTexture2D? previewImage, "LevelSplashScreen");
-            return previewImage;
-        }
-    };
-    
+            { EAssetType.Character, _characterHandler },
+            { EAssetType.Weapon, _weaponHandler },
+            { EAssetType.GunBuddy, _buddyHandler },
+        };
+    }
+
     public async Task Initialize()
     {
         await _characterHandler.Execute(); // default tab
     }
 }
 
-
 public class AssetHandlerData
 {
-    public bool HasStarted { get; private set; }
-    public Pauser PauseState { get; } = new();
-    
     public EAssetType AssetType;
-    public ObservableCollection<AssetSelectorItem> TargetCollection;
     public List<string> ClassNames;
     public Func<UObject, UTexture2D?> IconGetter;
+    public ObservableCollection<AssetSelectorItem> TargetCollection;
+    public bool HasStarted { get; private set; }
+    public Pauser PauseState { get; } = new();
 
     public async Task Execute()
     {
         if (HasStarted) return;
         HasStarted = true;
         var items = new List<FAssetData>();
-        foreach (var variable in AppVM.CUE4ParseVM.AssetRegistry.PreallocatedAssetDataBuffers) //search for Classes in AssetRegistry
-        {
-            foreach (var tagsAndValue in variable.TagsAndValues)
-            {
-                if (ClassNames.Contains(tagsAndValue.Value) && tagsAndValue.Key.PlainText == "PrimaryAssetType") items.Add(variable);
-            }
-        }
+        foreach (var variable in
+                 AppVM.CUE4ParseVM.AssetRegistry.PreallocatedAssetDataBuffers) //search for Classes in AssetRegistry
+        foreach (var tagsAndValue in variable.TagsAndValues)
+            if (ClassNames.Contains(tagsAndValue.Value) && tagsAndValue.Key.PlainText == "PrimaryAssetType")
+                items.Add(variable);
         await Parallel.ForEachAsync(items, async (data, token) => //load if found
         {
             await DoLoad(data);
         });
     }
-    
+
     private async Task DoLoad(FAssetData data, bool random = false)
     {
         await PauseState.WaitIfPaused();
-        UObject actualAsset = new UObject();
-        UObject uiAsset =  new UObject();
+        var actualAsset = new UObject();
+        var uiAsset = new UObject();
         var firstTag = data.ObjectPath;
-        
+
         if (firstTag.Contains("NPE") || firstTag.Contains("Random")) return;
 
         actualAsset = await AppVM.CUE4ParseVM.Provider.TryLoadObjectAsync(firstTag);
         if (actualAsset == null) return;
-        
+
         var uBlueprintGeneratedClass = actualAsset as UBlueprintGeneratedClass;
         actualAsset = uBlueprintGeneratedClass.ClassDefaultObject.Load();
         var mainA = actualAsset;
-        
+
         if (actualAsset.TryGetValue(out UBlueprintGeneratedClass uiObject, "UIData"))
-        {
             uiAsset = uiObject.ClassDefaultObject.Load();
-        }
         // switch on asset type
-        string loadable = "None";
+        var loadable = "None";
         switch (AssetType)
         {
             case EAssetType.Character:
@@ -174,13 +131,13 @@ public class AssetHandlerData
                 loadable = "CharmAttachment";
                 break;
         }
-    
+
         if (actualAsset.TryGetValue(out UBlueprintGeneratedClass blueprintObject, loadable))
-        {
             actualAsset = blueprintObject.ClassDefaultObject.Load();
-        }
         var previewImage = IconGetter(uiAsset);
         if (previewImage is null) return;
-        await Application.Current.Dispatcher.InvokeAsync(() => TargetCollection.Add(new AssetSelectorItem(actualAsset, uiAsset,mainA ,previewImage, random)), DispatcherPriority.Background);
+        await Application.Current.Dispatcher.InvokeAsync(
+            () => TargetCollection.Add(new AssetSelectorItem(actualAsset, uiAsset, mainA, previewImage, random)),
+            DispatcherPriority.Background);
     }
 }

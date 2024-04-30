@@ -26,10 +26,7 @@ public class SuppressibleObservableCollection<T> : ObservableCollection<T>
 
         SetSuppression(true);
 
-        foreach (var item in list)
-        {
-            Add(item);
-        }
+        foreach (var item in list) Add(item);
 
         SetSuppression(false);
         InvokeOnCollectionChanged();
@@ -41,25 +38,20 @@ public class SuppressibleObservableCollection<T> : ObservableCollection<T>
 
         SetSuppression(true);
 
-        foreach (var item in list)
-        {
-            Add(item);
-        }
+        foreach (var item in list) Add(item);
 
         SetSuppression(false);
         InvokeOnCollectionChanged();
     }
 
-    public void InvokeOnCollectionChanged(NotifyCollectionChangedAction changedAction = NotifyCollectionChangedAction.Reset)
+    public void InvokeOnCollectionChanged(
+        NotifyCollectionChangedAction changedAction = NotifyCollectionChangedAction.Reset)
     {
         OnCollectionChanged(new NotifyCollectionChangedEventArgs(changedAction));
     }
 
     protected override void OnCollectionChanged(NotifyCollectionChangedEventArgs e)
     {
-        if (!Suppress)
-        {
-            base.OnCollectionChanged(e);
-        }
+        if (!Suppress) base.OnCollectionChanged(e);
     }
 }

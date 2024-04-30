@@ -3,6 +3,6 @@
 public class UnrealExport : ExportBase
 {
     public string AssetsRoot;
-    public UnrealExportSettings Settings;
     public ExportData Data;
+    public UnrealExportSettings Settings;
 }

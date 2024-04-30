@@ -18,9 +18,6 @@ public class Pauser
 
     public async Task WaitIfPaused()
     {
-        while (IsPaused)
-        {
-            await Task.Delay(1);
-        }
+        while (IsPaused) await Task.Delay(1);
     }
 }

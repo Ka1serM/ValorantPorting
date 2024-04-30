@@ -13,36 +13,33 @@ namespace ValorantPorting;
 
 public partial class App
 {
-    [DllImport("kernel32")]
-    private static extern bool AllocConsole();
-    
-    [DllImport("kernel32")]
-    private static extern bool FreeConsole();
-
     public static readonly DirectoryInfo AssetsFolder = new(Path.Combine(Directory.GetCurrentDirectory(), "Assets"));
     public static readonly DirectoryInfo ExportsFolder = new(Path.Combine(Directory.GetCurrentDirectory(), "Exports"));
     public static readonly DirectoryInfo DataFolder = new(Path.Combine(Directory.GetCurrentDirectory(), ".data"));
 
-    public static readonly Random RandomGenerator = new(); 
-    
+    public static readonly Random RandomGenerator = new();
+
+    [DllImport("kernel32")]
+    private static extern bool AllocConsole();
+
+    [DllImport("kernel32")]
+    private static extern bool FreeConsole();
+
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
         AllocConsole();
 
-       Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
-        
+        Log.Logger = new LoggerConfiguration().WriteTo.Console().CreateLogger();
+
         AssetsFolder.Create();
         ExportsFolder.Create();
         DataFolder.Create();
-        
+
         AppSettings.DirectoryPath.Create();
         AppSettings.Load();
 
-        if (AppSettings.Current.DiscordRPC == ERichPresenceAccess.Always)
-        {
-            DiscordService.Initialize();
-        }
+        if (AppSettings.Current.DiscordRPC == ERichPresenceAccess.Always) DiscordService.Initialize();
     }
 
     protected override void OnExit(ExitEventArgs e)
@@ -55,13 +52,13 @@ public partial class App
     private void OnUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
         Log.Error("{0}", e.Exception);
-        
+
         var messageBox = new MessageBoxModel
         {
             Caption = "An unhandled exception has occurred",
             Icon = MessageBoxImage.Error,
             Text = e.Exception.Message,
-            Buttons = new[] {MessageBoxButtons.Ok()}
+            Buttons = new[] { MessageBoxButtons.Ok() }
         };
         MessageBox.Show(messageBox);
 

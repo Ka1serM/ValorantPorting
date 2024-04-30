@@ -11,38 +11,38 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="AdonisUI" Version="1.17.1" />
-      <PackageReference Include="AdonisUI.ClassicTheme" Version="1.17.1" />
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0" />
-      <PackageReference Include="DiscordRichPresence" Version="1.0.175" />
-      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-      <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-      <PackageReference Include="RestSharp" Version="108.0.3-alpha.0.5" />
-      <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="108.0.3-alpha.0.5" />
-      <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0" />
+        <PackageReference Include="AdonisUI" Version="1.17.1"/>
+        <PackageReference Include="AdonisUI.ClassicTheme" Version="1.17.1"/>
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.0.0"/>
+        <PackageReference Include="DiscordRichPresence" Version="1.0.175"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
+        <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1"/>
+        <PackageReference Include="RestSharp" Version="108.0.3-alpha.0.5"/>
+        <PackageReference Include="RestSharp.Serializers.NewtonsoftJson" Version="108.0.3-alpha.0.5"/>
+        <PackageReference Include="YamlDotNet.NetCore" Version="1.0.0"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\CUE4Parse\CUE4Parse-Conversion\CUE4Parse-Conversion.csproj" />
-      <ProjectReference Include="..\CUE4Parse\CUE4Parse\CUE4Parse.csproj" />
+        <ProjectReference Include="..\CUE4Parse\CUE4Parse-Conversion\CUE4Parse-Conversion.csproj"/>
+        <ProjectReference Include="..\CUE4Parse\CUE4Parse\CUE4Parse.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Resource Include="Resources\Backpack.png" />
-      <Resource Include="Resources\Dance.png" />
-      <Resource Include="Resources\Glider.png" />
-      <Resource Include="Resources\Mesh.png" />
-      <Resource Include="Resources\Outfit.png" />
-      <Resource Include="Resources\Pickaxe.png" />
-      <Resource Include="Resources\Props.png" />
-      <Resource Include="Resources\Vehicle.png" />
-      <Resource Include="Resources\Weapon.png" />
-      <Resource Include="Resources\Unreal.png" />
-      <Resource Include="Resources\Blender.png" />
+        <Resource Include="Resources\Backpack.png"/>
+        <Resource Include="Resources\Dance.png"/>
+        <Resource Include="Resources\Glider.png"/>
+        <Resource Include="Resources\Mesh.png"/>
+        <Resource Include="Resources\Outfit.png"/>
+        <Resource Include="Resources\Pickaxe.png"/>
+        <Resource Include="Resources\Props.png"/>
+        <Resource Include="Resources\Vehicle.png"/>
+        <Resource Include="Resources\Weapon.png"/>
+        <Resource Include="Resources\Unreal.png"/>
+        <Resource Include="Resources\Blender.png"/>
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Remove="ViewModels\BundleDownloaderViewModel.cs" />
+        <Compile Remove="ViewModels\BundleDownloaderViewModel.cs"/>
     </ItemGroup>
 
 </Project>

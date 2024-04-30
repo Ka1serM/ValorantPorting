@@ -6,10 +6,9 @@ import socket
 import threading
 import bpy
 import os
-from math import radians
 import bpy.props
-from mathutils import Matrix, Vector, Euler, Quaternion
-from .io_import_scene_unreal_psa_psk_284 import pskimport
+from mathutils import Matrix
+from .io_import_scene_unreal_psa_psk_400 import pskimport
 
 bl_info = {
     "name": "Valorant Porting",
@@ -187,7 +186,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
 
         # link outer group output to imported inner group's input
         for output in group_inputs.outputs:
-            print("Linking: " + output.name)
             if imported_shader_node.inputs.get(output.name) is not None:
                 new_shader_internals.links.new(output, imported_shader_node.node_tree.inputs.get(output.name))
         new_shader_internals.links.new(imported_shader_node.outputs[0], group_outputs.inputs[0])
@@ -198,20 +196,12 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     def texture_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-        tex_image_node: bpy.types.Node
         tex_image_node = nodes.new(type="ShaderNodeTexImage")
-        if (image := import_texture(value)) is None:
-            return
+        if (image := import_texture(value)) is None: return
         tex_image_node.image = image
         tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
         tex_image_node.hide = True
-        if name == 'Normal':
-            tex_image_node.image.colorspace_settings.name = 'Non-Color'
-        elif name == 'Albedo' or name == 'LUTs' or name == 'Projected Texture':
-            tex_image_node.image.colorspace_settings.name = 'sRGB'
-        else:
-            tex_image_node.image.colorspace_settings.name = 'Linear Rec.2020'
-        # tex_image_node.location = location
+        tex_image_node.image.colorspace_settings.name = 'Linear Rec.709'
 
         if 'decal' in name.lower():
             uv_node = nodes.new(type="ShaderNodeUVMap")
@@ -230,8 +220,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
             else:
                 links.new(tex_image_node.outputs[0], MAIN_SHADER.inputs[name])
 
-            print(f"Created & connected Texture node with name {name}")
-
     def scalar_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
@@ -244,7 +232,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         else:
             MAIN_SHADER.node_tree.interface.new_socket(name=name, in_out="INPUT", socket_type="NodeSocketFloat")
             links.new(scalar_node.outputs[0], MAIN_SHADER.inputs[name])
-            print(f"Created & connected Scalar node with name: {name}")
 
     def vector_parameter(data):
         name = data.get("Name")
@@ -258,7 +245,6 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         else:
             MAIN_SHADER.node_tree.interface.new_socket(name=name, in_out="INPUT", socket_type="NodeSocketColor")
             links.new(color_node.outputs[0], MAIN_SHADER.inputs[name])
-            print(f"Created & connected Vector node with name: {name}")
 
     for texture in material_data.get("Textures"):
         texture_parameter(texture)
@@ -411,8 +397,7 @@ def import_response(response):
                 if "revolver" in parent_obj.name.lower():
                     bone_name = "Magazine_Extra"
                 if child_obj:
-                    constraint_object(child_obj, parent_obj, attachment.get("BoneName"),
-                                      attachment.get("Offset"), attachment.get("Rotation"))
+                    constraint_object(child_obj, parent_obj, attachment.get("BoneName"), attachment.get("Offset"), attachment.get("Rotation"))
         if new_collection not in parent_obj.users_collection:
             new_collection.objects.link(parent_obj)
 

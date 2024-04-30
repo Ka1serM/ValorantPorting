@@ -10,12 +10,12 @@ namespace ValorantPorting.ViewModels;
 
 public class ApplicationViewModel : ObservableObject
 {
-    public MainViewModel MainVM;
-    public StartupViewModel StartupVM;
-    public SettingsViewModel SettingsVM;
-    public CUE4ParseViewModel CUE4ParseVM;
     public AssetHandlerViewModel? AssetHandlerVM;
     public BlenderViewModel BlenderVM;
+    public CUE4ParseViewModel CUE4ParseVM;
+    public MainViewModel MainVM;
+    public SettingsViewModel SettingsVM;
+    public StartupViewModel StartupVM;
 
     public void RestartWithMessage(string caption, string message)
     {
@@ -30,13 +30,13 @@ public class ApplicationViewModel : ObservableObject
         MessageBox.Show(messageBox);
         Restart();
     }
-    
+
     public void Restart()
     {
-        AppHelper.Launch(AppDomain.CurrentDomain.FriendlyName, shellExecute: false);
+        AppHelper.Launch(AppDomain.CurrentDomain.FriendlyName, false);
         Application.Current.Shutdown();
     }
-    
+
     public void Quit()
     {
         Application.Current.Shutdown();

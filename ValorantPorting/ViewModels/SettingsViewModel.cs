@@ -6,9 +6,10 @@ namespace ValorantPorting.ViewModels;
 
 public class SettingsViewModel : ObservableObject
 {
-    public bool IsRestartRequired = false;
+    public bool IsRestartRequired;
 
     public bool IsLocalInstall => InstallType == EInstallType.Local;
+
     public EInstallType InstallType
     {
         get => AppSettings.Current.InstallType;
@@ -20,7 +21,7 @@ public class SettingsViewModel : ObservableObject
             IsRestartRequired = true;
         }
     }
-    
+
     public string ArchivePath
     {
         get => AppSettings.Current.ArchivePath;
@@ -31,7 +32,7 @@ public class SettingsViewModel : ObservableObject
             IsRestartRequired = true;
         }
     }
-    
+
     public ELanguage Language
     {
         get => AppSettings.Current.Language;
@@ -42,7 +43,7 @@ public class SettingsViewModel : ObservableObject
             IsRestartRequired = true;
         }
     }
-    
+
     public ERichPresenceAccess DiscordRPC
     {
         get => AppSettings.Current.DiscordRPC;
@@ -52,5 +53,4 @@ public class SettingsViewModel : ObservableObject
             OnPropertyChanged();
         }
     }
-    
 }

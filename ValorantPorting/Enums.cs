@@ -4,57 +4,24 @@ namespace ValorantPorting;
 
 public enum EInstallType
 {
-    [Description("Local")]
-    Local,
-    
-    [Description("Valorant [Live]")]
-    Live
+    [Description("Local")] Local,
+
+    [Description("Valorant [Live]")] Live
 }
 
 public enum ERichPresenceAccess
 {
-    [Description("Always")]
-    Always,
-    
-    [Description("Never")]
-    Never
-}
-public enum EMeshType
-{
-    [Description("Base")]
-    Base,
+    [Description("Always")] Always,
 
-    [Description("Overriden")]
-    Overriden
+    [Description("Never")] Never
 }
 
-public enum EWeaponType
-{
-    [Description("Attatchment")]
-    Attatchment,
-    [Description("RealWeapon")]
-    RealWeapon,
-}
 public enum EAssetType
 {
-    [Description("Characters")]
-    Character,
-    [Description("Weapons")]
-    Weapon,
-    [Description("Gunbuddies")]
-    GunBuddy,
-    [Description("Maps")]
-    Map,
-    [Description("Bundles")]
-    Bundles,
-    [Description("Mesh")]
-    Mesh,
-
-    /*[Description("Props")]
-    Prop,
-    
-    [Description("Meshes")]
-    Mesh,*/
+    [Description("Characters")] Character,
+    [Description("Weapons")] Weapon,
+    [Description("Gunbuddies")] GunBuddy,
+    [Description("Mesh")] Mesh
 }
 
 public enum ETreeItemType
