@@ -17,10 +17,10 @@
 # ##### END GPL LICENSE BLOCK #####
 
 bl_info = {
-    "name": "Import Unreal Skeleton Mesh (.psk)/Animation Set (.psa) (280)",
+    "name": "Import Unreal Skeleton Mesh (.psk)/Animation Set (.psa) (284)",
     "author": "Darknet, flufy3d, camg188, befzz",
-    "version": (2, 8, 3),
-    "blender": (2, 80, 0),
+    "version": (2, 8, 4),
+    "blender": (4, 0, 0),
     "location": "File > Import > Skeleton Mesh (.psk)/Animation Set (.psa) OR View3D > Tool Shelf (key T) > Misc. tab",
     "description": "Import Skeleton Mesh / Animation Data",
     "warning": "",
@@ -68,15 +68,16 @@ import bpy
 import re
 from mathutils import Vector, Matrix, Quaternion
 from bpy.props import (FloatProperty,
-                        StringProperty,
-                        BoolProperty,
-                        EnumProperty,
-                        PointerProperty )
+                       StringProperty,
+                       BoolProperty,
+                       EnumProperty,
+                       PointerProperty)
 
 from struct import unpack, unpack_from, Struct
 import time
 
-#DEV
+
+# DEV
 # from mathutils import *
 # from math import *
 
@@ -88,23 +89,28 @@ def util_obj_link(context, obj):
     # bpy.data.scenes[0].collection.objects.link(obj)
     context.collection.objects.link(obj)
 
-def util_obj_select(context, obj, action = 'SELECT'):
+
+def util_obj_select(context, obj, action='SELECT'):
     # if obj.name in bpy.data.scenes[0].view_layers[0].objects:
     if obj.name in context.view_layer.objects:
         return obj.select_set(action == 'SELECT')
     else:
         print('Warning: util_obj_select: Object not in "context.view_layer.objects"')
 
+
 def util_obj_set_active(context, obj):
     # bpy.context.view_layer.objects.active = obj
     # bpy.data.scenes[0].view_layers[0].objects.active = obj
     context.view_layer.objects.active = obj
 
+
 def util_get_scene(context):
     return context.scene
 
+
 def get_uv_layers(mesh_obj):
     return mesh_obj.uv_layers
+
 
 def obj_select_get(obj):
     return obj.select_get()
@@ -112,14 +118,18 @@ def obj_select_get(obj):
 
 def utils_set_mode(mode):
     if bpy.ops.object.mode_set.poll():
-        bpy.ops.object.mode_set(mode = mode, toggle = False)
-    # else:
-        # bpy.ops.object.mode_set(mode = mode, toggle = False)
-        #dev
+        bpy.ops.object.mode_set(mode=mode, toggle=False)
+
+
+# else:
+# bpy.ops.object.mode_set(mode = mode, toggle = False)
+# dev
+
 
 # since names have type ANSICHAR(signed char) - using cp1251(or 'ASCII'?)
 def util_bytes_to_str(in_bytes):
-    return in_bytes.rstrip(b'\x00').decode(encoding = 'cp1252', errors = 'replace')
+    return in_bytes.rstrip(b'\x00').decode(encoding='cp1252', errors='replace')
+
 
 class class_psk_bone:
     name = ""
@@ -141,6 +151,7 @@ class class_psk_bone:
 
     have_weight_data = False
 
+
 # TODO simplify?
 def util_select_all(select):
     if select:
@@ -149,22 +160,22 @@ def util_select_all(select):
         actionString = 'DESELECT'
 
     if bpy.ops.object.select_all.poll():
-        bpy.ops.object.select_all(action = actionString)
+        bpy.ops.object.select_all(action=actionString)
 
     if bpy.ops.mesh.select_all.poll():
-        bpy.ops.mesh.select_all(action = actionString)
+        bpy.ops.mesh.select_all(action=actionString)
 
     if bpy.ops.pose.select_all.poll():
-        bpy.ops.pose.select_all(action = actionString)
+        bpy.ops.pose.select_all(action=actionString)
 
 
 def util_ui_show_msg(msg):
-    bpy.ops.pskpsa.message('INVOKE_DEFAULT', message = msg)
+    bpy.ops.pskpsa.message('INVOKE_DEFAULT', message=msg)
 
 
 PSKPSA_FILE_HEADER = {
-    'psk':b'ACTRHEAD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
-    'psa':b'ANIMHEAD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+    'psk': b'ACTRHEAD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00',
+    'psa': b'ANIMHEAD\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
 }
 
 
@@ -172,10 +183,10 @@ def util_is_header_valid(filename, file_ext, chunk_id, error_callback):
     '''Return True if chunk_id is a valid psk/psa (file_ext) 'magick number'.'''
     if chunk_id != PSKPSA_FILE_HEADER[file_ext]:
         error_callback(
-            "File %s is not a %s file. (header mismach)\nExpected: %s \nPresent %s"  % ( 
+            "File %s is not a %s file. (header mismach)\nExpected: %s \nPresent %s" % (
                 filename, file_ext,
                 PSKPSA_FILE_HEADER[file_ext], chunk_id)
-        )    
+        )
         return False
     return True
 
@@ -214,10 +225,10 @@ def calc_bone_rotation(psk_bone, bone_len, bDirectly, avg_bone_len):
             return (bone_len, quat)
 
         elif bDirectly:
-                        # @
+            # @
             # axis_vec = psk_bone.orig_quat * psk_bone.orig_loc
             axis_vec = psk_bone.orig_loc.copy()
-            axis_vec.rotate( psk_bone.orig_quat )
+            axis_vec.rotate(psk_bone.orig_quat)
 
         else:
             # bone Head near parent Head?
@@ -225,7 +236,7 @@ def calc_bone_rotation(psk_bone, bone_len, bDirectly, avg_bone_len):
                 # @
                 # vec_to_axis_vec(psk_bone.orig_quat.conjugated() * psk_bone.parent.axis_vec, axis_vec)
                 v = psk_bone.parent.axis_vec.copy()
-                v.rotate( psk_bone.orig_quat.conjugated() )
+                v.rotate(psk_bone.orig_quat.conjugated())
                 vec_to_axis_vec(v, axis_vec)
 
                 # reorient bone to other axis bychanging our base Y vec...
@@ -235,7 +246,7 @@ def calc_bone_rotation(psk_bone, bone_len, bDirectly, avg_bone_len):
                 # @
                 # vec_to_axis_vec(psk_bone.orig_quat.conjugated() * psk_bone.parent.axis_vec, axis_vec)
                 v = psk_bone.parent.axis_vec.copy()
-                v.rotate( psk_bone.orig_quat.conjugated() )
+                v.rotate(psk_bone.orig_quat.conjugated())
                 vec_to_axis_vec(v, axis_vec)
 
         return (bone_len, vecy.rotation_difference(axis_vec))
@@ -276,7 +287,7 @@ def calc_bone_rotation(psk_bone, bone_len, bDirectly, avg_bone_len):
     return (sumlen, vecy.rotation_difference(axis_vec))
 
 
-def __pass(*args,**kwargs):
+def __pass(*args, **kwargs):
     pass
 
 
@@ -286,7 +297,7 @@ def util_check_file_header(file, ftype):
     if len(header_bytes) < 32:
         return False
 
-    if not header_bytes.startswith( PSKPSA_FILE_HEADER[ftype] ):
+    if not header_bytes.startswith(PSKPSA_FILE_HEADER[ftype]):
         return False
 
     return True
@@ -302,19 +313,20 @@ def color_linear_to_srgb(c):
     else:
         return 1.055 * pow(c, 1.0 / 2.4) - 0.055
 
+
 def pskimport(filepath,
-        context = None,
-        bImportmesh = True,
-        bImportbone = True,
-        bSpltiUVdata = False,
-        fBonesize = 5.0,
-        fBonesizeRatio = 0.6,
-        bDontInvertRoot = True,
-        bReorientBones = False,
-        bReorientDirectly = False,
-        bScaleDown = True,
-        bToSRGB = True,
-        error_callback = None):
+              context=None,
+              bImportmesh=True,
+              bImportbone=True,
+              bSpltiUVdata=False,
+              fBonesize=5.0,
+              fBonesizeRatio=0.6,
+              bDontInvertRoot=True,
+              bReorientBones=False,
+              bReorientDirectly=False,
+              bScaleDown=True,
+              bToSRGB=True,
+              error_callback=None):
     '''
     Import mesh and skeleton from .psk/.pskx files
 
@@ -328,7 +340,7 @@ def pskimport(filepath,
             error_callback = lambda msg: print('reason:', msg)
 
     '''
-    if not hasattr( error_callback, '__call__'):
+    if not hasattr(error_callback, '__call__'):
         # error_callback = __pass
         error_callback = print
 
@@ -337,19 +349,19 @@ def pskimport(filepath,
         error_callback("Nothing to do.\nSet something for import.")
         return False
 
-    print ("-----------------------------------------------")
-    print ("---------EXECUTING PSK PYTHON IMPORTER---------")
-    print ("-----------------------------------------------")
+    print("-----------------------------------------------")
+    print("---------EXECUTING PSK PYTHON IMPORTER---------")
+    print("-----------------------------------------------")
 
-    #file may not exist
+    # file may not exist
     try:
-        file = open(filepath,'rb')
+        file = open(filepath, 'rb')
     except IOError:
-        error_callback('Error while opening file for reading:\n  "'+filepath+'"')
+        error_callback('Error while opening file for reading:\n  "' + filepath + '"')
         return False
 
     if not util_check_file_header(file, 'psk'):
-        error_callback('Not psk file:\n  "'+filepath+'"')
+        error_callback('Not psk file:\n  "' + filepath + '"')
         return False
 
     Vertices = None
@@ -366,8 +378,9 @@ def pskimport(filepath,
 
     if not context:
         context = bpy.context
-    #================================================================================================== 
-    # Materials   MaterialNameRaw | TextureIndex | PolyFlags | AuxMaterial | AuxFlags |  LodBias | LodStyle 
+
+    # ==================================================================================================
+    # Materials   MaterialNameRaw | TextureIndex | PolyFlags | AuxMaterial | AuxFlags |  LodBias | LodStyle
     # Only Name is usable.
     def read_materials():
 
@@ -376,13 +389,11 @@ def pskimport(filepath,
         Materials = []
 
         for counter in range(chunk_datacount):
-
             (MaterialNameRaw,) = unpack_from('64s24x', chunk_data, chunk_datasize * counter)
 
-            Materials.append( util_bytes_to_str( MaterialNameRaw ) )
+            Materials.append(util_bytes_to_str(MaterialNameRaw))
 
-
-    #================================================================================================== 
+    # ==================================================================================================
     # Faces WdgIdx1 | WdgIdx2 | WdgIdx3 | MatIdx | AuxMatIdx | SmthGrp
     def read_faces():
 
@@ -404,24 +415,25 @@ def pskimport(filepath,
 
         for counter in range(chunk_datacount):
             (WdgIdx1, WdgIdx2, WdgIdx3,
-             MatIndex, 
-             AuxMatIndex, #unused
-             SmoothingGroup # Umodel is not exporting SmoothingGroups
+             MatIndex,
+             AuxMatIndex,  # unused
+             SmoothingGroup  # Umodel is not exporting SmoothingGroups
              ) = unpack_data(chunk_data, counter * chunk_datasize)
 
             # looks ugly
             # Wedges is (point_index, u, v, MatIdx)
-            ((vertid0, u0, v0, matid0), (vertid1, u1, v1, matid1), (vertid2, u2, v2, matid2)) = Wedges[WdgIdx1], Wedges[WdgIdx2], Wedges[WdgIdx3]
+            ((vertid0, u0, v0, matid0), (vertid1, u1, v1, matid1), (vertid2, u2, v2, matid2)) = Wedges[WdgIdx1], Wedges[
+                WdgIdx2], Wedges[WdgIdx3]
 
             # note order: C,B,A
             # Faces[counter] = (vertid2,  vertid1, vertid0)
 
-            Faces[counter] = (vertid1,  vertid0, vertid2)
+            Faces[counter] = (vertid1, vertid0, vertid2)
             # Faces[counter] = (vertid1,  vertid2, vertid0)
             # Faces[counter] = (vertid0,  vertid1, vertid2)
 
             # uv = ( ( u2, 1.0 - v2 ), ( u1, 1.0 - v1 ), ( u0, 1.0 - v0 ) )
-            uv = ( ( u1, 1.0 - v1 ), ( u0, 1.0 - v0 ), ( u2, 1.0 - v2 ) )
+            uv = ((u1, 1.0 - v1), (u0, 1.0 - v0), (u2, 1.0 - v2))
 
             # Mapping: FaceIndex <=> UV data <=> FaceMatIndex
             UV_by_face[counter] = (uv, MatIndex, (matid2, matid1, matid0))
@@ -429,8 +441,7 @@ def pskimport(filepath,
             # We need this for EXTRA UVs
             WedgeIdx_by_faceIdx[counter] = (WdgIdx3, WdgIdx2, WdgIdx1)
 
-
-    #==================================================================================================
+    # ==================================================================================================
     # Vertices X | Y | Z
     def read_vertices():
 
@@ -444,18 +455,17 @@ def pskimport(filepath,
         unpack_data = Struct('3f').unpack_from
 
         if bScaleDown:
-            for counter in range( chunk_datacount ):
+            for counter in range(chunk_datacount):
                 (vec_x, vec_y, vec_z) = unpack_data(chunk_data, counter * chunk_datasize)
-                Vertices[counter]  = (vec_x*0.01, vec_y*0.01, vec_z*0.01)
-                # equal to gltf
-                # Vertices[counter]  = (vec_x*0.01, vec_z*0.01, -vec_y*0.01)
+                Vertices[counter] = (vec_x * 0.01, vec_y * 0.01, vec_z * 0.01)
+        # equal to gltf
+        # Vertices[counter]  = (vec_x*0.01, vec_z*0.01, -vec_y*0.01)
         else:
-            for counter in range( chunk_datacount ):
-                Vertices[counter]  =  unpack_data(chunk_data, counter * chunk_datasize)
+            for counter in range(chunk_datacount):
+                Vertices[counter] = unpack_data(chunk_data, counter * chunk_datasize)
 
-
-    #================================================================================================== 
-    # Wedges (UV)   VertexId |  U |  V | MatIdx 
+    # ==================================================================================================
+    # Wedges (UV)   VertexId |  U |  V | MatIdx
     def read_wedges():
 
         if not bImportmesh:
@@ -467,16 +477,16 @@ def pskimport(filepath,
 
         unpack_data = Struct('=IffBxxx').unpack_from
 
-        for counter in range( chunk_datacount ):
+        for counter in range(chunk_datacount):
             (vertex_id,
              u, v,
-             material_index) = unpack_data( chunk_data, counter * chunk_datasize )
+             material_index) = unpack_data(chunk_data, counter * chunk_datasize)
 
             # print(vertex_id, u, v, material_index)
             # Wedges[counter] = (vertex_id, u, v, material_index)
             Wedges[counter] = [vertex_id, u, v, material_index]
 
-    #================================================================================================== 
+    # ==================================================================================================
     # Bones (VBone .. VJointPos ) Name|Flgs|NumChld|PrntIdx|Qw|Qx|Qy|Qz|LocX|LocY|LocZ|Lngth|XSize|YSize|ZSize
     def read_bones():
 
@@ -493,11 +503,10 @@ def pskimport(filepath,
 
         Bones = [None] * chunk_datacount
 
-        for counter in range( chunk_datacount ):
-            Bones[counter] = unpack_data( chunk_data, chunk_datasize * counter)
+        for counter in range(chunk_datacount):
+            Bones[counter] = unpack_data(chunk_data, chunk_datasize * counter)
 
-
-    #================================================================================================== 
+    # ==================================================================================================
     # Influences (Bone Weight) (VRawBoneInfluence) ( Weight | PntIdx | BoneIdx)
     def read_weights():
 
@@ -513,7 +522,7 @@ def pskimport(filepath,
         for counter in range(chunk_datacount):
             Weights[counter] = unpack_data(chunk_data, chunk_datasize * counter)
 
-    #================================================================================================== 
+    # ==================================================================================================
     # Vertex colors. R G B A bytes. NOTE: it is Wedge color.(uses Wedges index)
     def read_vertex_colors():
 
@@ -523,11 +532,11 @@ def pskimport(filepath,
 
         VertexColors = [None] * chunk_datacount
 
-        for counter in range( chunk_datacount ):
-            VertexColors[counter] = unpack_data(chunk_data, chunk_datasize * counter) 
+        for counter in range(chunk_datacount):
+            VertexColors[counter] = unpack_data(chunk_data, chunk_datasize * counter)
 
+    # ==================================================================================================
 
-    #================================================================================================== 
     # Extra UV. U | V
     def read_extrauvs():
 
@@ -535,12 +544,12 @@ def pskimport(filepath,
 
         uvdata = [None] * chunk_datacount
 
-        for counter in range( chunk_datacount ):
-            uvdata[counter] = unpack_data(chunk_data, chunk_datasize * counter) 
+        for counter in range(chunk_datacount):
+            uvdata[counter] = unpack_data(chunk_data, chunk_datasize * counter)
 
         Extrauvs.append(uvdata)
 
-    #==================================================================================================
+    # ==================================================================================================
     # Vertex Normals NX | NY | NZ
     def read_normals():
         if not bImportmesh:
@@ -554,24 +563,23 @@ def pskimport(filepath,
         for counter in range(chunk_datacount):
             Normals[counter] = unpack_data(chunk_data, counter * chunk_datasize)
 
-
     CHUNKS_HANDLERS = {
         'PNTS0000': read_vertices,
         'VTXW0000': read_wedges,
-        'VTXW3200': read_wedges,#?
+        'VTXW3200': read_wedges,  # ?
         'FACE0000': read_faces,
         'FACE3200': read_faces,
         'MATT0000': read_materials,
         'REFSKELT': read_bones,
-        'REFSKEL0': read_bones, #?
+        'REFSKEL0': read_bones,  # ?
         'RAWW0000': read_weights,
         'RAWWEIGH': read_weights,
-        'VERTEXCO': read_vertex_colors, # VERTEXCOLOR
+        'VERTEXCO': read_vertex_colors,  # VERTEXCOLOR
         'EXTRAUVS': read_extrauvs,
         'VTXNORMS': read_normals
     }
 
-    #==============================================================================================
+    # ==============================================================================================
     # File. Read all needed data.
     #         VChunkHeader Struct
     # ChunkID|TypeFlag|DataSize|DataCount
@@ -594,7 +602,7 @@ def pskimport(filepath,
 
         if chunk_id_str in CHUNKS_HANDLERS:
 
-            chunk_data = file.read( chunk_datasize * chunk_datacount)
+            chunk_data = file.read(chunk_datasize * chunk_datacount)
 
             if len(chunk_data) < chunk_datasize * chunk_datacount:
                 error_callback('Psk chunk %s is broken.' % chunk_id_str)
@@ -607,8 +615,7 @@ def pskimport(filepath,
             print('Unknown chunk: ', chunk_id_str)
             file.seek(chunk_datasize * chunk_datacount, 1)
 
-
-        # print(chunk_id_str, chunk_datacount)
+    # print(chunk_id_str, chunk_datacount)
 
     file.close()
 
@@ -624,22 +631,21 @@ def pskimport(filepath,
     # file name w/out extension
     gen_name_part = util_gen_name_part(filepath)
     gen_names = {
-        'armature_object':  gen_name_part + '.ao',
-        'armature_data':    gen_name_part + '.ad',
-            'mesh_object':  gen_name_part + '.mo',
-            'mesh_data':    gen_name_part + '.md'
+        'armature_object': gen_name_part + '.ao',
+        'armature_data': gen_name_part + '.ad',
+        'mesh_object': gen_name_part + '.mo',
+        'mesh_data': gen_name_part + '.md'
     }
 
     if bImportmesh:
         mesh_data = bpy.data.meshes.new(gen_names['mesh_data'])
         mesh_obj = bpy.data.objects.new(gen_names['mesh_object'], mesh_data)
 
-
-    #==================================================================================================
+    # ==================================================================================================
     # UV. Prepare
     if bImportmesh:
         if bSpltiUVdata:
-        # store how much each "matrial index" have vertices
+            # store how much each "matrial index" have vertices
 
             uv_mat_ids = {}
 
@@ -650,17 +656,17 @@ def pskimport(filepath,
                 else:
                     uv_mat_ids[material_index] += 1
 
-
             # if we have more UV material indexes than blender UV maps, then...
-            if bSpltiUVdata and len(uv_mat_ids) > MAX_UVS :
+            if bSpltiUVdata and len(uv_mat_ids) > MAX_UVS:
 
                 uv_mat_ids_len = len(uv_mat_ids)
 
-                print('UVs: %s out of %s is combined in a first UV map(%s0)' % (uv_mat_ids_len - 8, uv_mat_ids_len, NAME_UV_PREFIX))
+                print('UVs: %s out of %s is combined in a first UV map(%s0)' % (
+                    uv_mat_ids_len - 8, uv_mat_ids_len, NAME_UV_PREFIX))
 
                 mat_idx_proxy = [0] * len(uv_mat_ids)
 
-                counts_sorted = sorted(uv_mat_ids.values(), reverse = True)
+                counts_sorted = sorted(uv_mat_ids.values(), reverse=True)
 
                 new_mat_index = MAX_UVS - 1
 
@@ -670,15 +676,15 @@ def pskimport(filepath,
                             mat_idx_proxy[mat_idx] = new_mat_index
                             if new_mat_index > 0:
                                 new_mat_index -= 1
-                            # print('MatIdx remap: %s > %s' % (mat_idx,new_mat_index))
+                # print('MatIdx remap: %s > %s' % (mat_idx,new_mat_index))
 
                 for i in range(len(Wedges)):
                     Wedges[i][3] = mat_idx_proxy[Wedges[i][3]]
 
-        # print('Wedges:', chunk_datacount)
-        # print('uv_mat_ids', uv_mat_ids)
-        # print('uv_mat_ids', uv_mat_ids)
-        # for w in Wedges:
+    # print('Wedges:', chunk_datacount)
+    # print('uv_mat_ids', uv_mat_ids)
+    # print('uv_mat_ids', uv_mat_ids)
+    # for w in Wedges:
 
     if bImportmesh:
         # print("-- Materials -- (index, name, faces)")
@@ -687,16 +693,17 @@ def pskimport(filepath,
             matdata = bpy.data.materials.get(materialname)
 
             if matdata is None:
-                matdata = bpy.data.materials.new( materialname )
+                matdata = bpy.data.materials.new(materialname)
             # matdata = bpy.data.materials.new( materialname )
 
-            blen_materials.append( matdata )
-            mesh_data.materials.append( matdata )
-            # print(counter,materialname,TextureIndex)
-            # if mat_groups.get(counter) is not None:
-                # print("%i: %s" % (counter, materialname), len(mat_groups[counter]))
+            blen_materials.append(matdata)
+            mesh_data.materials.append(matdata)
 
-    #==================================================================================================
+    # print(counter,materialname,TextureIndex)
+    # if mat_groups.get(counter) is not None:
+    # print("%i: %s" % (counter, materialname), len(mat_groups[counter]))
+
+    # ==================================================================================================
     # Prepare bone data
     def init_psk_bone(i, psk_bones, name_raw):
         psk_bone = class_psk_bone()
@@ -710,23 +717,23 @@ def pskimport(filepath,
     # indexed by bone index. array of psk_bone
     psk_bones = [None] * len(Bones)
 
-    if not bImportbone: #data needed for mesh-only import
+    if not bImportbone:  # data needed for mesh-only import
 
-        for counter,(name_raw,) in enumerate(Bones):
+        for counter, (name_raw,) in enumerate(Bones):
             init_psk_bone(counter, psk_bones, name_raw)
 
-    if bImportbone:  #else?
+    if bImportbone:  # else?
 
         # average bone length
         sum_bone_pos = 0
 
-        for counter, (name_raw, flags, NumChildren, ParentIndex, #0 1 2 3
-             quat_x, quat_y, quat_z, quat_w,            #4 5 6 7
-             vec_x, vec_y, vec_z
-            #  ,                       #8 9 10
-            #  joint_length,                              #11
-            #  scale_x, scale_y, scale_z
-             ) in enumerate(Bones):
+        for counter, (name_raw, flags, NumChildren, ParentIndex,  # 0 1 2 3
+                      quat_x, quat_y, quat_z, quat_w,  # 4 5 6 7
+                      vec_x, vec_y, vec_z
+                #  ,                       #8 9 10
+                #  joint_length,                              #11
+                #  scale_x, scale_y, scale_z
+                      ) in enumerate(Bones):
 
             psk_bone = init_psk_bone(counter, psk_bones, name_raw)
 
@@ -736,7 +743,7 @@ def pskimport(filepath,
             # Tested. 64 is getting cut to 63
             if len(psk_bone.name) > 63:
                 psk_bone_name_toolong = True
-                # print('Warning. Bone name is too long:', psk_bone.name)
+            # print('Warning. Bone name is too long:', psk_bone.name)
 
             # make sure we have valid parent_index
             if psk_bone.parent_index < 0:
@@ -765,9 +772,8 @@ def pskimport(filepath,
 
             sum_bone_pos += psk_bone.orig_loc.length
 
-
-    #==================================================================================================
-    # Bones. Calc World-space matrix
+        # ==================================================================================================
+        # Bones. Calc World-space matrix
 
         # TODO optimize math.
         for psk_bone in psk_bones:
@@ -793,21 +799,18 @@ def pskimport(filepath,
             psk_bone.mat_world = parent.mat_world_rot.to_4x4()
 
             v = psk_bone.orig_loc.copy()
-            v.rotate( parent.mat_world_rot )
+            v.rotate(parent.mat_world_rot)
             psk_bone.mat_world.translation = parent.mat_world.translation + v
 
-
             psk_bone.mat_world_rot = psk_bone.orig_quat.conjugated().to_matrix()
-            psk_bone.mat_world_rot.rotate( parent.mat_world_rot )
+            psk_bone.mat_world_rot.rotate(parent.mat_world_rot)
 
+        # psk_bone.mat_world =  ( parent.mat_world_rot.to_4x4() * psk_bone.trans)
+        # psk_bone.mat_world.translation += parent.mat_world.translation
+        # psk_bone.mat_world_rot = parent.mat_world_rot * psk_bone.orig_quat.conjugated().to_matrix()
 
-            # psk_bone.mat_world =  ( parent.mat_world_rot.to_4x4() * psk_bone.trans)
-            # psk_bone.mat_world.translation += parent.mat_world.translation
-            # psk_bone.mat_world_rot = parent.mat_world_rot * psk_bone.orig_quat.conjugated().to_matrix()
-
-
-    #==================================================================================================
-    # Skeleton. Prepare.
+        # ==================================================================================================
+        # Skeleton. Prepare.
 
         armature_data = bpy.data.armatures.new(gen_names['armature_data'])
         armature_obj = bpy.data.objects.new(gen_names['armature_object'], armature_data)
@@ -825,24 +828,22 @@ def pskimport(filepath,
 
         utils_set_mode('EDIT')
 
-
-        sum_bone_pos /= len(Bones) # average
-        sum_bone_pos *= fBonesizeRatio # corrected
+        sum_bone_pos /= len(Bones)  # average
+        sum_bone_pos *= fBonesizeRatio  # corrected
 
         # bone_size_choosen = max(0.01, round((min(sum_bone_pos, fBonesize))))
-        bone_size_choosen = max(0.01, round((min(sum_bone_pos, fBonesize))*100)/100)
+        bone_size_choosen = max(0.01, round((min(sum_bone_pos, fBonesize)) * 100) / 100)
         # bone_size_choosen = max(0.01, min(sum_bone_pos, fBonesize))
         # print("Bonesize %f | old: %f round: %f" % (bone_size_choosen, max(0.01, min(sum_bone_pos, fBonesize)),max(0.01, round((min(sum_bone_pos, fBonesize))*100)/100)))
 
         if not bReorientBones:
             new_bone_size = bone_size_choosen
 
-    #==================================================================================================
-    # Skeleton. Build.
+        # ==================================================================================================
+        # Skeleton. Build.
         if psk_bone_name_toolong:
             print('Warning. Some bones will be renamed(names are too long). Animation import may be broken.')
             for psk_bone in psk_bones:
-
                 # TODO too long name cutting options?
                 orig_long_name = psk_bone.name
 
@@ -875,52 +876,50 @@ def pskimport(filepath,
                     psk_bone.orig_quat.conjugate()
 
             if bReorientBones:
-                (new_bone_size, quat_orient_diff) = calc_bone_rotation(psk_bone, bone_size_choosen, bReorientDirectly, sum_bone_pos)
+                (new_bone_size, quat_orient_diff) = calc_bone_rotation(psk_bone, bone_size_choosen, bReorientDirectly,
+                                                                       sum_bone_pos)
                 # @
                 # post_quat = psk_bone.orig_quat.conjugated() * quat_orient_diff
 
                 post_quat = quat_orient_diff
-                post_quat.rotate( psk_bone.orig_quat.conjugated() )
+                post_quat.rotate(psk_bone.orig_quat.conjugated())
             else:
                 post_quat = psk_bone.orig_quat.conjugated()
 
             # only length of this vector is matter?
-            edit_bone.tail = Vector(( 0.0, new_bone_size, 0.0))
+            edit_bone.tail = Vector((0.0, new_bone_size, 0.0))
 
             # @
             # edit_bone.matrix = psk_bone.mat_world * post_quat.to_matrix().to_4x4()
 
             m = post_quat.copy()
-            m.rotate( psk_bone.mat_world )
+            m.rotate(psk_bone.mat_world)
 
             m = m.to_matrix().to_4x4()
             m.translation = psk_bone.mat_world.translation
 
             edit_bone.matrix = m
 
-
             # some dev code...
             #### FINAL
             # post_quat = psk_bone.orig_quat.conjugated() * quat_diff
             # edit_bone.matrix = psk_bone.mat_world * test_quat.to_matrix().to_4x4()
             # edit_bone["post_quat"] = test_quat
-            #### 
+            ####
 
             # edit_bone["post_quat"] = Quaternion((1,0,0,0))
             # edit_bone.matrix = psk_bone.mat_world* psk_bone.rot
 
-
             # if edit_bone.parent:
-              # edit_bone.matrix = edit_bone.parent.matrix * psk_bone.trans * (psk_bone.orig_quat.conjugated().to_matrix().to_4x4())
-              # edit_bone.matrix = edit_bone.parent.matrix * psk_bone.trans * (test_quat.to_matrix().to_4x4())
+            # edit_bone.matrix = edit_bone.parent.matrix * psk_bone.trans * (psk_bone.orig_quat.conjugated().to_matrix().to_4x4())
+            # edit_bone.matrix = edit_bone.parent.matrix * psk_bone.trans * (test_quat.to_matrix().to_4x4())
             # else:
-              # edit_bone.matrix = psk_bone.orig_quat.to_matrix().to_4x4()
-
+            # edit_bone.matrix = psk_bone.orig_quat.to_matrix().to_4x4()
 
             # save bindPose information for .psa import
             # dev
             edit_bone["orig_quat"] = psk_bone.orig_quat
-            edit_bone["orig_loc"]  = psk_bone.orig_loc
+            edit_bone["orig_loc"] = psk_bone.orig_loc
             edit_bone["post_quat"] = post_quat
 
             '''
@@ -944,22 +943,21 @@ def pskimport(filepath,
             '''
     utils_set_mode('OBJECT')
 
-    #==================================================================================================
+    # ==================================================================================================
     # Weights
-    if bImportmesh: 
+    if bImportmesh:
 
         vertices_total = len(Vertices)
 
-        for ( _, PointIndex, BoneIndex ) in Weights:
-            if PointIndex < vertices_total: # can it be not?
+        for (_, PointIndex, BoneIndex) in Weights:
+            if PointIndex < vertices_total:  # can it be not?
                 psk_bones[BoneIndex].have_weight_data = True
-            # else:
-                # print(psk_bones[BoneIndex].name, 'for other mesh',PointIndex ,vertices_total)
+    # else:
+    # print(psk_bones[BoneIndex].name, 'for other mesh',PointIndex ,vertices_total)
 
-            #print("weight:", PointIndex, BoneIndex, Weight)
-        # Weights.append(None)
-        # print(Weights.count(None))
-
+    # print("weight:", PointIndex, BoneIndex, Weight)
+    # Weights.append(None)
+    # print(Weights.count(None))
 
     # Original vertex colorization code
     '''
@@ -1009,7 +1007,7 @@ def pskimport(filepath,
         Tmsh.faces[x].col.append(NMesh.Col(TmpCol[0], TmpCol[1], TmpCol[2], 0))
     '''
 
-    #==============================================================================================
+    # ==============================================================================================
     # UV. Setup.
 
     if bImportmesh:
@@ -1019,38 +1017,37 @@ def pskimport(filepath,
         if bSpltiUVdata:
 
             for i in range(len(uv_mat_ids)):
-                get_uv_layers(mesh_data).new(name = NAME_UV_PREFIX + str(i))
+                get_uv_layers(mesh_data).new(name=NAME_UV_PREFIX + str(i))
 
         else:
 
-            get_uv_layers(mesh_data).new(name = NAME_UV_PREFIX+"_SINGLE")
-
+            get_uv_layers(mesh_data).new(name=NAME_UV_PREFIX + "_SINGLE")
 
         for counter, uv_data in enumerate(Extrauvs):
 
             if len(mesh_data.uv_layers) < MAX_UVS:
 
-                get_uv_layers(mesh_data).new(name = "EXTRAUVS"+str(counter))
+                get_uv_layers(mesh_data).new(name="EXTRAUVS" + str(counter))
 
             else:
 
                 Extrauvs.remove(uv_data)
                 print('Extra UV layer %s is ignored. Re-import without "Split UV data".' % counter)
 
-    #================================================================================================== 
-    # Mesh. Build.
+        # ==================================================================================================
+        # Mesh. Build.
 
-        mesh_data.from_pydata(Vertices,[],Faces)
+        mesh_data.from_pydata(Vertices, [], Faces)
 
-    #==================================================================================================
-    # Vertex Normal. Set.
+        # ==================================================================================================
+        # Vertex Normal. Set.
 
         if Normals is not None:
             mesh_data.polygons.foreach_set("use_smooth", [True] * len(mesh_data.polygons))
             mesh_data.normals_split_custom_set_from_vertices(Normals)
             mesh_data.use_auto_smooth = True
 
-    #==============================================================================================
+    # ==============================================================================================
     # UV. Set.
 
     if bImportmesh:
@@ -1076,26 +1073,25 @@ def pskimport(filepath,
 
                 uvLayer.data[loopId].uv = uv
 
-    #==================================================================================================
-    # VertexColors
+        # ==================================================================================================
+        # VertexColors
 
         if VertexColors is not None:
 
-            vtx_color_layer = mesh_data.vertex_colors.new(name = "PSKVTXCOL_0", do_init = False)
+            vtx_color_layer = mesh_data.vertex_colors.new(name="PSKVTXCOL_0", do_init=False)
 
             pervertex = [None] * len(Vertices)
 
             # some_vertex_color_set_more_than_once = False
 
-            for counter, (vertexid,_,_,_) in enumerate(Wedges):
-
+            for counter, (vertexid, _, _, _) in enumerate(Wedges):
                 # We need more than one vertex-color layer, but i'am not sure how to deal with it properly.
 
                 # if not some_vertex_color_set_more_than_once and (
                 #     (pervertex[vertexid] is not None) and (pervertex[vertexid] != VertexColors[counter])
                 # ):
-                    # print('Not equal vertex colors. ', vertexid, pervertex[vertexid], VertexColors[counter])
-                    # some_vertex_color_set_more_than_once = True
+                # print('Not equal vertex colors. ', vertexid, pervertex[vertexid], VertexColors[counter])
+                # some_vertex_color_set_more_than_once = True
 
                 pervertex[vertexid] = VertexColors[counter]
 
@@ -1104,28 +1100,28 @@ def pskimport(filepath,
 
             for counter, loop in enumerate(mesh_data.loops):
 
-                color = pervertex[ loop.vertex_index ]
+                color = pervertex[loop.vertex_index]
 
                 if color is None:
-                    vtx_color_layer.data[ counter ].color = (1.,1.,1.,1.)
+                    vtx_color_layer.data[counter].color = (1., 1., 1., 1.)
                 else:
                     if bToSRGB:
-                        vtx_color_layer.data[ counter ].color = (
+                        vtx_color_layer.data[counter].color = (
                             color_linear_to_srgb(color[0] / 255),
                             color_linear_to_srgb(color[1] / 255),
                             color_linear_to_srgb(color[2] / 255),
                             color[3] / 255
                         )
                     else:
-                        vtx_color_layer.data[ counter ].color = (
+                        vtx_color_layer.data[counter].color = (
                             color[0] / 255,
                             color[1] / 255,
                             color[2] / 255,
                             color[3] / 255
                         )
 
-    #==============================================================================================
-    # Extra UVs. Set.
+        # ==============================================================================================
+        # Extra UVs. Set.
 
         # for counter, uv_data in enumerate(Extrauvs):
 
@@ -1135,47 +1131,39 @@ def pskimport(filepath,
 
         #         uvLayer.data[uv_index].uv = (uv_coords[0], 1.0 - uv_coords[1])
 
-
         for counter, uv_data in enumerate(Extrauvs):
 
-            uvLayer = mesh_data.uv_layers[ counter - len(Extrauvs) ]
+            uvLayer = mesh_data.uv_layers[counter - len(Extrauvs)]
 
-            for faceIdx, (WedgeIdx3,WedgeIdx2,WedgeIdx1) in enumerate(WedgeIdx_by_faceIdx):
-
+            for faceIdx, (WedgeIdx3, WedgeIdx2, WedgeIdx1) in enumerate(WedgeIdx_by_faceIdx):
                 # equal to gltf
-                uvLayer.data[faceIdx*3  ].uv = (uv_data[WedgeIdx2][0], 1.0 - uv_data[WedgeIdx2][1])
-                uvLayer.data[faceIdx*3+1].uv = (uv_data[WedgeIdx1][0], 1.0 - uv_data[WedgeIdx1][1])
-                uvLayer.data[faceIdx*3+2].uv = (uv_data[WedgeIdx3][0], 1.0 - uv_data[WedgeIdx3][1])
-                # uvLayer.data[faceIdx*3  ].uv = (uv_data[WedgeIdx3][0], 1.0 - uv_data[WedgeIdx3][1])
-                # uvLayer.data[faceIdx*3+1].uv = (uv_data[WedgeIdx2][0], 1.0 - uv_data[WedgeIdx2][1])
-                # uvLayer.data[faceIdx*3+2].uv = (uv_data[WedgeIdx1][0], 1.0 - uv_data[WedgeIdx1][1])
+                uvLayer.data[faceIdx * 3].uv = (uv_data[WedgeIdx2][0], 1.0 - uv_data[WedgeIdx2][1])
+                uvLayer.data[faceIdx * 3 + 1].uv = (uv_data[WedgeIdx1][0], 1.0 - uv_data[WedgeIdx1][1])
+                uvLayer.data[faceIdx * 3 + 2].uv = (uv_data[WedgeIdx3][0], 1.0 - uv_data[WedgeIdx3][1])
+        # uvLayer.data[faceIdx*3  ].uv = (uv_data[WedgeIdx3][0], 1.0 - uv_data[WedgeIdx3][1])
+        # uvLayer.data[faceIdx*3+1].uv = (uv_data[WedgeIdx2][0], 1.0 - uv_data[WedgeIdx2][1])
+        # uvLayer.data[faceIdx*3+2].uv = (uv_data[WedgeIdx1][0], 1.0 - uv_data[WedgeIdx1][1])
 
-
-    #==============================================================================================
-    # Mesh. Vertex Groups. Bone Weights.
+        # ==============================================================================================
+        # Mesh. Vertex Groups. Bone Weights.
 
         for psk_bone in psk_bones:
             if psk_bone.have_weight_data:
-                psk_bone.vertex_group = mesh_obj.vertex_groups.new(name = psk_bone.name)
-            # else:
-                # print(psk_bone.name, 'have no influence on this mesh')
+                psk_bone.vertex_group = mesh_obj.vertex_groups.new(name=psk_bone.name)
+        # else:
+        # print(psk_bone.name, 'have no influence on this mesh')
 
         for weight, vertex_id, bone_index_w in filter(None, Weights):
             psk_bones[bone_index_w].vertex_group.add((vertex_id,), weight, 'ADD')
 
-
-    #==============================================================================================
+    # ==============================================================================================
     # Skeleton. Colorize.
 
     if bImportbone:
 
-        bone_group_unused = armature_obj.pose.bone_groups.new(name = "Unused bones")
-        bone_group_unused.color_set = 'THEME14'
+        bone_group_unused = armature_obj.data.collections.new(name="Unused bones")
 
-        bone_group_nochild = armature_obj.pose.bone_groups.new(name = "No children")
-        bone_group_nochild.color_set = 'THEME03'
-
-        armature_data.show_group_colors = True
+        bone_group_nochild = armature_obj.data.collections.new(name="No children")
 
         for psk_bone in psk_bones:
 
@@ -1184,13 +1172,14 @@ def pskimport(filepath,
             if psk_bone.have_weight_data:
 
                 if len(psk_bone.children) == 0:
-                    pose_bone.bone_group = bone_group_nochild
+                    bone_group_nochild.assign(pose_bone)
+                    pose_bone.color.palette = 'THEME03'
 
             else:
-                pose_bone.bone_group = bone_group_unused
+                bone_group_unused.assign(pose_bone)
+                pose_bone.color.palette = 'THEME14'
 
-
-    #==============================================================================================
+    # ==============================================================================================
     # Final
 
     if bImportmesh:
@@ -1198,8 +1187,7 @@ def pskimport(filepath,
         util_obj_link(context, mesh_obj)
         util_select_all(False)
 
-
-        if not bImportbone:   
+        if not bImportbone:
 
             util_obj_select(context, mesh_obj)
             util_obj_set_active(context, mesh_obj)
@@ -1213,7 +1201,7 @@ def pskimport(filepath,
             mesh_obj.parent_type = 'OBJECT'
 
             # add armature modifier
-            blender_modifier = mesh_obj.modifiers.new( armature_obj.data.name, type = 'ARMATURE')
+            blender_modifier = mesh_obj.modifiers.new(armature_obj.data.name, type='ARMATURE')
             blender_modifier.show_expanded = False
             blender_modifier.use_vertex_groups = True
             blender_modifier.use_bone_envelopes = False
@@ -1251,7 +1239,6 @@ class class_psa_bone:
 
 
 def blen_get_armature_from_selection():
-
     armature_obj = None
 
     for obj in bpy.data.objects:
@@ -1271,20 +1258,20 @@ def blen_get_armature_from_selection():
 
 
 def psaimport(filepath,
-        context = None,
-        oArmature = None,
-        bFilenameAsPrefix = False,
-        bActionsToTrack = False,
-        first_frames = 0,
-        bDontInvertRoot = True,
-        bUpdateTimelineRange = False,
-        bRotationOnly = False,
-        bScaleDown = True,
-        fcurve_interpolation = 'LINEAR',
-        bBoneNameCaseSensitiveCmp = True,
-        # error_callback = __pass
-        error_callback = print
-        ):
+              context=None,
+              oArmature=None,
+              bFilenameAsPrefix=False,
+              bActionsToTrack=False,
+              first_frames=0,
+              bDontInvertRoot=True,
+              bUpdateTimelineRange=False,
+              bRotationOnly=False,
+              bScaleDown=True,
+              fcurve_interpolation='LINEAR',
+              bBoneNameCaseSensitiveCmp=True,
+              # error_callback = __pass
+              error_callback=print
+              ):
     """Import animation data from 'filepath' using 'oArmature'
 
     Args:
@@ -1297,33 +1284,29 @@ def psaimport(filepath,
         oArmature:
             Skeleton used to calculate keyframes
     """
-    print ("-----------------------------------------------")
-    print ("---------EXECUTING PSA PYTHON IMPORTER---------")
-    print ("-----------------------------------------------")
+    print("-----------------------------------------------")
+    print("---------EXECUTING PSA PYTHON IMPORTER---------")
+    print("-----------------------------------------------")
 
     file_ext = 'psa'
     try:
         psafile = open(filepath, 'rb')
     except IOError:
-        error_callback('Error while opening file for reading:\n  "'+filepath+'"')
+        error_callback('Error while opening file for reading:\n  "' + filepath + '"')
         return False
 
-    print ("Importing file: ", filepath)
-
+    print("Importing file: ", filepath)
 
     if not context:
         context = bpy.context
 
     armature_obj = oArmature
 
-    if armature_obj is None:  
+    if armature_obj is None:
         armature_obj = blen_get_armature_from_selection()
         if armature_obj is None:
             error_callback("No armature selected.")
             return False
-
-
-
 
     chunk_id = None
     chunk_type = None
@@ -1332,25 +1315,26 @@ def psaimport(filepath,
     chunk_data = None
 
     def read_chunk():
-        nonlocal chunk_id, chunk_type,\
-                 chunk_datasize, chunk_datacount,\
-                 chunk_data
+        nonlocal chunk_id, chunk_type, \
+            chunk_datasize, chunk_datacount, \
+            chunk_data
 
         (chunk_id, chunk_type,
          chunk_datasize, chunk_datacount) = unpack('20s3i', psafile.read(32))
 
         chunk_data = psafile.read(chunk_datacount * chunk_datasize)
-    #============================================================================================== 
+
+    # ==============================================================================================
     # General Header
-    #============================================================================================== 
+    # ==============================================================================================
     read_chunk()
 
     if not util_is_header_valid(filepath, file_ext, chunk_id, error_callback):
         return False
 
-    #============================================================================================== 
+    # ==============================================================================================
     # Bones (FNamedBoneBinary)
-    #============================================================================================== 
+    # ==============================================================================================
     read_chunk()
 
     psa_bones = {}
@@ -1371,27 +1355,27 @@ def psaimport(filepath,
             else:
                 psa_bone.parent = None
         # else:
-            # psa_bone.parent = None
+        # psa_bone.parent = None
 
         # brute fix for non psk skeletons
         if bone.get('orig_quat') is None:
 
             if bone.parent != None:
 
-                psa_bone.orig_loc  =  bone.matrix_local.translation - bone.parent.matrix_local.translation
-                psa_bone.orig_loc.rotate( bone.parent.matrix_local.to_quaternion().conjugated() )
+                psa_bone.orig_loc = bone.matrix_local.translation - bone.parent.matrix_local.translation
+                psa_bone.orig_loc.rotate(bone.parent.matrix_local.to_quaternion().conjugated())
 
                 psa_bone.orig_quat = bone.matrix_local.to_quaternion()
-                psa_bone.orig_quat.rotate( bone.parent.matrix_local.to_quaternion().conjugated()  )
+                psa_bone.orig_quat.rotate(bone.parent.matrix_local.to_quaternion().conjugated())
                 psa_bone.orig_quat.conjugate()
             else:
-                psa_bone.orig_loc  = bone.matrix_local.translation.copy()
+                psa_bone.orig_loc = bone.matrix_local.translation.copy()
                 psa_bone.orig_quat = bone.matrix_local.to_quaternion()
 
             psa_bone.post_quat = psa_bone.orig_quat.conjugated()
         else:
             psa_bone.orig_quat = Quaternion(bone['orig_quat'])
-            psa_bone.orig_loc  =     Vector(bone['orig_loc'])
+            psa_bone.orig_loc = Vector(bone['orig_loc'])
             psa_bone.post_quat = Quaternion(bone['post_quat'])
 
         return psa_bone
@@ -1402,17 +1386,16 @@ def psaimport(filepath,
 
     # psA bone index -> psK sekleton bones
     PsaBonesToProcess = [None] * chunk_datacount
-    BonePsaImportedNames = [] # to count duplicated names
+    BonePsaImportedNames = []  # to count duplicated names
 
     # printlog("Name\tFlgs\tNumChld\tPrntIdx\tQx\tQy\tQz\tQw\tLocX\tLocY\tLocZ\tLength\tXSize\tYSize\tZSize\n")
-
 
     # For case insensitive comparison
     # key = lowered name
     # value = orignal name
     skeleton_bones_lowered = {}
 
-    # _cmp = case-sensitivity agnostic (points to case Sensitive OR inSensitive name depending on bBoneNameCaseSensitiveCmp) 
+    # _cmp = case-sensitivity agnostic (points to case Sensitive OR inSensitive name depending on bBoneNameCaseSensitiveCmp)
     skeleton_bone_names_cmp = None
 
     if not bBoneNameCaseSensitiveCmp:
@@ -1438,7 +1421,6 @@ def psaimport(filepath,
 
         # Check if bone exists in psk-skeleton
         if name_cmp not in skeleton_bone_names_cmp:
-
             # print("Can't find the bone:", name_cmp, psk_bone_name)
             # BoneNotFoundList.append(counter)
             continue
@@ -1449,10 +1431,9 @@ def psaimport(filepath,
         else:
             psk_bone_name = skeleton_bone_names_cmp[name_cmp]
 
-
         # If psA have duplicated names, check if psK have them too
         # (<bone_name>.001, .002, .003... etc.)
-        count_duplicates = BonePsaImportedNames.count( name_cmp ) # not efficient
+        count_duplicates = BonePsaImportedNames.count(name_cmp)  # not efficient
 
         if count_duplicates > 0:
 
@@ -1468,20 +1449,17 @@ def psaimport(filepath,
                 BonePsaImportedNames.append(name_cmp)
                 continue
 
-
         # BoneIndex2Name[counter] = psk_bone_name
 
         # Bind psA("counter" is the index of bone) data to psK skeleton
-        PsaBonesToProcess[counter] = new_psa_bone(armature_obj.data.bones[psk_bone_name], 
+        PsaBonesToProcess[counter] = new_psa_bone(armature_obj.data.bones[psk_bone_name],
                                                   armature_obj.pose.bones[psk_bone_name],
                                                   counter)
         BonePsaImportedNames.append(name_cmp)
 
-
     if len(psa_bones) == 0:
         error_callback('No bone was match!\nSkip import!')
         return False
-
 
     # does anyone care?
     # BonesWithoutAnimation = []
@@ -1495,39 +1473,38 @@ def psaimport(filepath,
     # if len(BoneNotFoundList) > 0:
     #     print('PSA have data for more bones: %i.' % len(BoneNotFoundList))
 
-    #============================================================================================== 
+    # ==============================================================================================
     # Animations (AniminfoBinary)
-    #============================================================================================== 
+    # ==============================================================================================
     read_chunk()
 
     Raw_Key_Nums = 0
     Action_List = [None] * chunk_datacount
 
     for counter in range(chunk_datacount):
-        (action_name_raw,        #0
-         group_name_raw,         #1
-         Totalbones,             #2
-         RootInclude,            #3
-         KeyCompressionStyle,    #4
-         KeyQuotum,              #5
-         KeyReduction,           #6
-         TrackTime,              #7
-         AnimRate,               #8
-         StartBone,              #9
-         FirstRawFrame,          #10
-         NumRawFrames            #11
-        ) = unpack_from('64s64s4i3f3i', chunk_data, chunk_datasize * counter)
+        (action_name_raw,  # 0
+         group_name_raw,  # 1
+         Totalbones,  # 2
+         RootInclude,  # 3
+         KeyCompressionStyle,  # 4
+         KeyQuotum,  # 5
+         KeyReduction,  # 6
+         TrackTime,  # 7
+         AnimRate,  # 8
+         StartBone,  # 9
+         FirstRawFrame,  # 10
+         NumRawFrames  # 11
+         ) = unpack_from('64s64s4i3f3i', chunk_data, chunk_datasize * counter)
 
-        action_name = util_bytes_to_str( action_name_raw )
-        group_name = util_bytes_to_str( group_name_raw  )
+        action_name = util_bytes_to_str(action_name_raw)
+        group_name = util_bytes_to_str(group_name_raw)
 
         Raw_Key_Nums += Totalbones * NumRawFrames
-        Action_List[counter] = ( action_name, group_name, Totalbones, NumRawFrames)
+        Action_List[counter] = (action_name, group_name, Totalbones, NumRawFrames)
 
-
-    #==================
+    # ==================
     # .config parsing
-    #==================
+    # ==================
     UseAnimTranslation = [True] * len(PsaBonesToProcess)
     config_exists = False
     AnimFlagsExists = False
@@ -1540,7 +1517,7 @@ def psaimport(filepath,
 
     if config_exists:
         lines = config_file.read()
-        lines = lines.splitlines() #lazy solution
+        lines = lines.splitlines()  # lazy solution
         config_file.close()
 
         from collections import namedtuple
@@ -1561,7 +1538,7 @@ def psaimport(filepath,
             elif line == "[UseTranslationBoneNames]":
 
                 mode = 2
-                continue 
+                continue
 
             elif line == "[ForceMeshTranslationBoneNames]":
 
@@ -1572,20 +1549,19 @@ def psaimport(filepath,
 
                 mode = 4
                 for (action_name, _, total_bones, _) in Action_List:
-                    AnimFlags[action_name] = [Flags(no_translation = False, no_rotation = False)] * total_bones
+                    AnimFlags[action_name] = [Flags(no_translation=False, no_rotation=False)] * total_bones
                 AnimFlagsExists = True
                 continue
 
             elif line == "":
                 continue
 
-
             if mode == 0:
 
                 # error_callback('.config file parsing failed. Not implemented "'+line+'" ?:\n  "'+filepath+'"')
                 if len(line) > 3:
-                    if line[0]=='[':
-                        print('.config file parsing error: Not implemented: "'+line+'"')
+                    if line[0] == '[':
+                        print('.config file parsing error: Not implemented: "' + line + '"')
                 continue
 
             elif mode == 1:
@@ -1595,64 +1571,63 @@ def psaimport(filepath,
                     # from ActorXImporter: 1584 "-- root bone is always translated, start with index 2 below"
                     UseAnimTranslation[0] = True
 
-            elif mode == 2: # UseTranslationBoneNames
+            elif mode == 2:  # UseTranslationBoneNames
 
                 if bBoneNameCaseSensitiveCmp:
                     bone_name = line
                 else:
-                    bone_name = skeleton_bones_lowered.get( line.lower() )
+                    bone_name = skeleton_bones_lowered.get(line.lower())
                     if bone_name is None:
                         continue
 
-                bone = psa_bones.get( bone_name )
+                bone = psa_bones.get(bone_name)
                 if bone == None:
                     continue
 
                 UseAnimTranslation[bone.psa_index] = True
 
-            elif mode == 3: # ForceMeshTranslationBoneNames
+            elif mode == 3:  # ForceMeshTranslationBoneNames
 
                 if bBoneNameCaseSensitiveCmp:
                     bone_name = line
                 else:
-                    bone_name = skeleton_bones_lowered.get( line.lower() )
+                    bone_name = skeleton_bones_lowered.get(line.lower())
                     if bone_name is None:
                         continue
 
-                bone = psa_bones.get( bone_name )
+                bone = psa_bones.get(bone_name)
                 if bone == None:
                     continue
 
                 UseAnimTranslation[bone.psa_index] = False
 
-            elif mode == 4: # RemoveTracks
+            elif mode == 4:  # RemoveTracks
                 # example: BE_Attack01_BOW.89=all
-                (action_name_and_bone_idx, _,flag_str) = line.partition("=")
-                (action_name, _,bone_index) = action_name_and_bone_idx.partition(".")
+                (action_name_and_bone_idx, _, flag_str) = line.partition("=")
+                (action_name, _, bone_index) = action_name_and_bone_idx.partition(".")
 
                 bone_index = int(bone_index)
 
-                if   flag_str[0] == 'a': #all
+                if flag_str[0] == 'a':  # all
                     AnimFlags[action_name][bone_index] = Flags(True, True)
-                elif flag_str[0] == 't': #trans
+                elif flag_str[0] == 't':  # trans
                     AnimFlags[action_name][bone_index].no_translation = True
-                elif flag_str[0] == 'r': #rot
+                elif flag_str[0] == 'r':  # rot
                     AnimFlags[action_name][bone_index].no_rotation = True
 
-                # print(AnimFlags[action_name][bone_index])
+    # print(AnimFlags[action_name][bone_index])
 
-
-    #============================================================================================== 
+    # ==============================================================================================
     # Raw keys (VQuatAnimKey) 3f vec, 4f quat, 1f time
-    #============================================================================================== 
+    # ==============================================================================================
     read_chunk()
 
     if Raw_Key_Nums != chunk_datacount:
         error_callback(
-                'Raw_Key_Nums Inconsistent.'
-                '\nData count found: '+chunk_datacount+
-                '\nRaw_Key_Nums:' + Raw_Key_Nums
-                )
+            'Raw_Key_Nums Inconsistent.'
+            '\nData count found: ' + chunk_datacount +
+            '\nRaw_Key_Nums:' + Raw_Key_Nums
+        )
         return False
 
     Raw_Key_List = [None] * chunk_datacount
@@ -1663,9 +1638,9 @@ def psaimport(filepath,
         pos = Vector()
         quat = Quaternion()
 
-        ( pos.x,  pos.y,  pos.z,
+        (pos.x, pos.y, pos.z,
          quat.x, quat.y, quat.z, quat.w
-        ) = unpack_data( chunk_data, chunk_datasize * counter)
+         ) = unpack_data(chunk_data, chunk_datasize * counter)
 
         if bScaleDown:
             Raw_Key_List[counter] = (pos * 0.01, quat)
@@ -1698,7 +1673,6 @@ def psaimport(filepath,
                     if track.strips[-1].frame_end > nla_track_last_frame:
                         nla_track_last_frame = track.strips[-1].frame_end
 
-
     is_first_action = True
     first_action = None
 
@@ -1713,24 +1687,24 @@ def psaimport(filepath,
         if bFilenameAsPrefix:
             action_name = "(%s) %s" % (gen_name_part, action_name)
 
-        action = bpy.data.actions.new(name = action_name)
+        action = bpy.data.actions.new(name=action_name)
 
         # force print usefull information to console(due to possible long execution)
         print("Action {0:>3d}/{1:<3d} frames: {2:>4d} {3}".format(
-                counter+1, len(Action_List), NumRawFrames, action_name)
-              )
+            counter + 1, len(Action_List), NumRawFrames, action_name)
+        )
 
         if first_frames > 0:
             maxframes = first_frames
             keyframes = min(first_frames, NumRawFrames)
-            #dev
-            # keyframes += 1
+        # dev
+        # keyframes += 1
         else:
             maxframes = 99999999
             keyframes = NumRawFrames
 
         # if config_exists:
-            # if Name in ActionFlags:
+        # if Name in ActionFlags:
         if AnimFlagsExists:
             ActionFlags = AnimFlags[Name]
 
@@ -1741,16 +1715,17 @@ def psaimport(filepath,
                 continue
             pose_bone = psa_bone.pose_bone
 
-            bone_import_rot =   (not AnimFlagsExists) or (AnimFlagsExists and ActionFlags[psa_bone.psa_index].no_rotation    == False)
-            bone_import_trans = (not AnimFlagsExists) or (AnimFlagsExists and ActionFlags[psa_bone.psa_index].no_translation == False)
+            bone_import_rot = (not AnimFlagsExists) or (
+                    AnimFlagsExists and ActionFlags[psa_bone.psa_index].no_rotation == False)
+            bone_import_trans = (not AnimFlagsExists) or (
+                    AnimFlagsExists and ActionFlags[psa_bone.psa_index].no_translation == False)
 
             if bone_import_rot:
                 data_path = pose_bone.path_from_id("rotation_quaternion")
-                psa_bone.fcurve_quat_w = action.fcurves.new(data_path, index = 0)
-                psa_bone.fcurve_quat_x = action.fcurves.new(data_path, index = 1)
-                psa_bone.fcurve_quat_y = action.fcurves.new(data_path, index = 2)
-                psa_bone.fcurve_quat_z = action.fcurves.new(data_path, index = 3)
-
+                psa_bone.fcurve_quat_w = action.fcurves.new(data_path, index=0)
+                psa_bone.fcurve_quat_x = action.fcurves.new(data_path, index=1)
+                psa_bone.fcurve_quat_y = action.fcurves.new(data_path, index=2)
+                psa_bone.fcurve_quat_z = action.fcurves.new(data_path, index=3)
 
                 # 1. Pre-add keyframes! \0/
                 # 2. Set data: keyframe_points[].co[0..1]
@@ -1767,17 +1742,15 @@ def psaimport(filepath,
                 if UseAnimTranslation[psa_bone.psa_index]:
                     if bone_import_trans:
                         data_path = pose_bone.path_from_id("location")
-                        psa_bone.fcurve_loc_x = action.fcurves.new(data_path, index = 0)
-                        psa_bone.fcurve_loc_y = action.fcurves.new(data_path, index = 1)
-                        psa_bone.fcurve_loc_z = action.fcurves.new(data_path, index = 2)
-
+                        psa_bone.fcurve_loc_x = action.fcurves.new(data_path, index=0)
+                        psa_bone.fcurve_loc_y = action.fcurves.new(data_path, index=1)
+                        psa_bone.fcurve_loc_z = action.fcurves.new(data_path, index=2)
 
                         psa_bone.fcurve_loc_x.keyframe_points.add(keyframes)
                         psa_bone.fcurve_loc_y.keyframe_points.add(keyframes)
                         psa_bone.fcurve_loc_z.keyframe_points.add(keyframes)
 
-
-        for i in range(0,min(maxframes, NumRawFrames)):
+        for i in range(0, min(maxframes, NumRawFrames)):
             # raw_key_index+= Totalbones * 5 #55
             for j in range(Totalbones):
                 # if j in BoneNotFoundList:
@@ -1791,31 +1764,29 @@ def psaimport(filepath,
 
                 # @
                 # if psa_bone.parent:
-                    # quat = (p_quat * psa_bone.post_quat).conjugated() * (psa_bone.orig_quat * psa_bone.post_quat)
+                # quat = (p_quat * psa_bone.post_quat).conjugated() * (psa_bone.orig_quat * psa_bone.post_quat)
                 # else:
                 #     if bDontInvertRoot:
                 #         quat = (p_quat.conjugated() * psa_bone.post_quat).conjugated() * (psa_bone.orig_quat * psa_bone.post_quat)
                 #     else:
-                        # quat = (p_quat * psa_bone.post_quat).conjugated() * (psa_bone.orig_quat * psa_bone.post_quat)
-
+                # quat = (p_quat * psa_bone.post_quat).conjugated() * (psa_bone.orig_quat * psa_bone.post_quat)
 
                 if (not AnimFlagsExists) or (AnimFlagsExists and ActionFlags[j].no_rotation == False):
                     p_quat = Raw_Key_List[raw_key_index][1]
 
                     q = psa_bone.post_quat.copy()
-                    q.rotate( psa_bone.orig_quat )
+                    q.rotate(psa_bone.orig_quat)
 
                     quat = q
 
                     q = psa_bone.post_quat.copy()
 
                     if psa_bone.parent == None and bDontInvertRoot:
-                        q.rotate( p_quat.conjugated() )
+                        q.rotate(p_quat.conjugated())
                     else:
-                        q.rotate( p_quat )
+                        q.rotate(p_quat)
 
-                    quat.rotate( q.conjugated() )
-
+                    quat.rotate(q.conjugated())
 
                     psa_bone.fcurve_quat_w.keyframe_points[i].co = i, quat.w
                     psa_bone.fcurve_quat_x.keyframe_points[i].co = i, quat.x
@@ -1833,15 +1804,13 @@ def psaimport(filepath,
                 if not bRotationOnly:
                     if UseAnimTranslation[j]:
                         if (not AnimFlagsExists) or (AnimFlagsExists and ActionFlags[j].no_translation == False):
-
                             p_pos = Raw_Key_List[raw_key_index][0]
 
                             loc = (p_pos - psa_bone.orig_loc)
                             # "edit bone" location is in "parent space"
                             # but "pose bone" location is in "local space(bone)"
                             # so we need to transform from parent(edit_bone) to local space (pose_bone)
-                            loc.rotate( psa_bone.post_quat.conjugated() )
-
+                            loc.rotate(psa_bone.post_quat.conjugated())
 
                             psa_bone.fcurve_loc_x.keyframe_points[i].co = i, loc.x
                             psa_bone.fcurve_loc_y.keyframe_points[i].co = i, loc.y
@@ -1866,9 +1835,9 @@ def psaimport(filepath,
                 # psa_bone.fcurve_loc_z.keyframe_points.insert(i,loc.z,{'NEEDED','FAST'}).interpolation = fcurve_interpolation
                 raw_key_index += 1
 
-            # on first frame
-            # break
-        raw_key_index += (NumRawFrames-min(maxframes,NumRawFrames)) * Totalbones
+        # on first frame
+        # break
+        raw_key_index += (NumRawFrames - min(maxframes, NumRawFrames)) * Totalbones
 
         # Add action to tail of the nla track
         if bActionsToTrack:
@@ -1888,8 +1857,8 @@ def psaimport(filepath,
             is_first_action = False
 
         print("Done: %f sec." % (time.process_time() - ref_time))
-        # break on first animation set
-        # break
+    # break on first animation set
+    # break
 
     scene = util_get_scene(context)
 
@@ -1906,23 +1875,25 @@ def psaimport(filepath,
         else:
             scene.frame_end = max(frames for _, _, _, frames in Action_List) - 1
 
-
     util_select_all(False)
     util_obj_select(context, armature_obj)
     util_obj_set_active(context, armature_obj)
 
-    # 2.8 crashes
-    # scene.frame_set(0)
+
+# 2.8 crashes
+# scene.frame_set(0)
+
 
 class PSKPSA_OT_show_message(bpy.types.Operator):
     bl_idname = "pskpsa.message"
     bl_label = "PSA/PSK"
     bl_options = {'REGISTER', 'INTERNAL'}
 
-    message : StringProperty(default = 'Message')
+    message: StringProperty(default='Message')
 
     lines = []
     line0 = None
+
     def execute(self, context):
         self.lines = self.message.split("\n")
         maxlen = 0
@@ -1944,7 +1915,7 @@ class PSKPSA_OT_show_message(bpy.types.Operator):
 
         self.line0 = self.lines.pop(0)
 
-        return context.window_manager.invoke_props_dialog(self, width = 100 + 6*maxlen)
+        return context.window_manager.invoke_props_dialog(self, width=100 + 6 * maxlen)
 
     def cancel(self, context):
         # print('cancel')
@@ -1953,93 +1924,92 @@ class PSKPSA_OT_show_message(bpy.types.Operator):
     def draw(self, context):
         layout = self.layout
         sub = layout.column()
-        sub.label(text = self.line0, icon = 'ERROR')
+        sub.label(text=self.line0, icon='ERROR')
 
         for line in self.lines:
-            sub.label(text = line)
+            sub.label(text=line)
 
 
-#properties for panels, and Operator.
+# properties for panels, and Operator.
 class ImportProps():
-
-    fBonesize : FloatProperty(
-            name = "Alt. bone length.",
-            description = "Bone length will be set to this value IF it's less than [Corrected avg. bone length]\nBone length = min( <this value> , [Corrected avg. bone length] )",
-            default = 5.0, min = 0.01, max = 50, step = 0.3, precision = 2,
-            )
-    fBonesizeRatio : FloatProperty(
-            name = "Bone length ratio",
-            description = "Bone length will be set to this value IF it's less than  Corrected avg. bone length = <this value> * [calculated average bone length]",
-            default = 0.4, min = 0.1, max = 4, step = 0.05, precision = 2,
-            )
-    bSpltiUVdata : BoolProperty(
-            name = "Split UV data",
-            description = "Try to place UV points(coords) to different UV maps, according to material index of the Wedge(UV-Vertex-MateralIndex)."\
-                    "\n * Each UVmap will still have the same amount of points(data/coords)."\
+    fBonesize: FloatProperty(
+        name="Alt. bone length.",
+        description="Bone length will be set to this value IF it's less than [Corrected avg. bone length]\nBone length = min( <this value> , [Corrected avg. bone length] )",
+        default=5.0, min=0.01, max=50, step=0.3, precision=2,
+    )
+    fBonesizeRatio: FloatProperty(
+        name="Bone length ratio",
+        description="Bone length will be set to this value IF it's less than  Corrected avg. bone length = <this value> * [calculated average bone length]",
+        default=0.4, min=0.1, max=4, step=0.05, precision=2,
+    )
+    bSpltiUVdata: BoolProperty(
+        name="Split UV data",
+        description="Try to place UV points(coords) to different UV maps, according to material index of the Wedge(UV-Vertex-MateralIndex)." \
+                    "\n * Each UVmap will still have the same amount of points(data/coords)." \
                     "\n * Blender can have only 8 UVs per mesh. So it is not enough to have different UVmap for each material.",
-            default = False,
-            )
-    bReorientBones : BoolProperty(
-            name = "Reorient bones",
-            description = "Bones will be axis-aligned to children.",
-            default = False,
-            )
-    bReorientDirectly : BoolProperty(
-            name = "Reorient directly",
-            description = "Directly to children.\n * Axes will not be preserved.\n * Orphan bones - in direction from parent head\n * With only one non-orphan bone - to that one.",
-            default = False,
-            ) 
-    import_mode : EnumProperty(
-            name = "Import mode.",
-            items = (('All','All','Import mesh and skeleton'),
-                    ('Mesh','Mesh','Import only mesh'),
-                    ('Skel','Skel','Import only skeleton'))
-            )
-    bDontInvertRoot : BoolProperty(
-            name = "Don't invert root bone",
-            description = " * Used by PSK and PSA.\n * Uncheck it, if skeleton is badly oriented.",
-            default = True,
-            )
-    bFilenameAsPrefix :  BoolProperty(
-            name = "Prefix action names",
-            description = "Use the filename as a prefix for the action name.",
-            default = False,
-            )
-    bActionsToTrack : BoolProperty(
-            name = "All actions to NLA track",
-            description = "Add all imported actions to new NLAtrack. One by one.\nStarting at the very end.\nLook at \"Nonlinear Animation\" editor.",
-            default = False,
-            )
-    bUpdateTimelineRange : BoolProperty(
-            name = "Update timeline range",
-            description = "Set timeline range to match imported action[s] length.\n * If \"All actions to NLA track\" is disabled, range will be set to hold the longest action.",
-            default = False,
-            )
-    bRotationOnly : BoolProperty(
-            name = "Rotation only",
-            description = "Create only rotation keyframes.",
-            default = False,
-            )
-    bScaleDown : BoolProperty(
-            name = "Scale down",
-            description = " * Used by PSK and PSA.\n * Multiply coordinates by 0.01\n * From \"cm.\" to \"m.\"",
-            default = True,
-            )
-    bToSRGB : BoolProperty(
-            name = "sRGB vertex color",
-            description = "Apply 'linear RGB -> sRGB' conversion over vertex colors",
-            default = True,
-            )
-    bBoneNameCaseSensitiveCmp : BoolProperty(
-            name = "Case-Sensitive",
-            description = "Perform case-sensitive bone name comparison when importing animations.",
-            default = True,
-            )
+        default=False,
+    )
+    bReorientBones: BoolProperty(
+        name="Reorient bones",
+        description="Bones will be axis-aligned to children.",
+        default=False,
+    )
+    bReorientDirectly: BoolProperty(
+        name="Reorient directly",
+        description="Directly to children.\n * Axes will not be preserved.\n * Orphan bones - in direction from parent head\n * With only one non-orphan bone - to that one.",
+        default=False,
+    )
+    import_mode: EnumProperty(
+        name="Import mode.",
+        items=(('All', 'All', 'Import mesh and skeleton'),
+               ('Mesh', 'Mesh', 'Import only mesh'),
+               ('Skel', 'Skel', 'Import only skeleton'))
+    )
+    bDontInvertRoot: BoolProperty(
+        name="Don't invert root bone",
+        description=" * Used by PSK and PSA.\n * Uncheck it, if skeleton is badly oriented.",
+        default=True,
+    )
+    bFilenameAsPrefix: BoolProperty(
+        name="Prefix action names",
+        description="Use the filename as a prefix for the action name.",
+        default=False,
+    )
+    bActionsToTrack: BoolProperty(
+        name="All actions to NLA track",
+        description="Add all imported actions to new NLAtrack. One by one.\nStarting at the very end.\nLook at \"Nonlinear Animation\" editor.",
+        default=False,
+    )
+    bUpdateTimelineRange: BoolProperty(
+        name="Update timeline range",
+        description="Set timeline range to match imported action[s] length.\n * If \"All actions to NLA track\" is disabled, range will be set to hold the longest action.",
+        default=False,
+    )
+    bRotationOnly: BoolProperty(
+        name="Rotation only",
+        description="Create only rotation keyframes.",
+        default=False,
+    )
+    bScaleDown: BoolProperty(
+        name="Scale down",
+        description=" * Used by PSK and PSA.\n * Multiply coordinates by 0.01\n * From \"cm.\" to \"m.\"",
+        default=True,
+    )
+    bToSRGB: BoolProperty(
+        name="sRGB vertex color",
+        description="Apply 'linear RGB -> sRGB' conversion over vertex colors",
+        default=True,
+    )
+    bBoneNameCaseSensitiveCmp: BoolProperty(
+        name="Case-Sensitive",
+        description="Perform case-sensitive bone name comparison when importing animations.",
+        default=True,
+    )
 
     def draw_psk(self, context):
         props = bpy.context.scene.pskpsa_import
         layout = self.layout
-        layout.prop(props, 'import_mode', expand = True)
+        layout.prop(props, 'import_mode', expand=True)
         layout.prop(props, 'bReorientBones')
 
         sub = layout.row()
@@ -2052,7 +2022,7 @@ class ImportProps():
         # layout.prop(props, 'bDontInvertRoot', icon = 'ERROR' if props.bDontInvertRoot else 'NONE')
         sub.prop(props, 'bDontInvertRoot')
         if not props.bDontInvertRoot:
-            sub.label(text = "", icon = 'ERROR')
+            sub.label(text="", icon='ERROR')
 
         layout.prop(props, 'bScaleDown')
         layout.prop(props, 'bToSRGB')
@@ -2062,16 +2032,20 @@ class ImportProps():
     def draw_psa(self, context):
         props = context.scene.pskpsa_import
         layout = self.layout
-        layout.prop(props,'bActionsToTrack')
-        layout.prop(props,'bFilenameAsPrefix')
-        layout.prop(props,'bUpdateTimelineRange')
-        layout.prop(props,'bRotationOnly')
-        layout.prop(props,'bBoneNameCaseSensitiveCmp')
-        # layout.prop(props, 'bDontInvertRoot')
-        # layout.separator()
+        layout.prop(props, 'bActionsToTrack')
+        layout.prop(props, 'bFilenameAsPrefix')
+        layout.prop(props, 'bUpdateTimelineRange')
+        layout.prop(props, 'bRotationOnly')
+        layout.prop(props, 'bBoneNameCaseSensitiveCmp')
+
+
+# layout.prop(props, 'bDontInvertRoot')
+# layout.separator()
+
 
 class PskImportOptions(bpy.types.PropertyGroup, ImportProps):
     pass
+
 
 def blen_hide_unused(armature_obj, mesh_obj):
     def is_bone_useless(psa_bone):
@@ -2084,7 +2058,7 @@ def blen_hide_unused(armature_obj, mesh_obj):
                 is_useless = is_bone_useless(psa_bone_child)
                 if not is_useless:
                     is_useless = False
-                    # break
+        # break
         # print(psa_bone.name, is_useless)
         if is_useless:
             psa_bone.hide = True
@@ -2115,37 +2089,38 @@ class PSKPSA_OT_hide_unused_bones(bpy.types.Operator):
         elif context.object.type == 'ARMATURE':
             for obj in bpy.context.selected_objects:
                 if obj.type == 'MESH':
-                  for modifier in obj.modifiers:
-                    if modifier.type == 'ARMATURE':
-                      if modifier.object == context.object:
-                          blen_hide_unused(
-                                      context.object, context.object)
-                      return {'FINISHED'}
+                    for modifier in obj.modifiers:
+                        if modifier.type == 'ARMATURE':
+                            if modifier.object == context.object:
+                                blen_hide_unused(
+                                    context.object, context.object)
+                            return {'FINISHED'}
 
         return {'FINISHED'}
 
 
 class IMPORT_OT_psk(bpy.types.Operator, ImportProps):
-
     bl_idname = "import_scene.psk"
     bl_label = "Import PSK"
     bl_space_type = "PROPERTIES"
     bl_region_type = "WINDOW"
     bl_options = {'UNDO'}
 
-    filepath : StringProperty(
-            subtype = 'FILE_PATH',
-            )
-    filter_glob : StringProperty(
-            default = "*.psk;*.pskx",
-            options = {'HIDDEN'},
-            )
-    files : bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
-    directory : bpy.props.StringProperty(subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    filepath: StringProperty(
+        subtype='FILE_PATH',
+    )
+    filter_glob: StringProperty(
+        default="*.psk;*.pskx",
+        options={'HIDDEN'},
+    )
+    files: bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory: bpy.props.StringProperty(subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
 
     def draw(self, context):
         self.draw_psk(context)
-        # self.layout.prop(context.scene.pskpsa_import, 'bDontInvertRoot')
+
+    # self.layout.prop(context.scene.pskpsa_import, 'bDontInvertRoot')
+
     # draw = ImportProps.draw_psk
 
     def execute(self, context):
@@ -2161,7 +2136,7 @@ class IMPORT_OT_psk(bpy.types.Operator, ImportProps):
         #         "bUpdateTimelineRange",
         #         "bRotationOnly",
         #         "bBoneNameCaseSensitiveCmp",
-        #         "files", 
+        #         "files",
         #         "directory",
         #         "filepath"
         #         )
@@ -2182,7 +2157,7 @@ class IMPORT_OT_psk(bpy.types.Operator, ImportProps):
         # keywords["bImportmesh"] = bImportmesh
 
         # no_errors = pskimport( **keywords )
-    
+
         # print(keywords)
         # print(props.as_keywords())
         props = bpy.context.scene.pskpsa_import
@@ -2202,19 +2177,19 @@ class IMPORT_OT_psk(bpy.types.Operator, ImportProps):
 
         def pskimport_proxy():
             nonlocal props, fpath, context, bImportbone, bImportmesh
-            return pskimport( 
-                            filepath = fpath,
-                            context = context,
-                            bImportmesh = bImportmesh, bImportbone = bImportbone,
-                            fBonesize = props.fBonesize,
-                            fBonesizeRatio = props.fBonesizeRatio,
-                            bSpltiUVdata = props.bSpltiUVdata,
-                            bReorientBones = props.bReorientBones,
-                            bReorientDirectly = props.bReorientDirectly,
-                            bDontInvertRoot = props.bDontInvertRoot,
-                            bScaleDown = props.bScaleDown,
-                            bToSRGB = props.bToSRGB,
-                            error_callback = util_ui_show_msg)
+            return pskimport(
+                filepath=fpath,
+                context=context,
+                bImportmesh=bImportmesh, bImportbone=bImportbone,
+                fBonesize=props.fBonesize,
+                fBonesizeRatio=props.fBonesizeRatio,
+                bSpltiUVdata=props.bSpltiUVdata,
+                bReorientBones=props.bReorientBones,
+                bReorientDirectly=props.bReorientDirectly,
+                bDontInvertRoot=props.bDontInvertRoot,
+                bScaleDown=props.bScaleDown,
+                bToSRGB=props.bToSRGB,
+                error_callback=util_ui_show_msg)
 
         if self.files:
             dirname = path.dirname(self.filepath)
@@ -2227,11 +2202,11 @@ class IMPORT_OT_psk(bpy.types.Operator, ImportProps):
             fpath = self.filepath
             no_errors = pskimport_proxy
 
-            # no_errors = pskimport(
-            #                 filepath = self.filepath,
-            #                 context = context,
-            #                 error_callback = util_ui_show_msg,
-            #                 **keywords )
+        # no_errors = pskimport(
+        #                 filepath = self.filepath,
+        #                 context = context,
+        #                 error_callback = util_ui_show_msg,
+        #                 **keywords )
 
         if not no_errors:
             return {'CANCELLED'}
@@ -2252,15 +2227,15 @@ class IMPORT_OT_psa(bpy.types.Operator, ImportProps):
     bl_region_type = "WINDOW"
     bl_options = {'UNDO'}
 
-    filepath : StringProperty(
-            subtype = 'FILE_PATH',
-            )
-    filter_glob : StringProperty(
-            default = "*.psa",
-            options = {'HIDDEN'},
-            )
-    files : bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
-    directory : bpy.props.StringProperty(subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
+    filepath: StringProperty(
+        subtype='FILE_PATH',
+    )
+    filter_glob: StringProperty(
+        default="*.psa",
+        options={'HIDDEN'},
+    )
+    files: bpy.props.CollectionProperty(type=bpy.types.OperatorFileListElement, options={'HIDDEN', 'SKIP_SAVE'})
+    directory: bpy.props.StringProperty(subtype='FILE_PATH', options={'HIDDEN', 'SKIP_SAVE'})
 
     def draw(self, context):
         self.draw_psa(context)
@@ -2281,7 +2256,7 @@ class IMPORT_OT_psa(bpy.types.Operator, ImportProps):
         #             "bReorientDirectly",
         #             "bToSRGB",
         #             "filter_glob",
-        #             "files", 
+        #             "files",
         #             "directory",
         #             "filepath"
         #             )
@@ -2291,18 +2266,18 @@ class IMPORT_OT_psa(bpy.types.Operator, ImportProps):
         def psaimport_proxy():
             nonlocal props, fpath, context
             return psaimport(
-                    filepath = fpath,
-                    context = context,
-                    bFilenameAsPrefix = props.bFilenameAsPrefix, 
-                    bActionsToTrack = props.bActionsToTrack, 
-                    oArmature = blen_get_armature_from_selection(),
-                    bDontInvertRoot = props.bDontInvertRoot,
-                    bUpdateTimelineRange = props.bUpdateTimelineRange,
-                    bRotationOnly = props.bRotationOnly,
-                    bScaleDown = props.bScaleDown,
-                    bBoneNameCaseSensitiveCmp = props.bBoneNameCaseSensitiveCmp,
-                    error_callback = util_ui_show_msg,
-                )
+                filepath=fpath,
+                context=context,
+                bFilenameAsPrefix=props.bFilenameAsPrefix,
+                bActionsToTrack=props.bActionsToTrack,
+                oArmature=blen_get_armature_from_selection(),
+                bDontInvertRoot=props.bDontInvertRoot,
+                bUpdateTimelineRange=props.bUpdateTimelineRange,
+                bRotationOnly=props.bRotationOnly,
+                bScaleDown=props.bScaleDown,
+                bBoneNameCaseSensitiveCmp=props.bBoneNameCaseSensitiveCmp,
+                error_callback=util_ui_show_msg,
+            )
 
         if self.files:
             dirname = path.dirname(self.filepath)
@@ -2328,57 +2303,59 @@ class IMPORT_OT_psa(bpy.types.Operator, ImportProps):
         wm.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
+
 class PSKPSA_PT_import_panel(bpy.types.Panel, ImportProps):
     bl_label = "PSK/PSA Import"
-    bl_idname = "VIEW3D_PT_udk_import_280"
+    bl_idname = "VIEW3D_PT_udk_import_284"
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = "PSK / PSA"
 
     # @classmethod
     # def poll(cls, context):
-        # print(context.scene.get('pskpsa_import'),'poll')
-        # context.scene.update_tag()
-        # context.scene.update()
-        # return context.scene.get('pskpsa_import') is not None
+    # print(context.scene.get('pskpsa_import'),'poll')
+    # context.scene.update_tag()
+    # context.scene.update()
+    # return context.scene.get('pskpsa_import') is not None
 
     def draw(self, context):
         props = context.scene.pskpsa_import
         if props is None:
-            self.layout.label(text = "??")
+            self.layout.label(text="??")
             return
         # return
         layout = self.layout
 
         # layout.label(text = "Mesh and skeleton:")
-        layout.operator(IMPORT_OT_psk.bl_idname, icon = 'MESH_DATA')
+        layout.operator(IMPORT_OT_psk.bl_idname, icon='MESH_DATA')
         self.draw_psk(context)
         # layout.prop(props, 'import_mode',expand = True)
 
         sub = layout.row()
-        sub.operator(PSKPSA_OT_hide_unused_bones.bl_idname, icon = 'BONE_DATA')
+        sub.operator(PSKPSA_OT_hide_unused_bones.bl_idname, icon='BONE_DATA')
         sub.enabled = (context.object is not
                        None) and (context.object.type == 'MESH' or context.object.type == 'ARMATURE')
 
         layout.separator()
         layout.separator()
         # layout.label(text = "Animation:", icon = 'ANIM')
-        layout.operator(IMPORT_OT_psa.bl_idname, icon = 'ANIM')
+        layout.operator(IMPORT_OT_psa.bl_idname, icon='ANIM')
         self.draw_psa(context)
 
 
 def menu_import_draw(self, context):
-    self.layout.operator(IMPORT_OT_psk.bl_idname, text = "Skeleton Mesh (.psk)")
-    self.layout.operator(IMPORT_OT_psa.bl_idname, text = "Skeleton Anim (.psa)")
+    self.layout.operator(IMPORT_OT_psk.bl_idname, text="Skeleton Mesh (.psk)")
+    self.layout.operator(IMPORT_OT_psa.bl_idname, text="Skeleton Anim (.psa)")
+
 
 classes = (
-        IMPORT_OT_psk,
-        IMPORT_OT_psa,
-        PskImportOptions,
-        PSKPSA_PT_import_panel,
-        PSKPSA_OT_show_message,
-        PSKPSA_OT_hide_unused_bones
-    )
+    IMPORT_OT_psk,
+    IMPORT_OT_psa,
+    PskImportOptions,
+    PSKPSA_PT_import_panel,
+    PSKPSA_OT_show_message,
+    PSKPSA_OT_hide_unused_bones
+)
 
 
 def register():
@@ -2388,7 +2365,8 @@ def register():
 
     bpy.types.TOPBAR_MT_file_import.append(menu_import_draw)
 
-    bpy.types.Scene.pskpsa_import = PointerProperty(type = PskImportOptions)
+    bpy.types.Scene.pskpsa_import = PointerProperty(type=PskImportOptions)
+
 
 def unregister():
     from bpy.utils import unregister_class
@@ -2398,6 +2376,7 @@ def unregister():
     bpy.types.TOPBAR_MT_file_import.remove(menu_import_draw)
 
     del bpy.types.Scene.pskpsa_import
+
 
 if __name__ == "__main__":
     register()

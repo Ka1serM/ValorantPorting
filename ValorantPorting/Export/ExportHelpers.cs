@@ -125,6 +125,8 @@ public static class ExportHelpers
     {
         foreach (var part in inputParts)
         {
+            if (part is null) continue;
+
             if (part is USkeletalMesh skeletalMesh)
             {
             }
@@ -490,8 +492,10 @@ public static class ExportHelpers
 
     public static void ParentMaterialInstanceParameters(UMaterialInstanceConstant materialInstance, List<TextureParameter> textures, List<ScalarParameter> scalars, List<VectorParameter> vectors)
     {
+        if (materialInstance == null) return;
         foreach (var parameter in materialInstance.TextureParameterValues)
         {
+            if (parameter == null) continue;
             if (!parameter.ParameterValue.TryLoad(out UTexture2D texture)) continue;
             if (textures.Any(x => x.Name.Equals(parameter.Name))) continue;
             textures.Add(new TextureParameter(parameter.ParameterInfo.Name.PlainText, texture.GetPathName()));
@@ -500,21 +504,23 @@ public static class ExportHelpers
         
         foreach (var parameter in materialInstance.ScalarParameterValues)
         {
+            if (parameter == null) continue;
             if (scalars.Any(x => x.Name.Equals(parameter.Name))) continue;
             scalars.Add(new ScalarParameter(parameter.ParameterInfo.Name.PlainText, parameter.ParameterValue));
         }
         foreach (var parameter in materialInstance.VectorParameterValues)
         {
+            if (parameter == null) continue;
             if (parameter.ParameterValue is null) continue;
             if (vectors.Any(x => x.Name.Equals(parameter.Name))) continue;
             vectors.Add(new VectorParameter(parameter.ParameterInfo.Name.PlainText, parameter.ParameterValue.Value));
         }
-        if (materialInstance.Parent is UMaterialInstanceConstant parent)
+        if (materialInstance.Parent != null && materialInstance.Parent is UMaterialInstanceConstant parent)
         {
             ParentMaterialInstanceParameters(parent, textures, scalars, vectors);
         }
 
-        if (materialInstance.Parent is UMaterial baseMaterial)
+        if (materialInstance.Parent != null && materialInstance.Parent is UMaterial baseMaterial)
         {
             baseMaterial.TryGetValue(out FStructFallback cachedData, "CachedExpressionData");
             cachedData.TryGetValue(out FStructFallback parameterValues, "Parameters");
@@ -527,9 +533,10 @@ public static class ExportHelpers
 
             parameterValues.TryGetValue(out FStructFallback runtimeEntries, "RuntimeEntries");
 
-            foreach (var obj in referencedTextures)
-            {
-            }
+            // This was throwing a nullPointer exception, but I didn't want to just delete it in case it was needed for something
+            //foreach (var obj in referencedTextures)
+            //{
+            //}
             
             if (cachedData != null) Console.WriteLine("CachedExpressionData");
             if (vectorValues != null) Console.WriteLine("vectors");

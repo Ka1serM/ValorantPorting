@@ -14,9 +14,24 @@ A free and open-source tool created to automate the Valorant porting process to 
 * Unzip the archive to a location where programs have read/write permissions (Avoid Downloads/Desktop)
 * Launch the `ValorantPorting.exe` executable
 
+## Building ValorantPorting
+
+To build ValorantPorting from source, first clone the repository and all of its submodules.
+
+```
+git clone https://github.com/Ka1serM/ValorantPorting --recursive
+```
+
+Then run BuildRelease.bat or open the project directory in a terminal window and publish
+
+```
+dotnet publish ValorantPorting -c Release --no-self-contained -r win-x64 -o "./Release" -p:PublishSingleFile=true -p:DebugType=None -p:DebugSymbols=false -p:IncludeNativeLibrariesForSelfExtract=true
+```
+
 ## ValorantPorting Server
 
 ### Blender
+
 * Navigate to the Add-ons tab located in **Edit -> Preferences**
 
   <img src="https://docs.blender.org/manual/en/latest/_images/editors_preferences_section_addons.png" alt="Addon Tab" height=260 width=330>
@@ -25,6 +40,8 @@ A free and open-source tool created to automate the Valorant porting process to 
 * Type `Valorant Porting` in the search bar and enable the addon
   
 * Restart Blender
+
+To build the Blender plugins from source, run BuildBlenderPlugins.bat.  If you'd prefer to zip them manually, copy the script from BlenderPlugins/PSA_PSK_Import/ into the ValorantPortingBlender (or ValorantPortingBlenderOctane) folder and then zip the entire folder.
 
 
 
@@ -37,3 +54,4 @@ A free and open-source tool created to automate the Valorant porting process to 
 * https://github.com/halfuwu
 * https://github.com/djhaled
 * https://github.com/KaiserM21
+* https://github.com/Bmarquez1997

@@ -9,13 +9,13 @@ import os
 from math import radians
 import bpy.props
 from mathutils import Matrix, Vector, Euler, Quaternion
-from .io_import_scene_unreal_psa_psk_280 import pskimport
+from .io_import_scene_unreal_psa_psk_284 import pskimport
 
 bl_info = {
-    "name": "Valorant Porting Blender Octane",
-    "author": "Half, BK, Zain",
-    "version": (1, 0, 0),
-    "blender": (3, 0, 0),
+    "name": "Valorant Porting",
+    "author": "Half, BK, Zain, DeveloperChipmunk",
+    "version": (1, 1, 0),
+    "blender": (4, 0, 0),
     "description": "Blender Server for Valorant Porting",
     "category": "Import",
 }
@@ -27,6 +27,7 @@ global import_data
 global server
 global MAIN_SHADER
 global INNER_SHADER
+
 
 class Log:
     INFO = u"\u001b[36m"
@@ -41,12 +42,12 @@ class Log:
     @staticmethod
     def warning(message):
         print(f"{Log.WARNING}[WARN] {Log.RESET}{message}")
-        
+
     @staticmethod
     def error(message):
         print(f"{Log.WARNING}[ERROR] {Log.RESET}{message}")
 
-    
+
 class Receiver(threading.Thread):
 
     def __init__(self, event):
@@ -73,7 +74,7 @@ class Receiver(threading.Thread):
                         data_string += data
                 self.event.set()
                 self.data = json.loads(data_string)
-                           
+
             except OSError as e:
                 pass
             except EOFError as e:
@@ -81,12 +82,13 @@ class Receiver(threading.Thread):
             except zlib.error as e:
                 Log.error(e)
             except json.JSONDecodeError as e:
-                Log.error(e) 
+                Log.error(e)
 
     def stop(self):
         self.keep_alive = False
         self.socket_server.close()
         Log.information("ValorantPorting Server Closed")
+
 
 def import_mesh(path: str) -> bpy.types.Object:
     path = path[1:] if path.startswith("/") else path
@@ -95,19 +97,19 @@ def import_mesh(path: str) -> bpy.types.Object:
     if os.path.exists(mesh_path + ".psk"):
         mesh_path += ".psk"
         pskimport(
-        mesh_path,
-        bReorientBones = import_settings.get("ReorientBones"),
-        bScaleDown = True,
-        bToSRGB = False)
+            mesh_path,
+            bReorientBones=import_settings.get("ReorientBones"),
+            bScaleDown=True,
+            bToSRGB=False)
 
         return bpy.context.active_object
-    
+
     if os.path.exists(mesh_path + ".pskx"):
         mesh_path += ".pskx"
         pskimport(
-        mesh_path,
-        bScaleDown = True,
-        bToSRGB = False)
+            mesh_path,
+            bScaleDown=True,
+            bToSRGB=False)
         return bpy.context.active_object
     else:
         return None
@@ -145,10 +147,10 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
 
     #fix parent & eye material
     parent_name = material_data.get("ParentName")
-    if parent_name  == None:
+    if parent_name is None:
         parent_name = material_name
-    #if "Eye" in parent_name:
-    #    target_material.blend_method = 'BLEND'
+    if "Eye" in parent_name:
+        target_material.blend_method = 'BLEND'
 
     output_node = nodes.new(type="ShaderNodeOutputMaterial")
     output_node.location = (200, 0)
@@ -158,9 +160,9 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     main_shader_node.name = parent_name
     parent_node_exists = True
 
-    if bpy.data.node_groups.get(parent_name) != None:
-        main_shader_node.node_tree = bpy.data.node_groups.get(main_shader_node.name).copy()
-        #assign this so group input stays consistent
+    if bpy.data.node_groups.get(parent_name) is not None:
+        main_shader_node.node_tree = bpy.data.node_groups.get(main_shader_node.name)
+        # assign this so group input stays consistent
         group_inputs = main_shader_node.inputs
     else:
         parent_node_exists = False
@@ -169,49 +171,52 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         main_shader_node.node_tree = new_shader_internals
         # create group input
         group_inputs = new_shader_internals.nodes.new("NodeGroupInput")
-        group_inputs.location = (-350,0)
+        group_inputs.location = (-350, 0)
         # create group output
         group_outputs = new_shader_internals.nodes.new("NodeGroupOutput")
-        group_outputs.location = (600,0)
-        #create imported inner goup
+        group_outputs.location = (600, 0)
+        # create imported inner goup
         imported_shader_node = new_shader_internals.nodes.new(type="ShaderNodeGroup")
         imported_shader_node.name = "1P_Weapon_Mat_Base_V5"
         if mat_type == "Character":
             imported_shader_node.name = "3P_Character_Mat_V5"
         imported_shader_node.node_tree = bpy.data.node_groups.get(imported_shader_node.name)
 
-        #create output on outer group
-        new_shader_internals.outputs.new("NodeSocketShader", "BSDF")
+        # create output on outer group
+        new_shader_internals.interface.new_socket(name="BSDF", in_out="OUTPUT", socket_type="NodeSocketShader")
 
-        #link outer group output to imported inner group's input
+        # link outer group output to imported inner group's input
         for output in group_inputs.outputs:
-            if imported_shader_node.inputs.get(output.name) != None:
-               new_shader_internals.links.new(output, imported_shader_node.node_tree.inputs.get(output.name))
+            print("Linking: " + output.name)
+            if imported_shader_node.inputs.get(output.name) is not None:
+                new_shader_internals.links.new(output, imported_shader_node.node_tree.inputs.get(output.name))
         new_shader_internals.links.new(imported_shader_node.outputs[0], group_outputs.inputs[0])
-        
-    #link outer group's outputs to shader output
-    links.new(main_shader_node.outputs[0], output_node.inputs[0])
 
+    # link outer group's outputs to shader output
+    links.new(main_shader_node.outputs[0], output_node.inputs[0])
 
     def texture_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
         tex_image_node: bpy.types.Node
-        tex_image_node = nodes.new(type="OctaneRGBImage")
+        tex_image_node = nodes.new(type="ShaderNodeTexImage")
         if (image := import_texture(value)) is None:
             return
         tex_image_node.image = image
-        #tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
-        #tex_image_node.hide = True
-        #tex_image_node.image.colorspace_settings.name = 'Linear'
-        tex_image_node.inputs[2].default_value = 1.0
-        if name == 'Albedo': tex_image_node.inputs[2].default_value = 2.2
-        #tex_image_node.location = location
+        tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
+        tex_image_node.hide = True
+        if name == 'Normal':
+            tex_image_node.image.colorspace_settings.name = 'Non-Color'
+        elif name == 'Albedo' or name == 'LUTs' or name == 'Projected Texture':
+            tex_image_node.image.colorspace_settings.name = 'sRGB'
+        else:
+            tex_image_node.image.colorspace_settings.name = 'Linear Rec.2020'
+        # tex_image_node.location = location
 
-        #if 'decal' in name.lower():
-        #    uv_node = nodes.new(type="ShaderNodeUVMap")
-        #    uv_node.uv_map = 'EXTRAUVS0'
-        #    links.new(uv_node.outputs[0], tex_image_node.inputs[0])
+        if 'decal' in name.lower():
+            uv_node = nodes.new(type="ShaderNodeUVMap")
+            uv_node.uv_map = 'EXTRAUVS0'
+            links.new(uv_node.outputs[0], tex_image_node.inputs[0])
 
         if name in MAIN_SHADER.inputs:
             if name == 'Decal Mask Texture':
@@ -219,7 +224,7 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
             else:
                 links.new(tex_image_node.outputs[0], main_shader_node.inputs[name])
         else:
-            MAIN_SHADER.node_tree.inputs.new("NodeSocketColor", name)
+            MAIN_SHADER.node_tree.interface.new_socket(name=name, in_out="INPUT", socket_type="NodeSocketColor")
             if name == 'Decal Mask Texture':
                 links.new(tex_image_node.outputs[1], MAIN_SHADER.inputs[name])
             else:
@@ -230,31 +235,30 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     def scalar_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-        scalar_node = nodes.new(type="OctaneGreyscaleColor")
+        scalar_node = nodes.new(type="ShaderNodeValue")
         scalar_node.label = name
-        scalar_node.a_value = value
+        scalar_node.outputs[0].default_value = value
 
         if MAIN_SHADER.inputs.get(name) is not None and MAIN_SHADER.inputs[name].type == "VALUE":
             links.new(scalar_node.outputs[0], MAIN_SHADER.inputs[name])
         else:
-            MAIN_SHADER.node_tree.inputs.new("NodeSocketFloat", name)
+            MAIN_SHADER.node_tree.interface.new_socket(name=name, in_out="INPUT", socket_type="NodeSocketFloat")
             links.new(scalar_node.outputs[0], MAIN_SHADER.inputs[name])
             print(f"Created & connected Scalar node with name: {name}")
 
     def vector_parameter(data):
         name = data.get("Name")
         value = data.get("Value")
-        color_node = nodes.new(type="OctaneRGBColor")
+        color_node = nodes.new(type="ShaderNodeRGB")
         color_node.label = name
-        color_node.a_value = (value["R"], value["G"], value["B"])
+        color_node.outputs[0].default_value = (value["R"], value["G"], value["B"], 1)
 
         if MAIN_SHADER.inputs.get(name) is not None and MAIN_SHADER.inputs[name].type == "COLOR":
             links.new(color_node.outputs[0], MAIN_SHADER.inputs[name])
         else:
-            MAIN_SHADER.node_tree.inputs.new("NodeSocketColor", name)
+            MAIN_SHADER.node_tree.interface.new_socket(name=name, in_out="INPUT", socket_type="NodeSocketColor")
             links.new(color_node.outputs[0], MAIN_SHADER.inputs[name])
             print(f"Created & connected Vector node with name: {name}")
-
 
     for texture in material_data.get("Textures"):
         texture_parameter(texture)
@@ -265,14 +269,11 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
     for vector in material_data.get("Vectors"):
         vector_parameter(vector)
 
-    #link inputs to imported inner group
+    # link inputs to imported inner group
     if not parent_node_exists:
         for output in group_inputs.outputs:
-            if imported_shader_node.inputs.get(output.name) != None:
+            if imported_shader_node.inputs.get(output.name) is not None:
                 new_shader_internals.links.new(output, imported_shader_node.inputs.get(output.name))
-
-
-
 
 
 def import_shaders(shaderName):
@@ -286,6 +287,19 @@ def import_shaders(shaderName):
                 data_to.node_groups.append(node_group)
 
 
+def create_collection(name):
+    if name in bpy.context.view_layer.layer_collection.children:
+        bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children.get(name)
+        return
+    bpy.ops.object.select_all(action='DESELECT')
+
+    new_collection = bpy.data.collections.new(name)
+    bpy.context.scene.collection.children.link(new_collection)
+    bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children.get(
+        new_collection.name)
+    return new_collection
+
+
 def mesh_from_armature(armature) -> bpy.types.Mesh:
     return armature.children[0]  # only used with psk, mesh is always first child
 
@@ -297,12 +311,14 @@ def first(target, expr, default=None):
 
     return next(filtered, default)
 
+
 def where(target, expr):
     if not target:
         return None
     filtered = filter(expr, target)
 
     return filtered
+
 
 def any(target, expr):
     if not target:
@@ -329,17 +345,22 @@ def import_response(response):
     import_type = import_data.get("Type")
 
     Log.information(f"Received Import for {import_type}: {name}")
+    new_collection = create_collection(name)
 
     def constraint_object(child: bpy.types.Object, parent: bpy.types.Object, bone: str, loc, rot):
-        constraint = child.constraints.new('CHILD_OF')
-        constraint.target = parent
-        if bone != None: constraint.subtarget = bone
-        child.rotation_mode = 'XYZ'
-        constraint.inverse_matrix = Matrix()
-        if loc != None: child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
-        if rot != None: child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
-    
+        if parent is not None:
+            constraint = child.constraints.new('CHILD_OF')
+            constraint.target = parent
+            if bone is not None: constraint.subtarget = bone
+            child.rotation_mode = 'XYZ'
+            constraint.inverse_matrix = Matrix()
+            if loc is not None:
+                child.location = (0.01 * loc["X"], 0.01 * loc["Y"], 0.01 * loc["Z"])
+            if rot is not None:
+                child.rotation_euler = (rot["Pitch"], rot["Yaw"], rot["Roll"])
+
     imported_parts = []
+
     def import_part(parts):
         for part in parts:
             imported_part = import_mesh(part.get("MeshPath"))
@@ -372,21 +393,29 @@ def import_response(response):
             for style_material in part.get("StyleMaterials"):
                 index = style_material.get("SlotIndex")
                 if len(mesh.material_slots) > index:
-                    import_material(mesh.material_slots.values()[index], style_material, import_type)        
+                    import_material(mesh.material_slots.values()[index], style_material, import_type)
 
     import_part(import_data.get("Parts"))
 
-    #attachments
+    # attachments
     for imported_part in imported_parts:
         attachments = imported_part.get("Attachments")
         parent_obj = imported_part.get("Parent")
         for attachment in attachments:
-                child_name = attachment.get("AttatchmentName")
+            child_name = attachment.get("AttachmentName")
+            if child_name is not None:
                 child_obj = bpy.context.scene.objects[child_name]
-                if child_obj.parent is not None: #AttatchmentName somehow points to mesh, get parent armature instead
+                if child_obj.parent is not None:
+                    # Attachment Name somehow points to mesh, get parent armature instead
                     child_obj = child_obj.parent
-                if "revolver" in parent_obj.name.lower(): bone_name = "Magazine_Extra"
-                if child_obj: constraint_object(child_obj, parent_obj, attachment.get("BoneName"), attachment.get("Offset"), attachment.get("Rotation"))
+                if "revolver" in parent_obj.name.lower():
+                    bone_name = "Magazine_Extra"
+                if child_obj:
+                    constraint_object(child_obj, parent_obj, attachment.get("BoneName"),
+                                      attachment.get("Offset"), attachment.get("Rotation"))
+        if new_collection not in parent_obj.users_collection:
+            new_collection.objects.link(parent_obj)
+
 
 def register():
     import_event = threading.Event()
@@ -402,6 +431,7 @@ def register():
         return 0.01
 
     bpy.app.timers.register(handler)
+
 
 def unregister():
     server.stop()
