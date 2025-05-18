@@ -42,6 +42,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> outfits = new();
     [ObservableProperty] private ObservableCollection<StyleSelector> styles = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> weapons = new();
+    [ObservableProperty] private ObservableCollection<AssetSelectorItem> knifes = new();
     [ObservableProperty] private ObservableCollection<AssetSelectorItem> gunbuddies = new();
 
     public ImageSource StyleImage => currentAsset?.FullSource;

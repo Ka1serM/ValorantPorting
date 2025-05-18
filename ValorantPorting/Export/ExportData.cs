@@ -35,6 +35,7 @@ public class ExportData
                     ExportHelpers.Character(data.Parts, asset);
                     break;
                 case EAssetType.Weapon:
+                case EAssetType.Knife:
                     ExportHelpers.Weapon(data.Parts, style);
                     break;
                 case EAssetType.GunBuddy:

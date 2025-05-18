@@ -28,17 +28,18 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Resource Include="Resources\Backpack.png"/>
-        <Resource Include="Resources\Dance.png"/>
-        <Resource Include="Resources\Glider.png"/>
-        <Resource Include="Resources\Mesh.png"/>
-        <Resource Include="Resources\Outfit.png"/>
-        <Resource Include="Resources\Pickaxe.png"/>
-        <Resource Include="Resources\Props.png"/>
-        <Resource Include="Resources\Vehicle.png"/>
-        <Resource Include="Resources\Weapon.png"/>
-        <Resource Include="Resources\Unreal.png"/>
-        <Resource Include="Resources\Blender.png"/>
+        <Resource Include="Resources\Backpack.png" />
+        <Resource Include="Resources\Dance.png" />
+        <Resource Include="Resources\Glider.png" />
+        <Resource Include="Resources\Mesh.png" />
+        <Resource Include="Resources\Outfit.png" />
+        <Resource Include="Resources\Pickaxe.png" />
+        <Resource Include="Resources\Props.png" />
+        <Resource Include="Resources\Vehicle.png" />
+        <Resource Include="Resources\Weapon.png" />
+        <Resource Include="Resources\Knifes.png" />
+        <Resource Include="Resources\Unreal.png" />
+        <Resource Include="Resources\Blender.png" />
     </ItemGroup>
 
     <ItemGroup>

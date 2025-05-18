@@ -21,6 +21,7 @@ public enum EAssetType
     [Description("Characters")] Character,
     [Description("Weapons")] Weapon,
     [Description("Gunbuddies")] GunBuddy,
+    [Description("Knifes")] Knife,
     [Description("Mesh")] Mesh
 }
 

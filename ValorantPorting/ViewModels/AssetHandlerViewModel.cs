@@ -8,6 +8,7 @@ using CUE4Parse.UE4.AssetRegistry.Objects;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Engine;
+using Microsoft.VisualBasic.Logging;
 using ValorantPorting.AppUtils;
 using ValorantPorting.Views.Controls;
 
@@ -51,6 +52,18 @@ public class AssetHandlerViewModel
         }
     };
 
+    private readonly AssetHandlerData _knifeHandler = new()
+    {
+        AssetType = EAssetType.Knife,
+        TargetCollection = AppVM.MainVM.Knifes,
+        ClassNames = new List<string> { "EquippableSkinDataAsset" },
+        IconGetter = UI_Asset =>
+        {
+            UI_Asset.TryGetValue(out UTexture2D? previewImage, "DisplayIcon");
+            return previewImage;
+        }
+    };
+
     public readonly Dictionary<EAssetType, AssetHandlerData> Handlers;
 
 
@@ -61,6 +74,7 @@ public class AssetHandlerViewModel
             { EAssetType.Character, _characterHandler },
             { EAssetType.Weapon, _weaponHandler },
             { EAssetType.GunBuddy, _buddyHandler },
+            { EAssetType.Knife, _knifeHandler },
         };
     }
 
@@ -81,14 +95,39 @@ public class AssetHandlerData
 
     public async Task Execute()
     {
+
         if (HasStarted) return;
         HasStarted = true;
         var items = new List<FAssetData>();
-        foreach (var variable in
-                 AppVM.CUE4ParseVM.AssetRegistry.PreallocatedAssetDataBuffers) //search for Classes in AssetRegistry
-        foreach (var tagsAndValue in variable.TagsAndValues)
-            if (ClassNames.Contains(tagsAndValue.Value) && tagsAndValue.Key.PlainText == "PrimaryAssetType")
-                items.Add(variable);
+
+        foreach (var variable in AppVM.CUE4ParseVM.AssetRegistry.PreallocatedAssetDataBuffers) //search for Classes in AssetRegistry {
+        {
+            foreach (var tagsAndValue in variable.TagsAndValues)
+            {
+                if (ClassNames.Contains(tagsAndValue.Value) && tagsAndValue.Key.PlainText == "PrimaryAssetType")
+                {
+                    if (AssetType == EAssetType.Weapon)
+                    {
+                        if (!variable.AssetName.ToString().StartsWith("Melee"))
+                        {
+                            items.Add(variable);
+                        }
+                    }
+                    else if (AssetType == EAssetType.Knife)
+                    {
+                        if (variable.AssetName.ToString().StartsWith("Melee"))
+                        {
+                            items.Add(variable);
+                        }
+                    }
+                    else
+                    {
+                        items.Add(variable);
+                    }
+                }
+            }
+        }
+        
         await Parallel.ForEachAsync(items, async (data, token) => //load if found
         {
             await DoLoad(data);
@@ -120,6 +159,7 @@ public class AssetHandlerData
             case EAssetType.Character:
                 loadable = "Character";
                 break;
+            case EAssetType.Knife:
             case EAssetType.Weapon:
                 actualAsset.TryGetValue<UBlueprintGeneratedClass[]>(out var bGg, "Levels");
                 actualAsset = bGg[0].ClassDefaultObject.Load();

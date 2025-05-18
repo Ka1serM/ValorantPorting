@@ -556,6 +556,11 @@
                                                 Value="/ValorantPorting;component/Resources/Weapon.png" />
                                     </DataTrigger>
 
+                                    <DataTrigger Binding="{Binding Header}" Value="Knifes">
+                                        <Setter TargetName="ItemIcon" Property="Source"
+                                                Value="/ValorantPorting;component/Resources/Knifes.png" />
+                                    </DataTrigger>
+
                                     <Trigger Property="IsExpanded" Value="False">
                                         <Setter TargetName="ItemsHost" Property="Visibility" Value="Collapsed" />
                                     </Trigger>
