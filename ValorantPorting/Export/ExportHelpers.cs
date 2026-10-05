@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CUE4Parse_Conversion;
+using CUE4Parse_Conversion.Options;
+using CUE4Parse_Conversion.Exporters;
 using CUE4Parse_Conversion.Meshes;
 using CUE4Parse_Conversion.Textures;
 using CUE4Parse.UE4.Assets.Exports;
@@ -26,15 +28,13 @@ public static class ExportHelpers
 {
     public static readonly List<Task> Tasks = new();
 
-    private static readonly ExporterOptions ExportOptions = new()
-    {
-        Platform = ETexturePlatform.DesktopMobile,
-        LodFormat = ELodFormat.AllLods,
-        MeshFormat = EMeshFormat.ActorX,
-        TextureFormat = ETextureFormat.Png,
-        ExportMorphTargets = false,
-        ExportMaterials = false
-    };
+    private static readonly ExportOptions ExportOptions = new(
+        meshFormat: EMeshFormat.ActorX,
+        texturePlatform: ETexturePlatform.DesktopMobile,
+        textureFormat: ETextureFormat.Png,
+        exportMaterials: false,
+        exportMorphTargets: false
+    );
     
     public static void GunBuddy(List<ExportPart> exportParts, UObject asset)
     {
@@ -96,6 +96,8 @@ public static class ExportHelpers
     public static void Weapon(List<ExportPart> exportParts, UObject style)
     {
         var mainAsset = AppVM.MainVM.CurrentAsset.MainAsset;
+        LogSilencerDiagnostic($"[Weapon] mainAsset={mainAsset.Name}, properties=" +
+            string.Join(", ", mainAsset.Properties.Select(p => p.Name.Text)));
         var levelTuple = GetHighestLevel();
         //gun mesh
         if (levelTuple.Item1 != null)
@@ -405,6 +407,9 @@ public static class ExportHelpers
             var valueLoaded = (UBlueprintGeneratedClass)scriptMapValue.Load();
             var classDefaultObject = valueLoaded.ClassDefaultObject.Load();
 
+            LogSilencerDiagnostic($"[GetWeaponAttatchments] CDO={classDefaultObject.Name}, properties=" +
+                string.Join(", ", classDefaultObject.Properties.Select(p => p.Name.Text)));
+
             string[] scope = { "1pReflexMesh", "MaterialOverrides", "Reflex" };
             string[] silencer = { "1p Mesh", "3p MaterialOverrides", "Barrel" };
             var currentAttatchList = new List<List<string>>();
@@ -416,7 +421,22 @@ public static class ExportHelpers
                 var currentAttach = currentAttatchList[i];
                 classDefaultObject.TryGetValue(out USkeletalMesh localMesh, currentAttach[0]);
                 classDefaultObject.TryGetValue(out UMaterialInstanceConstant[] localmat, currentAttach[1]);
+
+                if (localMesh == null)
+                {
+                    var parentClass = valueLoaded.SuperStruct?.Load<UBlueprintGeneratedClass>();
+                    var parentCdo = parentClass?.ClassDefaultObject?.Load();
+                    LogSilencerDiagnostic($"[GetWeaponAttatchments] '{currentAttach[0]}' missing on leaf CDO {classDefaultObject.Name}. " +
+                        $"Parent class={parentClass?.Name ?? "null"}, parent CDO={parentCdo?.Name ?? "null"}, " +
+                        $"parent properties=" + (parentCdo != null ? string.Join(", ", parentCdo.Properties.Select(p => p.Name.Text)) : "n/a"));
+                }
+
                 if (localMesh == null) continue;
+                if (meshes[i] != null)
+                {
+                    LogSilencerDiagnostic($"[GetWeaponAttatchments] OVERWRITING slot {i} ({currentAttach[2]}): " +
+                        $"'{meshes[i].Name}' (from CDO {classDefaultObject.Name}'s predecessor) -> '{localMesh.Name}'");
+                }
                 fullSockets[i] = currentAttach[2];
                 meshes[i] = localMesh;
                 fullOverrideMaterials[i] = localmat;
@@ -547,16 +567,17 @@ public static class ExportHelpers
 
         var exportPart = new ExportPart();
         exportPart.MeshPath = skeletalMesh.GetPathName();
-        exportPart.MeshName = skeletalMesh.Name + "_LOD0.ao";
+        exportPart.MeshName = skeletalMesh.Name + ".ao";
         Save(skeletalMesh);
 
-        var sections = convertedMesh.LODs[0].Sections.Value;
+        var sections = convertedMesh.LODs[0].Sections;
         for (var idx = 0; idx < sections.Length; idx++)
         {
             var section = sections[idx];
-            if (section.Material is null) continue;
+            var materialSlot = convertedMesh.GetMaterial(section);
+            if (materialSlot is not { Material: { } materialRef }) continue;
 
-            if (!section.Material.TryLoad(out var material)) continue;
+            if (!materialRef.TryLoad(out var material)) continue;
 
             var exportMaterial = new ExportMaterial
             {
@@ -587,17 +608,17 @@ public static class ExportHelpers
         if (convertedMesh.LODs.Count <= 0) return -1;
         var exportPart = new ExportPart();
         exportPart.MeshPath = staticMesh.GetPathName();
-        exportPart.MeshName = staticMesh.Name + "_LOD0.mo";
+        exportPart.MeshName = staticMesh.Name + ".mo";
         Save(staticMesh);
 
-        var sections = convertedMesh.LODs[0].Sections.Value;
+        var sections = convertedMesh.LODs[0].Sections;
         for (var idx = 0; idx < sections.Length; idx++)
         {
             var section = sections[idx];
-            if (section.Material is null) continue;
+            var materialSlot = convertedMesh.GetMaterial(section);
+            if (materialSlot is not { Material: { } materialRef }) continue;
 
-
-            if (!section.Material.TryLoad(out var material)) continue;
+            if (!materialRef.TryLoad(out var material)) continue;
 
             var exportMaterial = new ExportMaterial
             {
@@ -696,7 +717,7 @@ public static class ExportHelpers
             vectors.Add(new VectorParameter(parameter.ParameterInfo.Name.PlainText, parameter.ParameterValue.Value));
         }
 
-        if (materialInstance.Parent != null && materialInstance.Parent is UMaterialInstanceConstant parent)
+        if (materialInstance.Parent != null && materialInstance.Parent.TryLoad(out UMaterialInstanceConstant parent))
             ParentMaterialInstanceParameters(parent, textures, scalars, vectors);
     }
 
@@ -713,9 +734,9 @@ public static class ExportHelpers
                         var path = GetExportPath(obj, "psk");
                         if (File.Exists(path)) return;
 
-                        var exporter = new MeshExporter(skeletalMesh, ExportOptions);
-                        string SavedFilePath;
-                        exporter.TryWriteToDir(App.AssetsFolder, out _, out SavedFilePath);
+                        var session = new ExportSession();
+                        session.Add(skeletalMesh);
+                        session.RunAsync(App.AssetsFolder.FullName, ExportOptions).GetAwaiter().GetResult();
                         break;
                     }
 
@@ -724,9 +745,9 @@ public static class ExportHelpers
                         var path = GetExportPath(obj, "pskx");
                         if (File.Exists(path)) return;
 
-                        var exporter = new MeshExporter(staticMesh, ExportOptions);
-                        string SavedFilePath;
-                        exporter.TryWriteToDir(App.AssetsFolder, out _, out SavedFilePath);
+                        var session = new ExportSession();
+                        session.Add(staticMesh);
+                        session.RunAsync(App.AssetsFolder.FullName, ExportOptions).GetAwaiter().GetResult();
                         break;
                     }
                     case UTexture2D texture:
@@ -735,11 +756,10 @@ public static class ExportHelpers
                         if (File.Exists(path)) return;
                         Directory.CreateDirectory(path.Replace('\\', '/').SubstringBeforeLast('/'));
 
-                        using var bitmap = texture.Decode(texture.GetFirstMip());
-                        using var data = bitmap?.Encode(SKEncodedImageFormat.Png, 100);
-
-                        if (data is null) return;
-                        File.WriteAllBytes(path, data.ToArray());
+                        var cTexture = texture.Decode(texture.GetFirstMip());
+                        if (cTexture is null) return;
+                        var imageData = cTexture.Encode(ETextureFormat.Png, false, out _);
+                        File.WriteAllBytes(path, imageData);
                         break;
                     }
                 }

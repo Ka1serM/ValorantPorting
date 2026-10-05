@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Windows.Controls;
 using CUE4Parse_Conversion.Textures;
+using CUE4Parse_Conversion.Options;
 using CUE4Parse.UE4.Assets.Exports;
 using CUE4Parse.UE4.Assets.Exports.Texture;
 using CUE4Parse.UE4.Objects.Core.i18N;
@@ -21,7 +22,10 @@ public partial class StyleSelector
             var uiData = options[i];
             uiData.TryGetValue(out FText channel, "DisplayName");
             if (!uiData.TryGetValue(out UTexture2D previewTexture, "Swatch")) return;
-            var previewBitmap = previewTexture.Decode();
+            var previewCTexture = previewTexture.Decode();
+            if (previewCTexture is null) continue;
+            var previewImageData = previewCTexture.Encode(ETextureFormat.Png, false, out _);
+            var previewBitmap = SKBitmap.Decode(previewImageData);
             if (previewBitmap is null) continue;
 
             var fullBitmap = new SKBitmap(previewBitmap.Width, previewBitmap.Height, previewBitmap.ColorType,

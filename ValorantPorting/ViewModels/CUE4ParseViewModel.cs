@@ -1,10 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CUE4Parse.MappingsProvider.Usmap;
 using CUE4Parse.Encryption.Aes;
 using CUE4Parse.MappingsProvider;
 using CUE4Parse.UE4.AssetRegistry;
@@ -19,27 +22,66 @@ public class CUE4ParseViewModel : ObservableObject
 {
     public static readonly VersionContainer Version = new(EGame.GAME_UE5_3);
 
-    private static readonly string MappingsPath = FindMappingsFile();
+    // UEDB's stable API that always points at the current mappings — no more hardcoded per-patch URL.
+    private const string MappingsApiUrl = "https://uedb.dev/svc/api/v1/valorant/mappings";
 
-    // Update this URL whenever Valorant patches and the mappings go stale.
-    private const string MappingsDownloadUrl = "https://data.uedb.dev/mappings/68c7964faa9ff725d91c8302/VALORANT_13.02_zs.usmap";
+    private static readonly string MappingsDir =
+        Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mappings");
 
-    private static string FindMappingsFile()
+    /// <summary>
+    /// Checks uedb.dev for the current mapping version, downloads it if we don't already
+    /// have that version cached locally, and deletes any stale .usmap files.
+    /// </summary>
+    private static async Task<string> ResolveMappingsPathAsync()
     {
-        var mappingsDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Mappings");
-        if (Directory.Exists(mappingsDir))
+        Directory.CreateDirectory(MappingsDir);
+
+        using var http = new HttpClient();
+        var json = await http.GetStringAsync(MappingsApiUrl);
+
+        using var doc = JsonDocument.Parse(json);
+        var version = doc.RootElement.GetProperty("version").GetString(); // e.g. "VALORANT_13.05"
+        var usmapUrl = doc.RootElement
+            .GetProperty("mappings")
+            .GetProperty("ZStandard")
+            .GetString();
+
+        var fileName = $"{version}.usmap";
+        var localPath = Path.Combine(MappingsDir, fileName);
+
+        if (!File.Exists(localPath))
         {
-            var usmapFiles = Directory.GetFiles(mappingsDir, "*.usmap");
-            if (usmapFiles.Length > 0) return usmapFiles[0];
+            AppLog.Information($"New mappings version detected ({version}), downloading from uedb.dev...");
+
+            // Clear out old .usmap files so nothing stale lingers around
+            foreach (var old in Directory.GetFiles(MappingsDir, "*.usmap"))
+                File.Delete(old);
+
+            var bytes = await http.GetByteArrayAsync(usmapUrl);
+            await File.WriteAllBytesAsync(localPath, bytes);
+
+            AppLog.Information("Mappings downloaded successfully.");
         }
-        return Path.Combine(mappingsDir, "VALORANT_13_00_zs.usmap");
+
+        return localPath;
+    }
+
+    /// <summary>
+    /// Offline/failure fallback: reuse whatever .usmap file already exists locally,
+    /// same as the old behavior.
+    /// </summary>
+    private static string? FindAnyLocalMappingsFile()
+    {
+        if (!Directory.Exists(MappingsDir)) return null;
+        var usmapFiles = Directory.GetFiles(MappingsDir, "*.usmap");
+        return usmapFiles.Length > 0 ? usmapFiles[0] : null;
     }
 
     public readonly List<FAssetData> AssetDataBuffers = new();
     public readonly ValorantPortingFileProvider Provider;
 
     public FAssetRegistryState? AssetRegistry;
-    
+
     public CUE4ParseViewModel(string directory, EInstallType installType)
     {
         if (installType is EInstallType.Local && !Directory.Exists(directory))
@@ -62,52 +104,43 @@ public class CUE4ParseViewModel : ObservableObject
     {
         if (Provider is null) return;
 
-        if (!File.Exists(MappingsPath))
+        string? mappingsPath;
+        try
         {
-            AppLog.Information("Mappings file not found locally, downloading a copy from uedb.dev...");
-            try
-            {
-                Directory.CreateDirectory(Path.GetDirectoryName(MappingsPath)!);
-                using var mappingsHttpClient = new System.Net.Http.HttpClient();
-                var mappingsBytes = mappingsHttpClient.GetByteArrayAsync(MappingsDownloadUrl).GetAwaiter().GetResult();
-                File.WriteAllBytes(MappingsPath, mappingsBytes);
-                AppLog.Information("Mappings file downloaded successfully.");
-            }
-            catch (Exception ex)
-            {
-                AppLog.Warning($"Automatic Mappings download failed: {ex.Message}");
-            }
+            mappingsPath = await ResolveMappingsPathAsync();
+        }
+        catch (Exception ex)
+        {
+            AppLog.Warning($"Automatic mappings check/download failed: {ex.Message}. Falling back to any local mappings file.");
+            mappingsPath = FindAnyLocalMappingsFile();
         }
 
-        if (!File.Exists(MappingsPath))
+        if (mappingsPath is null || !File.Exists(mappingsPath))
         {
             AppLog.Warning(
-                $"Mappings file not found at \"{MappingsPath}\". UE5 Valorant assets will fail to parse without it.");
+                "No mappings file could be found or downloaded. UE5 Valorant assets will fail to parse without it.");
         }
         else
         {
-            Provider.MappingsContainer = new FileUsmapTypeMappingsProvider(MappingsPath);
+            var mappingsProvider = new CustomUsmapTypeMappingsProvider();
+            mappingsProvider.Load(mappingsPath);
+            Provider.MappingsContainer = mappingsProvider;
         }
 
-        var oodlePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, CUE4Parse.Compression.OodleHelper.OODLE_DLL_NAME);
-        if (!File.Exists(oodlePath))
+        try
         {
-            AppLog.Information("Oodle DLL not found locally, downloading a known-good copy from GitHub...");
-            using var oodleHttpClient = new System.Net.Http.HttpClient();
-            var downloaded = CUE4Parse.Compression.OodleHelper.DownloadOodleDllFromOodleUEAsync(oodleHttpClient, oodlePath).GetAwaiter().GetResult();
-            if (!downloaded)
-            {
-                AppLog.Warning("Automatic Oodle download from GitHub failed.");
-            }
+            await CUE4Parse.Compression.OodleHelper.InitializeAsync();
         }
-        if (File.Exists(oodlePath))
+        catch (Exception ex)
         {
-            CUE4Parse.Compression.OodleHelper.Initialize(oodlePath);
+            AppLog.Warning($"Oodle initialization failed: {ex.Message}. Compressed assets will fail to load.");
         }
-        else
-        {
-            AppLog.Warning($"Oodle DLL could not be found or downloaded to \"{oodlePath}\". Compressed assets will fail to load.");
-        }
+
+        // Use the library's built-in pure C# texture decoder for BC7/BC6H/ETC-compressed
+        // textures instead of the native Detex library. Nothing to load, nothing to
+        // initialize, nothing that can fail with "not initialized".
+        CUE4Parse_Conversion.Textures.TextureDecoder.UseAssetRipperTextureDecoder = true;
+
         await InitializeProvider();
         await InitializeKeys();
 
@@ -154,4 +187,25 @@ public class CUE4ParseViewModel : ObservableObject
             }
         }
     }
+    public class CustomUsmapTypeMappingsProvider : CUE4Parse.MappingsProvider.AbstractTypeMappingsProvider
+{
+    private string? _path;
+    public override CUE4Parse.MappingsProvider.TypeMappings? MappingsForGame { get; protected set; }
+
+    public override void Load(string path, StringComparer? comparer = null)
+    {
+        _path = path;
+        MappingsForGame = new UsmapParser(path, comparer: comparer).Mappings;
+    }
+
+    public override void Load(byte[] bytes, StringComparer? comparer = null)
+    {
+        MappingsForGame = new UsmapParser(bytes, comparer: comparer).Mappings;
+    }
+
+    public override void Reload()
+    {
+        if (_path != null) Load(_path);
+    }
+}
 }

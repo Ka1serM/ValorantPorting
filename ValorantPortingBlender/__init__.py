@@ -225,7 +225,17 @@ def import_material(target_slot: bpy.types.MaterialSlot, material_data, mat_type
         tex_image_node.image = image
         tex_image_node.image.alpha_mode = 'CHANNEL_PACKED'
         tex_image_node.hide = True
-        tex_image_node.image.colorspace_settings.name = 'Linear Rec.709'
+
+        # Texture type is encoded as a suffix on the asset's own name (e.g. "..._DF", "..._NM").
+        # DF (diffuse/albedo) needs sRGB, NM (normal map) needs Non-Color, everything else
+        # (MRS, MRAE, AEM, and any other packed-mask type) stays Linear Rec.709.
+        texture_name = value.split(".")[-1].upper()
+        if texture_name.endswith("_NM"):
+            tex_image_node.image.colorspace_settings.name = 'Non-Color'
+        elif texture_name.endswith("_DF"):
+            tex_image_node.image.colorspace_settings.name = 'sRGB'
+        else:
+            tex_image_node.image.colorspace_settings.name = 'Linear Rec.709'
 
         if 'decal' in name.lower():
             uv_node = nodes.new(type="ShaderNodeUVMap")
@@ -303,7 +313,7 @@ def import_shaders(shaderName):
 def create_collection(name):
     if name in bpy.context.view_layer.layer_collection.children:
         bpy.context.view_layer.active_layer_collection = bpy.context.view_layer.layer_collection.children.get(name)
-        return
+        return bpy.data.collections.get(name)
     bpy.ops.object.select_all(action='DESELECT')
 
     new_collection = bpy.data.collections.new(name)
@@ -438,11 +448,16 @@ def register():
 
     def handler():
         if import_event.is_set():
-            import_response(server.data)
+            try:
+                import_response(server.data)
+            except Exception as e:
+                Log.error(f"Import failed, but the listener will keep running: {e}")
+                import traceback
+                traceback.print_exc()
             import_event.clear()
         return 0.01
 
-    bpy.app.timers.register(handler)
+    bpy.app.timers.register(handler, persistent=True)
 
 
 def unregister():
