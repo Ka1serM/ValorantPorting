@@ -1,4 +1,7 @@
-﻿# ValorantPorting [![Discord](https://discord.com/api/guilds/866821077769781249/widget.png?style=shield)](https://discord.com/invite/valorant3d)
+> [!IMPORTANT]
+> ## ValorantPorting is archived. Its successor is [Verylia](https://verylia.marcelk.dev).
+
+# ValorantPorting [![Discord](https://discord.com/api/guilds/866821077769781249/widget.png?style=shield)](https://discord.com/invite/valorant3d)
 A free and open-source tool created to automate the Valorant porting process to Blender and Unreal Engine, altered by catxa2018 to support the UE5 version of Valorant.
 
 # Installation
